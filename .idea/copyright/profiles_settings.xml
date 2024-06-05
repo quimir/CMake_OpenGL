@@ -1,7 +1,7 @@
 <component name="CopyrightManager">
   <settings>
     <module2copyright>
-      <element module="Project Source Files" copyright="lic_apache_v2.0" />
+      <element module="Project Files" copyright="lic_apache_v2.0" />
     </module2copyright>
     <LanguageOptions name="ObjectiveC">
       <option name="fileTypeOverride" value="3" />

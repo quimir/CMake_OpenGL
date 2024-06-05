@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.24)
 
 project(cmake_open VERSION 0.1)
 
@@ -29,7 +29,7 @@ find_package(GLFW3 REQUIRED)
 message(STATUS "Found GLFW3 in ${GLFW3_INCLUDE_DIR}")
 
 # Obtain the installation directory of the application
-configure_file(configuration/root_directory.h.in configuration/root_directory.h)
+configure_file(configuration/root_directory.h.in ${CMAKE_BINARY_DIR}/configuration/root_directory.h)
 include_directories(${CMAKE_BINARY_DIR}/configuration)
 
 set(LIBS glfw3 opengl32)
@@ -44,11 +44,22 @@ if (MSVC)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif ()
 
+set(HEADER_FILES_DIR "${CMAKE_SOURCE_DIR}/includes/include")
+set(SOURCE_FILES_DIR "${CMAKE_SOURCE_DIR}/src/implementation")
+
 set(CHAPTERS
 		started_opengl)
 
 function(create_project_from_sources chapter)
+	set(HEADER_FILES "${HEADER_FILES_DIR}/*.h"
+			"${HEADER_FILES_DIR}/*.hpp")
+
+	set(SOURCE_FILES "${SOURCE_FILES_DIR}/*.cc"
+			"${SOURCE_FILES_DIR}/*.cpp")
+
 	file(GLOB SOURCE
+			${HEADER_FILES}
+			${SOURCE_FILES}
 			"src/${chapter}/*.h"
 			"src/${chapter}/*.cpp"
 			"src/${chapter}/*.cc"
@@ -91,28 +102,24 @@ function(create_project_from_sources chapter)
 			"src/${chapter}/*.comp"
 			"src/${chapter}/*.vsh")
 
-	# copy dlls
-	file(GLOB DLLS "dlls/*.dll")
 	foreach (SHADER ${SHADERS})
 		if (WIN32)
-			# configure_file(${SHADER} "test")
 			add_custom_command(TARGET ${NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SHADER} $<TARGET_FILE_DIR:${NAME}>)
-			add_custom_command(TARGET ${NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${DLLS} $<TARGET_FILE_DIR:${NAME}>)
 		endif (WIN32)
 	endforeach ()
+
+	# copy dlls
+	if (WIN32)
+		file(GLOB DLLS "dlls/*.dll")
+		foreach (DLL ${DLLS})
+			add_custom_command(TARGET ${NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${DLL} $<TARGET_FILE_DIR:${NAME}>)
+		endforeach ()
+	endif (WIN32)
 endfunction()
 
 # then create a project file per tutorial
 foreach (CHAPTER ${CHAPTERS})
 	create_project_from_sources(${CHAPTER})
 endforeach (CHAPTER)
-
-#file(GLOB SOURCE_FILES
-#        "${CMAKE_SOURCE_DIR}/includes/include/*.h"
-#        "${CMAKE_SOURCE_DIR}/src/*.cc")
-#
-#add_executable(${OPENGL_TARGET_NAME} ${SOURCE_FILES})
-
-#target_link_libraries(${OPENGL_TARGET_NAME} PRIVATE ${LIBS})
 
 include_directories(${CMAKE_SOURCE_DIR}/includes)
