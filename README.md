@@ -10,3 +10,11 @@ compliance[Google's open source style guide](https://zh-google-styleguide.readth
  - MSVC 17.0
  - CMake 3.24.2
  - CXX 17
+- GLFW 3.4
+- Glad
+    - gl v4.6
+    - gles1 none
+    - gles2 none
+    - glsc2 none
+    - profile Core
+    - See /src/glad.c for details.

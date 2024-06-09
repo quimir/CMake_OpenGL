@@ -22,9 +22,17 @@
 
 class FilePathSystem {
  public:
+  /**
+   * Gets the path of the project in the system.
+   * @param path File path, usually enter the name of the file.
+   * @return The complete path of the file in the system , is generally the path of the project in the system + the path 
+   * of the file.
+   */
   std::string GetPath(const std::string &path);
 
-  std::string GetResourcesPath(const std::string &path);
+  std::string GetResourcesPath(const std::string &path,
+							   const std::string &resources_path =
+							   std::string("resources"));
 
   static FilePathSystem &GetInstance();
 

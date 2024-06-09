@@ -14,12 +14,13 @@
  * limitations under the License.
  ******************************************************************************/
 
-#include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <vector>
 #include "include/Shader.h"
 #include "include/FilePathSystem.h"
+#include "include/LoggerSystem.h"
+#include "include/OpenGLMessage.h"
 
 using namespace std;
 
@@ -44,15 +45,18 @@ void ProcessInput(GLFWwindow *window) {
 }
 
 int main() {
+  LoggerSystem &logger = LoggerSystem::GetInstance();
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 
-  GLFWwindow *window = glfwCreateWindow(800, 600, "LearnOpenGL", nullptr, nullptr);
+  GLFWwindow *window = glfwCreateWindow(
+	  800, 600, "LearnOpenGL", nullptr, nullptr);
 
   if (window == nullptr) {
-	cout << "Failed to create GLFW window" << endl;
+	logger.Log(LoggerSystem::Level::kError, "Failed to create GLFW window");
 	glfwTerminate();
 	return -1;
   }
@@ -60,11 +64,15 @@ int main() {
   glfwMakeContextCurrent(window);
 
   if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
-	cout << "Failed to initialize GLAD" << endl;
+	logger.Log(LoggerSystem::Level::kError, "Failed to initialize GLAD");
 	return -1;
   }
 
   glfwSetFramebufferSizeCallback(window, FrameBufferSizeCallback);
+
+  OpenGLMessage &opengl_message = OpenGLMessage::GetInstance();
+
+  opengl_message.EnableOpenGLDebugMessage();
 
   Shader text_shader("text.vert", "text.frag");
 
@@ -88,6 +96,8 @@ int main() {
   while (!glfwWindowShouldClose(window)) {
 
 	ProcessInput(window);
+	opengl_message.GetOpenGLCheckError(glClear,
+									   GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);

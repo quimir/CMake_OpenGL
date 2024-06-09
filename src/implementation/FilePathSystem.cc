@@ -45,10 +45,13 @@ std::string FilePathSystem::GetPathRelativeRoot(const std::string &path) {
 std::string FilePathSystem::GetPathRelativeBinary(const std::string &path) {
   return "../../" + path;
 }
-std::string FilePathSystem::GetResourcesPath(const std::string &path) {
-  if (!this->root.empty())
-	return GetPathRelativeRoot(std::string("resources") + path);
-  else
-	return GetPathRelativeBinary(std::string("resources") + path);
+std::string FilePathSystem::GetResourcesPath(const std::string &path,
+											 const std::string &resources_path) {
+  if (!this->root.empty()) {
+	return GetPathRelativeRoot(resources_path + path);
+  }
+  else {
+	return GetPathRelativeBinary(resources_path + path);
+  }
 }
 

@@ -24,6 +24,7 @@
 #include <sstream>
 #include <iostream>
 #include <map>
+#include <unordered_set>
 
 class Shader {
  private:
@@ -42,21 +43,33 @@ class Shader {
 
   void Use();
 
-  void SetBool(const std::string &name, bool value) const;
+  void SetBool(const std::string &name, bool value);
 
-  void SetInt(const std::string &name, int value) const;
+  void SetInt(const std::string &name, int value);
 
-  void SetFloat(const std::string &name, float value) const;
+  void SetFloat(const std::string &name, float value);
 
-  Shader(const char *vertex_path, const char *fragment_path);
+  Shader(const char *vertex_path,
+		 const char *fragment_path,
+		 const char *geometry_path = nullptr);
 
-  Shader(std::string vertex_path, std::string fragment_path, std::string geometry_path = std::string());
+  Shader(const std::string &vertex_path,
+		 const std::string &fragment_path,
+		 const std::string &geometry_path = std::string());
 
  private:
-  static void CheckCompileErrors(GLuint shader, ShaderErrorType error_type);
+  void CheckCompileErrors(GLuint shader, ShaderErrorType error_type);
+
+  std::string ShaderErrorTypeToString(ShaderErrorType type);
+
+  GLint CheckUniformExists(const std::string &uniform_name);
+
+  GLuint CheckUniformBlockExists(const std::string &block_name);
 
  private:
   GLuint id_;
+  std::unordered_set<std::string> uniform_warnings_;
+  std::unordered_set<std::string> uniform_block_warnings_;
 };
 
 #endif //CMAKE_OPEN_INCLUDES_INCLUDE_SHADER_H_
