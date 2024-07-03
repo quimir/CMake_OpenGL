@@ -57,10 +57,16 @@ class Camera {
 
   glm::mat4 GetViewMatrix() const;
 
-  void ProcessKeyboard(CameraMovement direction, glm::float32 delta_time);
+  void ProcessKeyboard(Camera::CameraMovement direction, glm::float64 delta_time);
+
+  void ProcessKeyboard(Camera::CameraMovement direction, glm::float32 delta_time);
 
   void ProcessMouseMovement(glm::float32 x_offset,
 							glm::float32 y_offset,
+							bool constrain_pitch = true);
+
+  void ProcessMouseMovement(glm::float64 x_offset,
+							glm::float64 y_offset,
 							bool constrain_pitch = true);
 
   void ProcessMouseScroll(glm::float32 y_offset);

@@ -17,8 +17,6 @@ set(CMAKE_CXX_EXTENSIONS ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-set(OPENGL_TARGET_DLLS ${CMAKE_SOURCE_DIR}/dlls)
-
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
 link_directories(${CMAKE_SOURCE_DIR}/lib)
@@ -27,12 +25,14 @@ find_package(GLM REQUIRED)
 message(STATUS "GLM included at ${GLM_INCLUDE_DIR}")
 find_package(GLFW3 REQUIRED)
 message(STATUS "Found GLFW3 in ${GLFW3_INCLUDE_DIR}")
+find_package(ASSIMP REQUIRED)
+message(STATUS "Found ASSIMP in ${ASSIMP_INCLUDE_DIR}")
 
 # Obtain the installation directory of the application
 configure_file(configuration/root_directory.h.in ${CMAKE_BINARY_DIR}/configuration/root_directory.h)
 include_directories(${CMAKE_BINARY_DIR}/configuration)
 
-set(LIBS glfw3 opengl32)
+set(LIBS glfw3 opengl32 assimp)
 
 # First create relevant static libraries required for other projects
 add_library(STB_IMAGE "src/stb_image.cpp")
@@ -49,23 +49,22 @@ set(HEADER_FILES_DIR "${CMAKE_SOURCE_DIR}/includes/include")
 set(SOURCE_FILES_DIR "${CMAKE_SOURCE_DIR}/src/implementation")
 
 set(CHAPTERS
-	started_opengl)
+	started_opengl
+	model_loading
+	started_opengl_texture)
 
 function(create_project_from_sources chapter)
   set(HEADER_FILES "${HEADER_FILES_DIR}/*.h"
 	  "${HEADER_FILES_DIR}/*.hpp"
-	  "${HEADER_FILES_DIR}/*.inl")
+	  "${HEADER_FILES_DIR}/*.inl"
+	  "src/${chapter}/*.h")
 
   set(SOURCE_FILES "${SOURCE_FILES_DIR}/*.cc"
-	  "${SOURCE_FILES_DIR}/*.cpp")
-
-  file(GLOB SOURCE
-	  ${HEADER_FILES}
-	  ${SOURCE_FILES}
-	  "src/${chapter}/*.h"
+	  "${SOURCE_FILES_DIR}/*.cpp"
 	  "src/${chapter}/*.cpp"
-	  "src/${chapter}/*.cc"
-	  "src/${chapter}/*.glsl"
+	  "src/${chapter}/*.cc")
+
+  set(SHADER_FILES "src/${chapter}/*.glsl"
 	  "src/${chapter}/*.vert"
 	  "src/${chapter}/*.frag"
 	  "src/${chapter}/*.geom"
@@ -74,7 +73,12 @@ function(create_project_from_sources chapter)
 	  "src/${chapter}/*.gsh"
 	  "src/${chapter}/*.fsh"
 	  "src/${chapter}/*.comp"
-	  "src/${chapter}/*.vsh"
+	  "src/${chapter}/*.vsh")
+
+  file(GLOB SOURCE
+	  ${HEADER_FILES}
+	  ${SOURCE_FILES}
+	  ${SHADER_FILES}
   )
 
   set(NAME "${chapter}")
@@ -86,6 +90,7 @@ function(create_project_from_sources chapter)
 	target_compile_options(${NAME} PRIVATE /std:c++17 /MP)
 	target_link_options(${NAME} PUBLIC /ignore:4099)
   endif (MSVC)
+
   if (WIN32)
 	set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${chapter}")
 	set_target_properties(${NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${chapter}/Debug")
@@ -93,16 +98,7 @@ function(create_project_from_sources chapter)
 
   # copy shader files to build directory
   file(GLOB SHADERS
-	  "src/${chapter}/*.glsl"
-	  "src/${chapter}/*.vert"
-	  "src/${chapter}/*.frag"
-	  "src/${chapter}/*.geom"
-	  "src/${chapter}/*.tesc"
-	  "src/${chapter}/*.tese"
-	  "src/${chapter}/*.gsh"
-	  "src/${chapter}/*.fsh"
-	  "src/${chapter}/*.comp"
-	  "src/${chapter}/*.vsh")
+	  ${SHADER_FILES})
 
   foreach (SHADER ${SHADERS})
 	if (WIN32)
@@ -112,7 +108,7 @@ function(create_project_from_sources chapter)
 
   # copy dlls
   if (WIN32)
-	file(GLOB DLLS "dlls/*.dll")
+	file(GLOB DLLS "${CMAKE_SOURCE_DIR}/dlls/*.dll")
 	foreach (DLL ${DLLS})
 	  add_custom_command(TARGET ${NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${DLL} $<TARGET_FILE_DIR:${NAME}>)
 	endforeach ()
@@ -125,3 +121,22 @@ foreach (CHAPTER ${CHAPTERS})
 endforeach (CHAPTER)
 
 include_directories(${CMAKE_SOURCE_DIR}/includes)
+
+add_subdirectory(${CMAKE_SOURCE_DIR}/src/googletest-1.14.0)
+
+add_subdirectory(src/ctests)
+
+aux_source_directory(/src/ctests SRC_LIST)
+
+# Create the test executable
+foreach (test ${SRC_LIST})
+  string(REGEX REPLACE "\\.cpp$" "" test_name${test})
+  add_executable(${test_name} ${test})
+  target_link_libraries(${test_name} PRIVATE your_library)
+  add_test(NAME ${test_name} COMMAND${test_name})
+endforeach ()
+
+# Set test properties such as WORKING DIRECTORY for the test
+set_tests_properties(${test_name} PROPERTIES
+	WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test_data"
+)

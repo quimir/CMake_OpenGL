@@ -17,14 +17,15 @@
 #ifndef CMAKE_OPEN_INCLUDES_INCLUDE_SHADER_H_
 #define CMAKE_OPEN_INCLUDES_INCLUDE_SHADER_H_
 
-#include <glad/glad.h>
-
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <map>
 #include <unordered_set>
+
+#include "glad/glad.h"
+#include "glm/glm.hpp"
 
 class Shader {
  private:
@@ -48,6 +49,24 @@ class Shader {
   void SetInt(const std::string &name, int value);
 
   void SetFloat(const std::string &name, float value);
+
+  void SetVec2(const std::string &name, float x, float y);
+
+  void SetVec2(const std::string &name, const glm::vec2 &value);
+
+  void SetVec3(const std::string &name, float x, float y, float z);
+
+  void SetVec3(const std::string &name, const glm::vec3 &value);
+
+  void SetVec4(const std::string &name, float x, float y, float z, float w);
+
+  void SetVec4(const std::string &name, const glm::vec4 &value);
+  
+  void SetMat2(const std::string& name,const glm::mat2& mat2);
+  
+  void SetMat3(const std::string& name,const glm::mat3& mat3);
+  
+  void SetMat4(const std::string& name,const glm::mat4& mat4);
 
   Shader(const char *vertex_path,
 		 const char *fragment_path,

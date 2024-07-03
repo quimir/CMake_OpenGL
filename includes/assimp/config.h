@@ -108,7 +108,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * Property type: int, default value: -1.
  */
 #define AI_CONFIG_GLOB_MULTITHREADING  \
-	"GLOB_MULTITHREADING"
+    "GLOB_MULTITHREADING"
 #endif
 
 // ###########################################################################

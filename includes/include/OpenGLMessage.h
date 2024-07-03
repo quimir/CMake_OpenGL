@@ -66,6 +66,8 @@ class OpenGLMessage {
 
   static OpenGLMessage &GetInstance();
 
+  OpenGLMessage &operator=(const OpenGLMessage &) = delete;
+
  private:
   /**
    * Determines OpenGL runtime errors and outputs them to the log file in the form of 
@@ -134,8 +136,7 @@ class OpenGLMessage {
 												  const void *userParam);
 
   OpenGLMessage() = default;
-  OpenGLMessage(const OpenGLMessage &) = delete;
-  OpenGLMessage &operator=(const OpenGLMessage &) = delete;
+  OpenGLMessage(const OpenGLMessage &) = default;
 };
 
 #include "OpenGLMessage.inl"

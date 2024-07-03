@@ -32,7 +32,7 @@ class FilePathSystem {
 
   std::string GetResourcesPath(const std::string &path,
 							   const std::string &resources_path =
-							   std::string("resources"));
+							   std::string("resources/"));
 
   static FilePathSystem &GetInstance();
 
@@ -46,7 +46,7 @@ class FilePathSystem {
   static std::string GetPathRelativeBinary(const std::string &path);
 
  private:
-  std::string root;
+  std::string root_;
 };
 
 #endif //CMAKE_OPEN_INCLUDES_INCLUDE_FILEPATHSYSTEM_H_

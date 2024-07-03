@@ -149,8 +149,8 @@ glm::mat4 Camera::GetViewMatrix() const {
   return glm::lookAt(this->position_, this->position_ + this->front_, this->up_);
 }
 
-void Camera::ProcessKeyboard(Camera::CameraMovement direction, glm::float32 delta_time) {
-  glm::float32 velocity = movement_speed_ * delta_time;
+void Camera::ProcessKeyboard(Camera::CameraMovement direction, glm::float64 delta_time) {
+  glm::float32 velocity = movement_speed_ * static_cast<glm::float32>(delta_time);
   switch (direction) {
 	case CameraMovement::kForward: position_ += front_ * velocity;
 	  break;
@@ -194,4 +194,40 @@ void Camera::ProcessMouseScroll(glm::float32 y_offset) {
   if (zoom_ > 45.0f) {
 	zoom_ = 45.0f;
   }
+}
+void Camera::ProcessKeyboard(Camera::CameraMovement direction, glm::float32 delta_time) {
+  glm::float32 velocity = movement_speed_ * delta_time;
+  switch (direction) {
+	case CameraMovement::kForward: position_ += front_ * velocity;
+	  break;
+	case CameraMovement::kBackward: position_ -= front_ * velocity;
+	  break;
+	case CameraMovement::kLeft: position_ -= right_ * velocity;
+	  break;
+	case CameraMovement::kRight: position_ += right_ * velocity;
+	  break;
+  }
+}
+void Camera::ProcessMouseMovement(glm::float64 x_offset,
+								  glm::float64 y_offset,
+								  bool constrain_pitch) {
+
+  x_offset *= mouse_sensitivity_;
+  y_offset *= mouse_sensitivity_;
+
+  yaw_ += static_cast<glm::float32>(x_offset);
+  pitch_ += static_cast<glm::float32>(y_offset);
+
+  // Make sure that when pitch is out of bounds, screen doesn't get flipped
+  if (constrain_pitch) {
+	if (this->pitch_ > 89.0f) {
+	  this->pitch_ = 89.0f;
+	}
+	if (this->pitch_ < -89.0f) {
+	  this->pitch_ = -89.0f;
+	}
+  }
+
+  // Update front, right and up vectors using the updated Euler angles
+  UpdateCameraVectors();
 }

@@ -504,3 +504,5 @@ fabric.properties
 !/cmake-build-debug-event-trace/
 !/cmake-build-debug/
 !/cmake-build-release/
+!/Testing/
+!/out/

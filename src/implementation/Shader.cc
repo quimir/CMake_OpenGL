@@ -27,6 +27,7 @@ void Shader::CheckCompileErrors(GLuint shader, Shader::ShaderErrorType error_typ
   if (error_type != ShaderErrorType::kProgram) {
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 	if (!success) {
+	  info_log=new char[kInfoLogLength];
 	  glGetShaderInfoLog(shader, kInfoLogLength, nullptr, info_log);
 	  LoggerSystem::GetInstance().Log(LoggerSystem::Level::kError,
 									  string("ERROR::SHADER_COMPILATION_ERROR of type: ")
@@ -37,7 +38,8 @@ void Shader::CheckCompileErrors(GLuint shader, Shader::ShaderErrorType error_typ
   } else {
 	glGetProgramiv(shader, GL_LINK_STATUS, &success);
 	if (!success) {
-	  glGetProgramInfoLog(shader, kInfoLogLength, nullptr, info_log);
+	  info_log=new char[kInfoLogLength];
+	  glGetProgramInfoLog(shader, 1024, nullptr, info_log);
 	  LoggerSystem::GetInstance().Log(LoggerSystem::Level::kError,
 									  string("ERROR::PROGRAM_LINKING_ERROR of type: ")
 										  + ShaderErrorTypeToString(error_type) +
@@ -286,4 +288,31 @@ GLuint Shader::CheckUniformBlockExists(const string &block_name) {
   }
 
   return block_index;
+}
+void Shader::SetVec2(const string &name, float x, float y) {
+  glUniform2f(CheckUniformExists(name), x, y);
+}
+void Shader::SetVec2(const string &name, const glm::vec2 &value) {
+  glUniform2fv(CheckUniformExists(name), 1, &value[0]);
+}
+void Shader::SetVec3(const string &name, float x, float y, float z) {
+  glUniform3f(CheckUniformExists(name), x, y, z);
+}
+void Shader::SetVec3(const string &name, const glm::vec3 &value) {
+  glUniform3fv(CheckUniformExists(name), 1, &value[0]);
+}
+void Shader::SetVec4(const string &name, float x, float y, float z, float w) {
+  glUniform4f(CheckUniformExists(name), x, y, z, w);
+}
+void Shader::SetVec4(const string &name, const glm::vec4 &value) {
+  glUniform4fv(CheckUniformExists(name), 1, &value[0]);
+}
+void Shader::SetMat2(const string &name, const glm::mat2 &mat2) {
+  glUniformMatrix2fv(CheckUniformExists(name), 1, GL_FALSE, &mat2[0][0]);
+}
+void Shader::SetMat3(const string &name, const glm::mat3 &mat3) {
+  glUniformMatrix3fv(CheckUniformExists(name),1,GL_FALSE,&mat3[0][0]);
+}
+void Shader::SetMat4(const string &name, const glm::mat4 &mat4) {
+  glUniformMatrix4fv(CheckUniformExists(name),1,GL_FALSE,&mat4[0][0]);
 }

@@ -17,6 +17,7 @@
 #include <sstream>
 #include <utility>
 #include "include/LoggerSystem.h"
+#include "include/TimeUtils.h"
 
 LoggerSystem &LoggerSystem::GetInstance() {
   static LoggerSystem instance;
@@ -27,7 +28,7 @@ void LoggerSystem::Log(LoggerSystem::Level level, const std::string &message) {
   RotateLogFile();
 
   log_file_ << "[" << LevelToString(level) << "]" << "  " << "["
-			<< GetCurrentTimeString() << "]" << "  " << "[" <<
+			<< GetCurrentTimeToString() << "]" << "  " << "[" <<
 			message << "]" << std::endl;
 }
 
@@ -36,13 +37,13 @@ void LoggerSystem::SetMaxSize(std::size_t size) {
 	this->max_size_ = size;
 }
 
-void LoggerSystem::SetMaxAge(std::chrono::hours age) {
+void LoggerSystem::SetMaxAge(std::chrono::seconds age) {
   if (age != this->max_age_)
 	this->max_age_ = age;
 }
 
-std::string LoggerSystem::GetCurrentTimeString() const {
-  return FormatTime(GetCurrentTime());
+std::string LoggerSystem::GetCurrentTimeToString() const {
+  return TimeUtils::GetInstance().FormatTime(TimeUtils::GetInstance().GetCurrentTime());
 }
 
 LoggerSystem::~LoggerSystem() {
@@ -68,8 +69,8 @@ void LoggerSystem::RotateLogFile() {
 	RollOverLogs();
   }
 
-  if (max_age_ != std::chrono::hours::zero()) {
-	auto now = GetCurrentTime();
+  if (max_age_ != std::chrono::seconds::max()) {
+	auto now = TimeUtils::GetInstance().GetCurrentTime();
 	if (std::chrono::duration_cast<std::chrono::hours>(now - last_log_time_)
 		> max_age_) {
 	  if (log_file_.is_open()) {
@@ -81,7 +82,7 @@ void LoggerSystem::RotateLogFile() {
   }
 }
 
-LoggerSystem::LoggerSystem(std::size_t size, std::chrono::hours age,
+LoggerSystem::LoggerSystem(std::size_t size, std::chrono::seconds age,
 						   std::string log_file_path) :
 	max_size_(size), max_age_(age), log_file_path_(std::move(log_file_path)) {
   try {
@@ -97,7 +98,9 @@ LoggerSystem::LoggerSystem(std::size_t size, std::chrono::hours age,
 	// Check whether the log file exists, and if it does not, create it
 	if (last_log_file_name_.empty() || !std::filesystem::exists(last_log_file_name_)) {
 	  last_log_file_name_ = (log_dir
-		  / ("log_" + FormatTime(std::chrono::system_clock::now()) + ".log")).string();
+		  / ("log_"
+			  + TimeUtils::GetInstance().FormatTime(TimeUtils::GetInstance().GetCurrentTime())
+			  + ".log")).string();
 	  log_file_.open(last_log_file_name_, std::ios_base::out);
 	} else {
 	  log_file_.open(last_log_file_name_, std::ios_base::app);
@@ -107,7 +110,7 @@ LoggerSystem::LoggerSystem(std::size_t size, std::chrono::hours age,
 	  throw std::runtime_error("Unable to open log file");
 	}
 
-	this->start_log_time_ = GetCurrentTime();
+	this->start_log_time_ = TimeUtils::GetInstance().GetCurrentTime();
 	this->last_log_time_ = this->start_log_time_;
   } catch (const std::exception &e) {
 	std::cerr << "Error initializing Logger: " << e.what() << std::endl;
@@ -117,38 +120,24 @@ LoggerSystem::LoggerSystem(std::size_t size, std::chrono::hours age,
 void LoggerSystem::RollOverLogs() {
   log_file_.close();
 
-  auto log_end_time = GetCurrentTime();
-  std::string new_log_file_name = "log_" + FormatTime(this->start_log_time_) + "--" +
-	  FormatTime(log_end_time) + ".log";
+  auto log_end_time = TimeUtils::GetInstance().GetCurrentTime();
+  std::string new_log_file_name =
+	  "log_" + TimeUtils::GetInstance().FormatTime(this->start_log_time_) + "--" +
+		  TimeUtils::GetInstance().FormatTime(log_end_time) + ".log";
   std::filesystem::path
 	  new_log_path = std::filesystem::path(log_file_path_) / new_log_file_name;
 
   std::filesystem::rename(last_log_file_name_, new_log_path);
 
   last_log_file_name_ = (std::filesystem::path(log_file_path_)
-	  / ("log_" + FormatTime(log_end_time) + ".log")).string();
+	  / ("log_" + TimeUtils::GetInstance().FormatTime(log_end_time) + ".log")).string();
   log_file_.open(last_log_file_name_, std::ios_base::out);
   if (!log_file_.is_open()) {
 	throw std::runtime_error("Unable to open new log file");
   }
 
-  this->start_log_time_ = GetCurrentTime();
+  this->start_log_time_ = TimeUtils::GetInstance().GetCurrentTime();
   SaveLastLogFileName();
-}
-
-std::string LoggerSystem::FormatTime(const std::chrono::system_clock::time_point
-									 &time_point) const {
-  auto now = std::chrono::system_clock::to_time_t(time_point);
-  std::tm local_time{};
-  localtime_s(&local_time, &now);
-
-  std::ostringstream oss;
-  oss << std::put_time(&local_time, "%Y-%m-%d_%H-%M-%S");
-  return oss.str();
-}
-
-std::chrono::time_point<std::chrono::system_clock> LoggerSystem::GetCurrentTime() const {
-  return std::chrono::system_clock::now();
 }
 
 void LoggerSystem::DeleteAllLogs() {

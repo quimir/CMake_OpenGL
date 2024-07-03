@@ -85,30 +85,32 @@ class LoggerSystem {
    * and the default value is 0 days, which means that all files will be saved.
    * @param age The maximum number of days a file can be kept, in hours.
    */
-  void SetMaxAge(std::chrono::hours age);
+  void SetMaxAge(std::chrono::seconds age);
 
   void SetMaxAge(double_t age);
 
  private:
   explicit LoggerSystem(std::size_t size = std::size_t(1024 * 1024),
-						std::chrono::hours age = std::chrono::hours(std::chrono::hours::zero()),
+						std::chrono::seconds age = std::chrono::seconds(std::chrono::seconds::max()),
 						std::string log_file_path = std::string("log/"));
 
   ~LoggerSystem();
+  
+  std::string GetCurrentTimeToString() const;
 
-  std::string GetCurrentTimeString() const;
-
-  std::chrono::time_point<std::chrono::system_clock> GetCurrentTime() const;
-
+  /**
+   * Convert the log level to a string format, and convert the format to uppercase 
+   * without the k.
+   * @param level See LoggerSystem::Level for details on the level of log files.
+   * @return Log level string.
+   */
   std::string LevelToString(Level level);
-
+  
   void RotateLogFile();
 
   void RollOverLogs();
 
   void DeleteAllLogs();
-
-  std::string FormatTime(const std::chrono::system_clock::time_point &time_point) const;
 
   void LoadLastLogFileName();
 
@@ -118,7 +120,7 @@ class LoggerSystem {
   std::ofstream log_file_;
   std::mutex log_mutex_;
   std::size_t max_size_;
-  std::chrono::hours max_age_;
+  std::chrono::seconds max_age_;
   // Log file setting
   std::string log_file_path_;
   std::string last_log_file_name_;
