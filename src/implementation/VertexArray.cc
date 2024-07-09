@@ -16,11 +16,13 @@
 
 #include "include/VertexArray.h"
 #include "include/LoggerSystem.h"
-VertexArray::VertexArray() {
+VertexArray::VertexArray() : vao_id_(0) {
   if (glGetString(GL_VERSION) == nullptr) {
-	LoggerSystem::GetInstance().Log(LoggerSystem::Level::kWarning,
-									"OpenGL is not initialized");
-	return;
+    LoggerSystem::GetInstance().Log(
+        LoggerSystem::Level::kWarning,
+        "OpenGL was not initialized while building the VertexArray.");
+    std::runtime_error(
+        "OpenGL was not initialized while building the VertexArray.");
   }
   glGenVertexArrays(1, &vao_id_);
 }
@@ -33,12 +35,26 @@ void VertexArray::Bind() const {
 void VertexArray::UnBind() const {
   glBindVertexArray(0);
 }
-void VertexArray::AddBuffer(GLuint index,
-							GLint size,
-							GLenum type,
-							GLboolean normalized,
-							GLsizei stride,
-							const void *pointer) const {
+void VertexArray::AddBuffer(GLuint index, GLint size, GLenum type,
+                            GLboolean normalized, GLsizei stride,
+                            const void* pointer) const {
   glVertexAttribPointer(index, size, type, normalized, stride, pointer);
+  glEnableVertexAttribArray(index);
+}
+
+void VertexArray::AddIntBuffer(GLuint index, GLint size, GLenum type,
+                               GLsizei stride, const void* pointer) const {
+  glVertexAttribIPointer(index, size, type, stride, pointer);
+  glEnableVertexAttribArray(index);
+}
+void VertexArray::ReGenVertexArrays() {
+  glGenVertexArrays(1, &vao_id_);
+}
+GLuint VertexArray::GetVaoId() const {
+  return vao_id_;
+}
+void VertexArray::AddLongBuffer(GLuint index, GLint size, GLenum type,
+                                GLsizei stride, const void* pointer) const {
+  glVertexAttribLPointer(index, size, type, stride, pointer);
   glEnableVertexAttribArray(index);
 }

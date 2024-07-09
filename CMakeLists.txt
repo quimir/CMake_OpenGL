@@ -122,21 +122,26 @@ endforeach (CHAPTER)
 
 include_directories(${CMAKE_SOURCE_DIR}/includes)
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/googletest-1.14.0)
+# Add option to enable or disable tests
+option(ENABLE_TESTS "Enable test" ON)
 
-add_subdirectory(src/ctests)
+if (ENABLE_TESTS)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/src/googletest-1.14.0)
 
-aux_source_directory(/src/ctests SRC_LIST)
+  add_subdirectory(src/ctests)
 
-# Create the test executable
-foreach (test ${SRC_LIST})
-  string(REGEX REPLACE "\\.cpp$" "" test_name${test})
-  add_executable(${test_name} ${test})
-  target_link_libraries(${test_name} PRIVATE your_library)
-  add_test(NAME ${test_name} COMMAND${test_name})
-endforeach ()
+  aux_source_directory(/src/ctests SRC_LIST)
 
-# Set test properties such as WORKING DIRECTORY for the test
-set_tests_properties(${test_name} PROPERTIES
-	WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test_data"
-)
+  # Create the test executable
+  foreach (test ${SRC_LIST})
+	string(REGEX REPLACE "\\.cpp$" "" test_name${test})
+	add_executable(${test_name} ${test})
+	target_link_libraries(${test_name} PRIVATE your_library)
+	add_test(NAME ${test_name} COMMAND${test_name})
+  endforeach ()
+
+  # Set test properties such as WORKING DIRECTORY for the test
+  set_tests_properties(${test_name} PROPERTIES
+	  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test_data"
+  )
+endif ()

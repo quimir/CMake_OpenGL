@@ -96,7 +96,7 @@ void OpenGLMainWindow::ProcessInput(GLFWwindow *window) {
 OpenGLMainWindow::OpenGLMainWindow(int width,
 								   int height,
 								   const char *title)
-	: OpenGLWindow(width, height, title),
+	: OpenGLWindow(width, height, title, nullptr, nullptr),
 	  delta_time_(0.0f),
 	  last_frame_(0.0f),
 	  paused(false) {

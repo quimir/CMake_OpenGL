@@ -1,4 +1,4 @@
-﻿/*******************************************************************************
+/*******************************************************************************
  * Copyright 2024 QuiMir
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,21 +14,24 @@
  * limitations under the License.
  ******************************************************************************/
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <vector>
-#include "OpenGLMainWindow.h"
-#include "include/FilePathSystem.h"
-#include "include/LoggerSystem.h"
-#include "include/OpenGLMessage.h"
-#include "include/Shader.h"
+#ifndef CMAKE_OPEN_INCLUDES_INCLUDE_WIDGET_H_
+#define CMAKE_OPEN_INCLUDES_INCLUDE_WIDGET_H_
 
-using namespace std;
+class Widget {
+ public:
+  Widget(int width, int height);
 
-int main() {
-  OpenGLMainWindow* main_window =
-      new OpenGLMainWindow(800, 600, "Camera circle");
-  main_window->Run();
+  int GetWidth() const;
   
-  return 0;
-}
+  void SetWidth(int width);
+
+  int GetHeight() const;
+
+  void SetHeight(int height);
+
+ private:
+  int width_;
+  int height_;
+};
+
+#endif  //CMAKE_OPEN_INCLUDES_INCLUDE_WIDGET_H_

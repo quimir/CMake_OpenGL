@@ -43,7 +43,7 @@ TEST(TimeUtilsTest, GetDurationInSeconds) {
 }
 
 TEST(TimeUtilsTest, GetTimeStamp) {
-  double timestamp = TimeUtils::GetInstance().GetTImeStamp();
+  double timestamp = TimeUtils::GetInstance().GetTimeStamp();
   ASSERT_GT(timestamp, 0.0);
 }
 

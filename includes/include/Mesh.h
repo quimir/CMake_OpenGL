@@ -17,42 +17,43 @@
 #ifndef CMAKE_OPEN_INCLUDES_INCLUDE_MESH_H_
 #define CMAKE_OPEN_INCLUDES_INCLUDE_MESH_H_
 
-#include <vector>
 #include <string>
+#include <vector>
 
+#include "VertexArray.h"
 #include "glad/glad.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "include/Buffer.h"
 #include "include/MeshData.h"
 #include "include/Shader.h"
 
 class Mesh {
  public:
-  Mesh(std::vector<meshdata::Vertex> vertices,
-	   std::vector<glm::uint32> indices,
-	   std::vector<meshdata::Texture> texture);
-  
+  Mesh(std::vector<meshdata::Vertex> vertices, std::vector<glm::uint32> indices,
+       std::vector<meshdata::Texture> texture);
+
   void Draw(Shader& shader);
-  
-  const std::vector<meshdata::Vertex> &GetVertices() const;
 
-  void SetVertices(const std::vector<meshdata::Vertex> &vertices);
-  
-  const std::vector<glm::uint32> &GetIndices() const;
+  const std::vector<meshdata::Vertex>& GetVertices() const;
 
-  void SetIndices(const std::vector<glm::uint32> &indices);
+  void SetVertices(const std::vector<meshdata::Vertex>& vertices);
 
-  const std::vector<meshdata::Texture> &GetTextures() const;
+  const std::vector<glm::uint32>& GetIndices() const;
 
-  void SetTextures(const std::vector<meshdata::Texture> &textures);
+  void SetIndices(const std::vector<glm::uint32>& indices);
+
+  const std::vector<meshdata::Texture>& GetTextures() const;
+
+  void SetTextures(const std::vector<meshdata::Texture>& textures);
 
   GLuint GetVao() const;
 
   void SetVao(GLuint vao);
-  
+
  private:
   void SetupMesh();
-  
+
  private:
   /*
    * Mesh data 
@@ -63,8 +64,10 @@ class Mesh {
   /*
    * Render data 
    */
+  VertexArray vao;
+  Buffer vbo, ebo;
   GLuint vao_;
   GLuint vbo_, ebo_;
 };
 
-#endif //CMAKE_OPEN_INCLUDES_INCLUDE_MESH_H_
+#endif  //CMAKE_OPEN_INCLUDES_INCLUDE_MESH_H_

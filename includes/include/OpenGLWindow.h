@@ -19,40 +19,148 @@
 
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
-#include "Camera.h"
+#include "FrameBuffer.h"
+#include "include/Widget.h"
 
-class OpenGLWindow {
+/**
+ * OpenGL window, which encapsulates some of the most basic methods of 
+ * generating OpenGL. It is recommended that all Windows that use OpenGL 
+ * build and use OpenGL inherit from this class. If you use GLFW and GLAD, 
+ * they automatically build the OpenGL for you and store the address of 
+ * the resulting OpenGL window in window_. To use this class, you must 
+ * implement void InitializeGL(), void ResizeGL(int width,int height), 
+ * and void PaintGL() by calling void first InitializeGL(), Then call void 
+ * ResizeGL(int width,int height), and finally loop through void PaintGL(). 
+ * See the comments for more details about these three functions. 
+ * 
+ * Please note that you must add the following to the subclass 
+ * constructor: glfwSetWindowUserPointer (this - > window_, this); 
+ * Otherwise, the OpenGL window handle is still called from the superclass.
+ * 
+ * Use reference:
+ * class OpenGLMainWindow:public OpenGLWindow
+ * {};
+ * 
+ * OpenGLMainWindow *window;
+ * window->Run();
+ */
+class OpenGLWindow:public Widget{
  public:
-  OpenGLWindow(int width,int height,const char* title);
-  
+  /**
+   * Initialize OpenGL, build OpenGL successfully if normal and output the 
+   * build details to the log file. Otherwise, an error message is printed.
+   * @param width The desired width, in screen coordinates, of the window. 
+   * This must be greater than zero.
+   * @param height The desired height, in screen coordinates, of the window. 
+   * This must be greater than zero.
+   * @param title The initial, UTF-8 encoded window title.
+   * @param monitor The monitor to use for full screen mode, or NULL for 
+   * windowed mode.
+   * @param share The window whose context to share resources with, or NULL to
+   * not share resources.
+   */
+  OpenGLWindow(int width, int height, const char* title,
+               GLFWmonitor* monitor = nullptr, GLFWwindow* share = nullptr);
+
+  OpenGLWindow(const OpenGLWindow& other) = delete;
+
+  OpenGLWindow& operator=(const OpenGLWindow& other) = delete;
+
+  /**
+   * Perform OpenGL rendering and painting. When you start this function, it 
+   * calls InitializeGL() to initialize your data, and then draws OpenGL. 
+   * It's a for loop statement that goes on until ProcessInput is specifically 
+   * set unless you set the request to close.
+   */
   void Run();
   
-  virtual ~OpenGLWindow();
-  
- protected:
-  virtual void InitializeGL()=0;
-  
-  virtual void ResizeGL(int width,int height)=0;
-  
-  virtual void PaintGL()=0;
+  /**
+   * Prepares for rendering OpenGL content for this widget by making the 
+   * corresponding context current and binding the framebuffer object in 
+   * that context.
+   * 
+   * It is not necessary to call this function in most cases, because it is 
+   * called automatically before invoking paintGL().
+   */
+  void MakeContextCurrent();
 
+  /**
+   * Override this destructor if you are adding your own members, otherwise 
+   * your members may not be destroyed correctly, and do not remove 
+   * OpenGL::~OpenGLWindow() unless you really know the implementation of 
+   * the function.
+   */
+  virtual ~OpenGLWindow();
+
+ protected:
+  /**
+   * This virtual function is called for the first time after the first call 
+   * to the Run function and before PaintGL and ResizeGL. This function 
+   * should set up any required OpenGL resources and state.
+   * 
+   * There is no need to call MakeCurrent() because this has already been done 
+   * when this function is called. Note however that the framebuffer is not 
+   * yet available at this stage, so avoid issuing draw calls from here. 
+   * Defer such calls to PaintGL() instead.
+   */
+  virtual void InitializeGL() = 0;
+
+  /**
+   * This virtual function is called whenever the widget has been resized. 
+   * Reimplement it in a subclass. The new size is passed in w and h.
+   * @param width Change the width of the screen
+   * @param height Change the screen length
+   */
+  virtual void ResizeGL(int width, int height) = 0;
+
+  /**
+   * This virtual function is called whenever the widget needs to be painted. 
+   * Reimplement it in a subclass.
+   * 
+   * There is no need to call MakeCurrent() because this has already been done 
+   * when this function is called.
+   * 
+   * Before invoking this function, the context and the framebuffer are bound, 
+   * and the viewport is set up by a call to glViewport(). No other state is 
+   * set and no clearing or drawing is performed by the framework.
+   */
+  virtual void PaintGL() = 0;
+
+  /**
+   * The user's key is processed, and the default is that the user presses 
+   * esc to exit the process. You can override this virtual function to create 
+   * your own user keystroke handling.It's going to be called before PaintGL().
+   * @param window OpenGL window Pointers that do not need to be filled in are 
+   * already written automatically when called.
+   */
   virtual void ProcessInput(GLFWwindow* window);
   
+  /**
+   * Render the frame buffer operation, here used as an operation to process 
+   * the frame buffer. If you have a custom frame buffering operation, 
+   * override this function. This fires before PaintGL ().
+   */
+  virtual void RenderToFramebuffer();
+
  private:
   void InitGLFW();
-  
-  void InitWindow(int width,int height,const char*title);
-  
+
+  void InitWindow(int width, int height, const char* title,
+                  GLFWmonitor* monitor,
+                  GLFWwindow* share);
+
   void InitGLAD();
-  
+
   void MainLoop();
-  
+
   void Cleanup();
-  
-  static void FrameBufferSizeCallback(GLFWwindow* window,int width,int height);
-  
+
+  static void FrameBufferSizeCallback(GLFWwindow* window, int width,
+                                      int height);
+
  protected:
+  FrameBuffer* frame_buffer_;
   GLFWwindow* window_;
 };
 
-#endif //CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLWINDOW_H_
+#endif  //CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLWINDOW_H_

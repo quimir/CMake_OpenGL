@@ -17,36 +17,36 @@
 #ifndef CMAKE_OPEN_INCLUDES_INCLUDE_FILEPATHSYSTEM_H_
 #define CMAKE_OPEN_INCLUDES_INCLUDE_FILEPATHSYSTEM_H_
 
-#include <string>
 #include <cstdlib>
+#include <string>
 
 class FilePathSystem {
  public:
   /**
    * Gets the path of the project in the system.
    * @param path File path, usually enter the name of the file.
-   * @return The complete path of the file in the system , is generally the path of the project in the system + the path 
-   * of the file.
+   * @return The complete path of the file in the system , is generally the path 
+   * of the project in the system + the path  of the file.
    */
-  std::string GetPath(const std::string &path);
+  std::string GetPath(const std::string& path);
 
-  std::string GetResourcesPath(const std::string &path,
-							   const std::string &resources_path =
-							   std::string("resources/"));
+  std::string GetResourcesPath(
+      const std::string& path,
+      const std::string& resources_path = std::string("resources/"));
 
-  static FilePathSystem &GetInstance();
+  static FilePathSystem& GetInstance();
 
  private:
   FilePathSystem();
 
-  std::string const &GetRoot();
+  std::string const& GetRoot();
 
-  std::string GetPathRelativeRoot(const std::string &path);
+  std::string GetPathRelativeRoot(const std::string& path);
 
-  static std::string GetPathRelativeBinary(const std::string &path);
+  static std::string GetPathRelativeBinary(const std::string& path);
 
  private:
   std::string root_;
 };
 
-#endif //CMAKE_OPEN_INCLUDES_INCLUDE_FILEPATHSYSTEM_H_
+#endif  //CMAKE_OPEN_INCLUDES_INCLUDE_FILEPATHSYSTEM_H_

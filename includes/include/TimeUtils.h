@@ -20,9 +20,13 @@
 #include <chrono>
 #include <string>
 
+/**
+ * Time class, this class provides a unified time, can guarantee the 
+ * independence of time.
+ */
 class TimeUtils {
  public:
-  static TimeUtils &GetInstance();
+  static TimeUtils& GetInstance();
 
   /**
    * Gets the current time, which is scheduled under std::chrono::system_clock::now(). 
@@ -34,19 +38,32 @@ class TimeUtils {
 
   /**
    * Convert the time to a string and normalize it. The normalized time format is: 
-   * "%Y-%m-%d_%H-%M-%S", that is, year - month - day - hour - minute - second.
+   * "%Y-%m-%d:%H-%M-%S", that is, year - month - day - hour - minute - second.
    * @param time_point Normalized time is required.
    * @return Already normalized time string.
    */
-  std::string FormatTime(const std::chrono::time_point<std::chrono::system_clock> &time_point);
+  std::string FormatTime(
+      const std::chrono::time_point<std::chrono::system_clock>& time_point);
 
-  double GetDurationInSeconds(const std::chrono::time_point<std::chrono::system_clock> &start,
-							  const std::chrono::time_point<std::chrono::system_clock> &end);
-  
-  double GetTImeStamp();
+  /**
+   * Get the difference between two times.
+   * @param start Start time.
+   * @param end End time.
+   * @return Returns the difference between two times, as a double, down to 
+   * seconds.
+   */
+  double GetDurationInSeconds(
+      const std::chrono::time_point<std::chrono::system_clock>& start,
+      const std::chrono::time_point<std::chrono::system_clock>& end);
+
+  /**
+   * Get the current time node.
+   * @return Returns the current time as a double, measured in seconds.
+   */
+  double GetTimeStamp();
 
  private:
   TimeUtils() = default;
 };
 
-#endif //CMAKE_OPEN_INCLUDES_INCLUDE_TIMEUTILS_H_
+#endif  //CMAKE_OPEN_INCLUDES_INCLUDE_TIMEUTILS_H_

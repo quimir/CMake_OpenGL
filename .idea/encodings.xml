@@ -3,7 +3,6 @@
   <component name="Encoding" addBOMForNewFiles="with BOM under Windows, with no BOM otherwise">
     <file url="file://$PROJECT_DIR$/CMakeLists.txt" charset="US-ASCII" />
     <file url="file://$PROJECT_DIR$/README.md" charset="US-ASCII" />
-    <file url="file://$PROJECT_DIR$/cmake-build-debug/Testing/Temporary/LastTest.log" charset="GBK" />
     <file url="PROJECT" charset="US-ASCII" />
   </component>
 </project>

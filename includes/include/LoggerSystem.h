@@ -17,14 +17,14 @@
 #ifndef CMAKE_OPEN_INCLUDES_INCLUDE_LOGGERSYSTEM_H_
 #define CMAKE_OPEN_INCLUDES_INCLUDE_LOGGERSYSTEM_H_
 
-#include <iostream>
-#include <fstream>
-#include <string>
 #include <chrono>
 #include <ctime>
-#include <iomanip>
-#include <mutex>
 #include <filesystem>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <mutex>
+#include <string>
 
 /**
  * Logger System It is used to collect and store a portion of the information generated 
@@ -43,11 +43,7 @@ class LoggerSystem {
   /**
    * Level of the log
    */
-  enum class Level {
-	kInfo,
-	kWarning,
-	kError
-  };
+  enum class Level { kInfo, kWarning, kError };
 
   /**
    * A unique instance of this class calls the function. Since the principle of this 
@@ -55,7 +51,7 @@ class LoggerSystem {
    * when the program is running, only one instance needs to be generated.
    * @return An instance of this class.
    */
-  static LoggerSystem &GetInstance();
+  static LoggerSystem& GetInstance();
 
   /**
    * Log file message input function. The level of the log and the content of the log 
@@ -70,7 +66,7 @@ class LoggerSystem {
    * refer to the enumeration class :LoggerSystem::Level.
    * @param message Details of the log message.
    */
-  void Log(Level level, const std::string &message);
+  void Log(Level level, const std::string& message);
 
   /**
    * Set the maximum file storage limit. By default, the maximum file storage 
@@ -91,11 +87,12 @@ class LoggerSystem {
 
  private:
   explicit LoggerSystem(std::size_t size = std::size_t(1024 * 1024),
-						std::chrono::seconds age = std::chrono::seconds(std::chrono::seconds::max()),
-						std::string log_file_path = std::string("log/"));
+                        std::chrono::seconds age =
+                            std::chrono::seconds(std::chrono::seconds::max()),
+                        std::string log_file_path = std::string("log/"));
 
   ~LoggerSystem();
-  
+
   std::string GetCurrentTimeToString() const;
 
   /**
@@ -105,7 +102,7 @@ class LoggerSystem {
    * @return Log level string.
    */
   std::string LevelToString(Level level);
-  
+
   void RotateLogFile();
 
   void RollOverLogs();
@@ -132,4 +129,4 @@ class LoggerSystem {
   std::chrono::time_point<std::chrono::system_clock> last_log_time_;
 };
 
-#endif //CMAKE_OPEN_INCLUDES_INCLUDE_LOGGERSYSTEM_H_
+#endif  //CMAKE_OPEN_INCLUDES_INCLUDE_LOGGERSYSTEM_H_

@@ -26,7 +26,7 @@ std::string TimeUtils::FormatTime(const std::chrono::time_point<std::chrono::sys
   localtime_s(&local_time, &now);
 
   std::ostringstream oss;
-  oss << std::put_time(&local_time, "%Y-%m-%d_%H-%M-%S");
+  oss << std::put_time(&local_time, "%Y-%m-%d:%H-%M-%S");
   return oss.str();
 }
 double TimeUtils::GetDurationInSeconds(const std::chrono::time_point<std::chrono::system_clock> &start,
@@ -37,7 +37,7 @@ TimeUtils & TimeUtils::GetInstance() {
   static TimeUtils instance;
   return instance;
 }
-double TimeUtils::GetTImeStamp() {
+double TimeUtils::GetTimeStamp() {
   auto now = GetCurrentTime();
   return std::chrono::duration<double>(now.time_since_epoch()).count();
 }

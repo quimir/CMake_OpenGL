@@ -16,12 +16,13 @@
 
 #include "include/Buffer.h"
 #include "include/LoggerSystem.h"
+#include "include/MeshData.h"
 
 Buffer::Buffer(GLenum type) : type_(type) {
   if (glGetString(GL_VERSION) == nullptr) {
-	LoggerSystem::GetInstance().Log(LoggerSystem::Level::kWarning,
-									"OpenGL is not initialized");
-	return;
+    LoggerSystem::GetInstance().Log(LoggerSystem::Level::kWarning,
+                                    "OpenGL is not initialized");
+    return;
   }
   glGenBuffers(1, &buffer_id_);
 }
@@ -34,7 +35,7 @@ void Buffer::Bind() const {
 void Buffer::UnBind() const {
   glBindBuffer(type_, 0);
 }
-void Buffer::SetData(const void *data, GLsizeiptr size, GLenum usage) const {
+void Buffer::SetData(const void* data, GLsizeiptr size, GLenum usage) const {
   glBufferData(type_, size, data, usage);
 }
 GLenum Buffer::GetType() const {
@@ -43,7 +44,13 @@ GLenum Buffer::GetType() const {
 void Buffer::SetType(GLenum type) {
   type_ = type;
 }
-template<typename T>
-void Buffer::SetData(const std::vector<T> &data, GLenum usage) const {
-  SetData(data.size(), data.size() * sizeof(T), usage);
+template <typename T>
+void Buffer::SetData(const std::vector<T>& data, GLenum usage) const {
+  glBufferData(type_,data.size()*sizeof(T),data.data(),usage);
 }
+
+template void Buffer::SetData<struct meshdata::Vertex>(
+    const std::vector<meshdata::Vertex>& data, GLenum usage) const;
+
+template void Buffer::SetData<unsigned int>(
+    const std::vector<unsigned int>& data, GLenum usage) const;

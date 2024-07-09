@@ -14,10 +14,6 @@
  * limitations under the License.
  ******************************************************************************/
 
-//
-// Created by Acer on 2024/6/25.
-//
-
 #include <stdexcept>
 #include "include/LoggerSystem.h"
 
@@ -89,7 +85,8 @@ void Animation::ReadHierarchyData(Animation::AssimpNodeData &dest, const aiNode 
 	dest.children.push_back(new_data);
   }
 }
-Animation::Animation(const std::string &animation_path, Model *model) {
+Animation::Animation(const std::string &animation_path, Model *model)
+	: duration_(0), ticks_per_second_(0) {
   Assimp::Importer importer;
   auto scene = importer.ReadFile(animation_path, aiProcess_Triangulate);
   if (!scene || !scene->mRootNode) {

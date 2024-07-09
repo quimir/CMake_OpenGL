@@ -18,10 +18,10 @@
 #include "include/LoadImage.h"
 #include "include/OpenGLMessage.h"
 OpenGLMainWindow::OpenGLMainWindow(int width, int height, const char *title)
-	: OpenGLWindow(width, height, title),
+	: OpenGLWindow(width, height, title, nullptr, nullptr),
 	  delta_time_(0),
 	  last_frame_(0),
-	  shader_("texture.vert", "texture.frag") {
+      shader_("texture.vert", "texture.frag", nullptr, nullptr, nullptr) {
   glfwSetWindowUserPointer(this->window_, this);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 }
@@ -91,7 +91,7 @@ void OpenGLMainWindow::InitializeGL() {
 //						(void *) (6 * sizeof(float)));
 //  glEnableVertexAttribArray(2);
 
-  LoadImage::GetInstance().OpenStbiYasis();
+  LoadImage::GetInstance().OpenStbImageFlipYAxis();
 
   this->texture_1 =
 	  LoadImage::GetInstance().LoadTexture2D(FilePathSystem::GetInstance().GetPath(
@@ -101,7 +101,8 @@ void OpenGLMainWindow::InitializeGL() {
 	  LoadImage::GetInstance().LoadTexture2D(FilePathSystem::GetInstance().GetPath(
 		  "resources/textures/awesomeface.png"));
 
-  shader_.Use(); // don't forget to activate/use the shader before setting uniforms!
+  shader_
+      .Bind(); // don't forget to activate/use the shader before setting uniforms!
   // either set it manually like so:
   shader_.SetInt("texture1", 0);
   // or set it via the texture class
@@ -120,7 +121,7 @@ void OpenGLMainWindow::PaintGL() {
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, texture_2);
 
-  shader_.Use();
+  shader_.Bind();
   this->vao_.Bind();
 //  glBindVertexArray(this->VAO_);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
