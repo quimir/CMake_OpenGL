@@ -28,3 +28,7 @@ int Widget::GetHeight() const {
 void Widget::SetHeight(int height) {
   Widget::height_ = height;
 }
+void Widget::ResizeWidget(int width, int height) {
+  this->width_ = width;
+  this->height_ = height;
+}

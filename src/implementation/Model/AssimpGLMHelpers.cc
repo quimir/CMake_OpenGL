@@ -1,0 +1,41 @@
+/*******************************************************************************
+ * Copyright 2024 QuiMir
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
+
+//
+// Created by Acer on 2024/6/25.
+//
+
+#include "include/Model/AssimpGLMHelpers.h"
+AssimpGLMHelpers &AssimpGLMHelpers::GetInstance() {
+  static AssimpGLMHelpers instance;
+  return instance;
+}
+glm::mat4 AssimpGLMHelpers::ConvertMatrixToGLMFormat(const aiMatrix4x4 &form) {
+  glm::mat4 to;
+  for (int i = 0; i < 4; ++i) {
+	for (int j = 0; j < 4; ++j) {
+	  to[i][j] =
+		  form[j][i];// i and j are swapped because rows of Assimp are columns of GLM.
+	}
+  }
+  return to;
+}
+glm::vec3 AssimpGLMHelpers::GetGLMVec(const aiVector3D &vec) {
+  return {vec.x, vec.y, vec.z};
+}
+glm::quat AssimpGLMHelpers::GetGLMQuaternion(const aiQuaternion &p_quaternion) {
+  return {p_quaternion.w, p_quaternion.x, p_quaternion.y, p_quaternion.z};
+}

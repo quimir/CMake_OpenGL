@@ -14,18 +14,16 @@
  * limitations under the License.
  ******************************************************************************/
 
-//
-// Created by Acer on 2024/7/8.
-//
-
 #ifndef CMAKE_OPEN_SRC_STARTED_OPENGL_OPENGLMAINWINDOW_H_
 #define CMAKE_OPEN_SRC_STARTED_OPENGL_OPENGLMAINWINDOW_H_
 
-#include "include/OpenGLWindow.h"
-#include "include/VertexArray.h"
 #include "include/Buffer.h"
-#include "include/Shader.h"
 #include "include/Camera.h"
+#include "include/Imgui/ImGuiDashboard.h"
+#include "include/Imgui/ImGuiWidget.h"
+#include "include/OpenGLWindow.h"
+#include "include/Shader.h"
+#include "include/VertexArray.h"
 
 class OpenGLMainWindow:public OpenGLWindow{
  protected:
@@ -55,6 +53,8 @@ class OpenGLMainWindow:public OpenGLWindow{
   glm::mat4 model;
   
   static Camera camera_;
+
+  ImGuiDashboard* imgui_dashboard_;
 };
 
 #endif  //CMAKE_OPEN_SRC_STARTED_OPENGL_OPENGLMAINWINDOW_H_

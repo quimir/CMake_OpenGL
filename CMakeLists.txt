@@ -27,12 +27,16 @@ find_package(GLFW3 REQUIRED)
 message(STATUS "Found GLFW3 in ${GLFW3_INCLUDE_DIR}")
 find_package(ASSIMP REQUIRED)
 message(STATUS "Found ASSIMP in ${ASSIMP_INCLUDE_DIR}")
+find_package(IMGUI REQUIRED)
+message(STATUS "Found IMGUI in ${IMGUI_INCLUDE_DIRS}")
+find_package(MODEL REQUIRED)
+message(STATUS "Found MODEL in ${MODEL_INCLUDE_DIRS}")
 
 # Obtain the installation directory of the application
 configure_file(configuration/root_directory.h.in ${CMAKE_BINARY_DIR}/configuration/root_directory.h)
 include_directories(${CMAKE_BINARY_DIR}/configuration)
 
-set(LIBS glfw3 opengl32 assimp)
+set(LIBS glfw3 opengl32 assimp IMGUI MODEL)
 
 # First create relevant static libraries required for other projects
 add_library(STB_IMAGE "src/stb_image.cpp")
@@ -47,6 +51,10 @@ endif ()
 
 set(HEADER_FILES_DIR "${CMAKE_SOURCE_DIR}/includes/include")
 set(SOURCE_FILES_DIR "${CMAKE_SOURCE_DIR}/src/implementation")
+set(TIME_HEADER_FILES_DIR "${HEADER_FILES_DIR}/Time")
+set(IMGUI_HEADER_FILES_DIR "${HEADER_FILES_DIR}/ImGui")
+set(TIME_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/Time")
+set(IMGUI_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/ImGui")
 
 set(CHAPTERS
 	started_opengl
@@ -57,10 +65,20 @@ function(create_project_from_sources chapter)
   set(HEADER_FILES "${HEADER_FILES_DIR}/*.h"
 	  "${HEADER_FILES_DIR}/*.hpp"
 	  "${HEADER_FILES_DIR}/*.inl"
+	  "${TIME_HEADER_FILES_DIR}/*.h"
+	  "${TIME_HEADER_FILES_DIR}/*.hpp"
+	  "${TIME_HEADER_FILES_DIR}/*.inl"
+	  "${IMGUI_HEADER_FILES_DIR}/*.h"
+	  "${IMGUI_HEADER_FILES_DIR}/*.hpp"
+	  "${IMGUI_HEADER_FILES_DIR}/*.inl"
 	  "src/${chapter}/*.h")
 
   set(SOURCE_FILES "${SOURCE_FILES_DIR}/*.cc"
 	  "${SOURCE_FILES_DIR}/*.cpp"
+	  "${TIME_SOURCE_FILES_DIR}/*.cc"
+	  "${TIME_SOURCE_FILES_DIR}/*.cpp"
+	  "${IMGUI_SOURCE_FILES_DIR}/*.cc"
+	  "${IMGUI_SOURCE_FILES_DIR}/*.cpp"
 	  "src/${chapter}/*.cpp"
 	  "src/${chapter}/*.cc")
 

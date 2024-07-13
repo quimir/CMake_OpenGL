@@ -103,6 +103,11 @@ class LoggerSystem {
    */
   std::string LevelToString(Level level);
 
+  /**
+   * Determine if the current state has exceeded the set time and set stored 
+   * value. If more than that, throw it to void RollOverLogs() and 
+   * void DeleteAllLogs().
+   */
   void RotateLogFile();
 
   void RollOverLogs();

@@ -14,14 +14,11 @@
  * limitations under the License.
  ******************************************************************************/
 
-//
-// Created by Acer on 2024/7/8.
-//
-
 #include "OpenGLMainWindow.h"
 #include "include/FilePathSystem.h"
+#include "include/Imgui/ImGuiDashboard.h"
+#include "include/Imgui/ImGuiWidget.h"
 #include "include/LoadImage.h"
-#include "include/OpenGLMessage.h"
 
 bool first_mouse = true;
 
@@ -89,6 +86,7 @@ void OpenGLMainWindow::InitializeGL() {
   shader_.Bind();
   shader_.SetInt("texture1", 0);
   shader_.SetInt("texture2", 1);
+  shader_.UnBind();
 }
 void OpenGLMainWindow::ResizeGL(int width, int height) {
   this->projection =
@@ -99,13 +97,8 @@ void OpenGLMainWindow::ResizeGL(int width, int height) {
   glViewport(0, 0, width, height);
 }
 void OpenGLMainWindow::PaintGL() {
-  float current_frame = static_cast<float>(glfwGetTime());
-  delta_time = current_frame - last_frame;
-  last_frame = current_frame;
-
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-  OpenGLMessage::GetInstance().GetOpenGLCheckError(
-      glClear, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture_1_);
@@ -114,9 +107,9 @@ void OpenGLMainWindow::PaintGL() {
 
   shader_.Bind();
 
-  this->projection = glm::perspective(
-      glm::radians(camera_.GetZoom()),
-      (float)GetWidth()/(float)GetHeight(), 0.1f, 100.0f);
+  this->projection =
+      glm::perspective(glm::radians(camera_.GetZoom()),
+                       (float)GetWidth() / (float)GetHeight(), 0.1f, 100.0f);
   shader_.SetMat4("projection", projection);
   view = camera_.GetViewMatrix();
   shader_.SetMat4("view", view);
@@ -125,13 +118,17 @@ void OpenGLMainWindow::PaintGL() {
   for (int i = 0; i < 10; i++) {
     model = glm::mat4(1.0f);
     model = glm::translate(model, cubePositions[i]);
-    float angle = 20.0f * (float)i;
+    float angle = 20.0f * (float)i * glfwGetTime();
     model =
         glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
     shader_.SetMat4("model", model);
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
   }
+  imgui_dashboard_->SetRenderTimer(this->GetRenderTimer());
+  imgui_dashboard_->BeginFrame();
+  imgui_dashboard_->Render();
+  imgui_dashboard_->EndFrame();
 }
 OpenGLMainWindow::OpenGLMainWindow(int width, int height, const char* title,
                                    GLFWmonitor* monitor, GLFWwindow* share)
@@ -141,6 +138,7 @@ OpenGLMainWindow::OpenGLMainWindow(int width, int height, const char* title,
   glfwSetWindowUserPointer(window_, this);
   glfwSetCursorPosCallback(window_, MouseCallback);
   glfwSetScrollCallback(window_, ScrollCallback);
+  //  glfwSwapInterval(1);
   this->projection =
       glm::perspective(glm::radians(camera_.GetZoom()),
                        (float)width / (float)height, 0.1f, 100.0f);
@@ -148,16 +146,21 @@ OpenGLMainWindow::OpenGLMainWindow(int width, int height, const char* title,
   shader_.SetMat4("projection", projection);
   last_x = width / 2.0f;
   last_y = height / 2.0f;
+  imgui_dashboard_ = new ImGuiDashboard(window_, width, height);
 }
 void OpenGLMainWindow::ProcessInput(GLFWwindow* window) {
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    camera_.ProcessKeyboard(Camera::CameraMovement::kForward, delta_time);
+    camera_.ProcessKeyboard(Camera::CameraMovement::kForward,
+                            GetRenderTimer().ElapsedSeconds());
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    camera_.ProcessKeyboard(Camera::CameraMovement::kBackward, delta_time);
+    camera_.ProcessKeyboard(Camera::CameraMovement::kBackward,
+                            GetRenderTimer().ElapsedSeconds());
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    camera_.ProcessKeyboard(Camera::CameraMovement::kLeft, delta_time);
+    camera_.ProcessKeyboard(Camera::CameraMovement::kLeft,
+                            GetRenderTimer().ElapsedSeconds());
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    camera_.ProcessKeyboard(Camera::CameraMovement::kRight, delta_time);
+    camera_.ProcessKeyboard(Camera::CameraMovement::kRight,
+                            GetRenderTimer().ElapsedSeconds());
   OpenGLWindow::ProcessInput(window);
 }
 

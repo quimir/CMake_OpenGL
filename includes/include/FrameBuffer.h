@@ -19,6 +19,21 @@
 
 #include "glad/glad.h"
 
+/**
+ * Information used to process the frame buffer. Divided into texture color 
+ * buffer, frame buffer, rendering buffer. It is usually attached to 
+ * OpenGLWindow and uses RenderToFramebuffer as its frame buffering logic. But 
+ * it is also used independently. There is no risk of memory leaks and all 
+ * memory is reclaimed via destructors.
+ * 
+ * Use reference:
+ * FrameBuffer frame_buffer(800,600);
+ * frame_buffer.Bind();
+ * 
+ * //Build your frame buffer operations here.
+ * 
+ * frame_buffer.UnBind();
+ */
 class FrameBuffer {
  public:
   FrameBuffer(GLint width, GLint height);

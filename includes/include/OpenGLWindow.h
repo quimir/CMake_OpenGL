@@ -17,9 +17,10 @@
 #ifndef CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLWINDOW_H_
 #define CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLWINDOW_H_
 
-#include "glad/glad.h"
-#include "GLFW/glfw3.h"
 #include "FrameBuffer.h"
+#include "GLFW/glfw3.h"
+#include "glad/glad.h"
+#include "include/Time/RenderTimer.h"
 #include "include/Widget.h"
 
 /**
@@ -91,6 +92,64 @@ class OpenGLWindow:public Widget{
    * the function.
    */
   virtual ~OpenGLWindow();
+  
+  /**
+   * Displays the mouse, and the mouse cannot move beyond the window, only 
+   * within the window. This is equivalent to using: glfwSetInputMode(
+   * window_, GLFW_CURSOR, GLFW_CURSOR_CAPTURED);
+   */
+  void DisplayMouse();
+  
+  /**
+   * Hide the mouse, the mouse is not visible, the movement of the mouse is not 
+   * allowed beyond the display of the screen. This is equivalent to using:
+   * glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+   */
+  void HideMouse();
+  
+  /**
+   * Display the mouse with no restrictions on the mouse state at all, which 
+   * means that the mouse can now exceed the display screen. Using this mode 
+   * suggests using the other capture mouse API and pausing if the mouse 
+   * exceeds the display screen.This is equivalent to using: glfwSetInputMode(
+   * window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+   */
+  void NormalMouse();
+  
+  /**
+   * When the cursor is disabled, raw (unscaled and unaccelerated) mouse motion 
+   * can be enabled if available.
+   * 
+   * Raw mouse motion is closer to the actual motion of the mouse across a 
+   * surface. It is not affected by the scaling and acceleration applied to the 
+   * motion of the desktop cursor. That processing is suitable for a cursor 
+   * while raw motion is better for controlling for example a 3D camera. 
+   * Because of this, raw mouse motion is only provided when the cursor is 
+   * disabled.
+   * 
+   * If the query finds that the original mouse input is not supported, then 
+   * the mouse setting is reverted to DisplayMouse() and the error details are 
+   * entered into the log file.
+   */
+  void EnableRawMouseMotion();
+  
+  /**
+   * Create a new custom cursor image and store it in cursor_ which can be set 
+   * for the window using glfwSetCursor. The cursor is destroyed by 
+   * glfwDestroyCursor. Any remaining cursors are destroyed by glfwTerminate. 
+   * Pixels are 32-bit, small in-bit, non-duplicated RGBA, that is, 8 bits per 
+   * channel with the red channel in front. Cursor hotspots are in pixels, 
+   * relative to the top left corner of the cursor image. As with all other 
+   * coordinate systems in GLFW, the X-axis points to the right and the Y-axis 
+   * points down.
+   * @param image The desired cursor image.
+   * @param x_hot The desired x-coordinate, in pixels, of the cursor hotspot.
+   * @param y_hot The desired y-coordinate, in pixels, of the cursor hotspot.
+   * @return Returns true on success, false otherwise.
+   */
+  bool SetCursor(const GLFWimage* image,int x_hot,int y_hot);
+  
+  const RenderTimer& GetRenderTimer() const;
 
  protected:
   /**
@@ -143,12 +202,30 @@ class OpenGLWindow:public Widget{
   virtual void RenderToFramebuffer();
 
  private:
+  /**
+   * Initialize GLFW and throw an exception if an error occurs.
+   */
   void InitGLFW();
 
+  /**
+   * Creates a window and its associated context.
+   * @param width The desired width, in screen coordinates, of the window.
+   * This must be greater than zero.
+   * @param height The desired height, in screen coordinates, of the window.
+   * This must be greater than zero.
+   * @param title The initial, UTF-8 encoded window title.
+   * @param monitor The monitor to use for full screen mode, or `NULL` for
+   * windowed mode.
+   * @param share The window whose context to share resources with, or `NULL`
+   * to not share resources.
+   */
   void InitWindow(int width, int height, const char* title,
                   GLFWmonitor* monitor,
                   GLFWwindow* share);
 
+  /**
+   * Initialize GLAD and throw an exception if an error occurs.
+   */
   void InitGLAD();
 
   void MainLoop();
@@ -157,10 +234,17 @@ class OpenGLWindow:public Widget{
 
   static void FrameBufferSizeCallback(GLFWwindow* window, int width,
                                       int height);
+  
+  static void CursorEnterCallback(GLFWwindow* window,int entered);
 
  protected:
   FrameBuffer* frame_buffer_;
   GLFWwindow* window_;
+  GLFWcursor* cursor_;
+  
+ private:
+  // Render timer, which keeps track of the time until the render ends.
+  RenderTimer render_timer_;
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLWINDOW_H_

@@ -26,8 +26,12 @@
 /**
  * Images are registered with OpenGL and assigned attributes based on their 
  * type.It also uses the singleton pattern, where a unique instance can only 
- * be used via GetInstance ().Copy construction and copy construction are 
+ * be used via GetInstance().Copy construction and copy construction are 
  * not allowed in this class.
+ * 
+ * Use reference:
+ * std::string path="/path/image.png"
+ * GLuint opengl_index=LoadImage::GetInstance().LoadTexture2D(path);
  */
 class LoadImage {
  public:
@@ -43,6 +47,18 @@ class LoadImage {
                        GLboolean gamma_correction = false);
 
   /**
+   * Load the cube map into OpenGL. If an error occurs, it will be displayed in 
+   * a log file.
+   * @param faces cube map the path of each face. Please store in right, left, 
+   * top, bottom, back and front, otherwise the image will be generated out of 
+   * place.
+   * @param gamma_correction Whether to enable gamma correction for each image.
+   * @return If successful, the OpenGL index of the CubeMap is returned.
+   */
+  GLuint LoadCubeMap(std::vector<std::string> faces,
+                     GLboolean gamma_correction = false);
+
+  /**
    * Tell stb_image.h to flip loaded texture's on the y-axis.
    */
   void OpenStbImageFlipYAxis();
@@ -50,26 +66,57 @@ class LoadImage {
   static LoadImage& GetInstance();
 
   LoadImage& operator=(LoadImage& other) = delete;
-  
-  LoadImage(const LoadImage& other)=delete;
-  
-  ~LoadImage()=default;
+
+  LoadImage(const LoadImage& other) = delete;
+
+  ~LoadImage() = default;
 
  private:
   /**
-   * Parse the texture information, register the texture information into 
-   * OpenGL, and write the registered texture ID to texture_id.
-   * @param texture_id Texture ID, which is written to the OpenGL index if the 
-   * registration was successful, or kLoadImageError otherwise.
-   * @param width Width of texture
-   * @param height The length of the texture.
-   * @param nr_components Color channel information of the texture.
-   * @param data Texture data
-   * @param gamma_correction Gamma correction
+   * specify a two-dimensional texture image.
+   * 
+   * Please refer to: https://registry.khronos.org/OpenGL-Refpages/gl4/html/glTexImage2D.xhtml
+   * @param target Specifies the target texture. Must be GL_TEXTURE_2D, 
+   * GL_PROXY_TEXTURE_2D, GL_TEXTURE_1D_ARRAY, GL_PROXY_TEXTURE_1D_ARRAY, 
+   * GL_TEXTURE_RECTANGLE, GL_PROXY_TEXTURE_RECTANGLE, 
+   * GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 
+   * GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 
+   * GL_TEXTURE_CUBE_MAP_POSITIVE_Z, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 
+   * or GL_PROXY_TEXTURE_CUBE_MAP.
+   * @param index An index of texture targets, with target as the head.
+   * @param level Specifies the level-of-detail number. Level 0 is the base 
+   * image level. Level n is the nth mipmap reduction image. If target is 
+   * GL_TEXTURE_RECTANGLE or GL_PROXY_TEXTURE_RECTANGLE, level must be 0.
+   * @param internal_format Specifies the number of color components in the 
+   * texture. Must be one of base internal formats given in Table 1, one of the 
+   * sized internal formats given in Table 2, or one of the compressed internal 
+   * formats given in Table 3, below.
+   * @param width Specifies the width of the texture image. All implementations 
+   * support texture images that are at least 1024 texels wide.
+   * @param height Specifies the height of the texture image, or the number of 
+   * layers in a texture array, in the case of the GL_TEXTURE_1D_ARRAY and 
+   * GL_PROXY_TEXTURE_1D_ARRAY targets. All implementations support 2D texture 
+   * images that are at least 1024 texels high, and texture arrays that are at 
+   * least 256 layers deep.
+   * @param nr_components Gray level information derived through stb image.
+   * @param border This value must be 0.
+   * @param type Specifies the data type of the pixel data. The following 
+   * symbolic values are accepted: GL_UNSIGNED_BYTE, GL_BYTE, 
+   * GL_UNSIGNED_SHORT, GL_SHORT, GL_UNSIGNED_INT, GL_INT, GL_HALF_FLOAT, 
+   * GL_FLOAT, GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV, 
+   * GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_5_6_5_REV,
+   * GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4_REV,
+   * GL_UNSIGNED_SHORT_5_5_5_1, GL_UNSIGNED_SHORT_1_5_5_5_REV, 
+   * GL_UNSIGNED_INT_8_8_8_8, GL_UNSIGNED_INT_8_8_8_8_REV, 
+   * GL_UNSIGNED_INT_10_10_10_2, and GL_UNSIGNED_INT_2_10_10_10_REV.
+   * @param data Specifies a pointer to the image data in memory.
+   * @param gamma_correction Whether to enable gamma correction
+   * @return Returns true on success
    */
-  void LoadTexture2DSetting(GLuint& texture_id, int width, int height,
-                              int nr_components, unsigned char* data,
-                              GLboolean gamma_correction);
+  bool LoadTexture2DSetting(GLenum target, int index, GLint level,
+                            GLint internal_format, int width, int height,
+                            int nr_components, GLint border, GLenum type,
+                            unsigned char* data, GLboolean gamma_correction);
   LoadImage() = default;
 };
 

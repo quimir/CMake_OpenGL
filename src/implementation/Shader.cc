@@ -63,6 +63,13 @@ GLuint Shader::GetID() const {
 Shader::Shader(const char* vertex_path, const char* fragment_path,
                const char* geometry_path, const char* tess_control_path,
                const char* tess_evaluation_path, const char* compute_path) {
+  if (glGetString(GL_VERSION) == nullptr) {
+    LoggerSystem::GetInstance().Log(
+        LoggerSystem::Level::kError,
+        "Serious error! Initialize OpenGL before building shaders!");
+    throw std::runtime_error(
+        "Serious error! Initialize OpenGL before building shaders!");
+  }
   if (nullptr != compute_path) {
     CheckOpenGLVersion(4, 3);
   }
@@ -263,6 +270,13 @@ Shader::Shader(const std::string& vertex_path, const std::string& fragment_path,
                const std::string& tess_control_path,
                const std::string& tess_evaluation_path,
                const std::string& compute_path) {
+  if (glGetString(GL_VERSION) == nullptr) {
+    LoggerSystem::GetInstance().Log(
+        LoggerSystem::Level::kError,
+        "Serious error! Initialize OpenGL before building shaders!");
+    throw std::runtime_error(
+        "Serious error! Initialize OpenGL before building shaders!");
+  }
   if (!compute_path.empty()) {
     CheckOpenGLVersion(4, 3);
   }
@@ -485,6 +499,8 @@ std::string Shader::ShaderErrorTypeToString(Shader::ShaderErrorType type) {
       return "TessellationControl";
     case ShaderErrorType::kTessellationEvaluation:
       return "TessellationEvaluation";
+    default:
+      return "UNDEFINED ERROR";
   }
 }
 

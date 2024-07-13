@@ -17,7 +17,7 @@
 #include "include/LoggerSystem.h"
 #include <sstream>
 #include <utility>
-#include "include/TimeUtils.h"
+#include "include/Time/TimeUtils.h"
 
 LoggerSystem& LoggerSystem::GetInstance() {
   static LoggerSystem instance;
@@ -26,7 +26,7 @@ LoggerSystem& LoggerSystem::GetInstance() {
 void LoggerSystem::Log(LoggerSystem::Level level, const std::string& message) {
   std::lock_guard<std::mutex> lock(log_mutex_);
   RotateLogFile();
-
+  
   log_file_ << "[" << LevelToString(level) << "]"
             << "  "
             << "[" << GetCurrentTimeToString() << "]"

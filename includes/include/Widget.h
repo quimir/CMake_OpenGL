@@ -28,6 +28,8 @@ class Widget {
   int GetHeight() const;
 
   void SetHeight(int height);
+  
+  void ResizeWidget(int width,int height);
 
  private:
   int width_;

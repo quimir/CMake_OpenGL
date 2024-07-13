@@ -30,9 +30,23 @@ GLuint LoadImage::LoadTexture2D(const std::string& path,
   int width, height, nr_channels;
   unsigned char* data =
       stbi_load(path.c_str(), &width, &height, &nr_channels, 0);
-  LoadTexture2DSetting(texture, width, height, nr_channels, data,
-                       gamma_correction);
-  if (texture != kLoadImageError) {
+  glBindTexture(GL_TEXTURE_2D, texture);
+  if (LoadTexture2DSetting(GL_TEXTURE_2D, 0, 0, GL_RGBA, width, height,
+                           nr_channels, 0, GL_UNSIGNED_BYTE, data,
+                           gamma_correction)) {
+    /*
+	 * Set the texture wrapping parameters 
+	 */
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    /*
+	 * Set texture filtering parameters
+	 */
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                    GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // Enable the mipmap property on the image
+    glGenerateMipmap(GL_TEXTURE_2D);
     return texture;
   } else {
     LoggerSystem::GetInstance().Log(
@@ -52,9 +66,42 @@ LoadImage& LoadImage::GetInstance() {
   return instance;
 }
 
-void LoadImage::LoadTexture2DSetting(GLuint& texture_id, int width, int height,
-                                     int nr_components, unsigned char* data,
+void LoadImage::OpenStbImageFlipYAxis() {
+  stbi_set_flip_vertically_on_load(true);
+}
+GLuint LoadImage::LoadCubeMap(std::vector<std::string> faces,
+                              GLboolean gamma_correction) {
+  GLuint texture_id;
+  glGenTextures(1, &texture_id);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, texture_id);
+
+  int width, height, nr_channels;
+  for (unsigned int i = 0; i < faces.size(); ++i) {
+    auto* data = stbi_load(faces[i].c_str(), &width, &height, &nr_channels, 0);
+    if (!LoadTexture2DSetting(GL_TEXTURE_CUBE_MAP_POSITIVE_X, i, 0, GL_RGB,
+                              width, height, nr_channels, 0, GL_RGB, data,
+                              gamma_correction)) {
+      LoggerSystem::GetInstance().Log(
+          LoggerSystem::Level::kWarning,
+          "Cube map texture failed to load at path: " + faces[i]);
+    }
+  }
+
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+  return texture_id;
+}
+bool LoadImage::LoadTexture2DSetting(GLenum target, int index, GLint level,
+                                     GLint internal_format, int width,
+                                     int height, int nr_components,
+                                     GLint border, GLenum type,
+                                     unsigned char* data,
                                      GLboolean gamma_correction) {
+  border = 0;
   if (data) {
     GLenum format;
     if (nr_components == 1)
@@ -73,31 +120,12 @@ void LoadImage::LoadTexture2DSetting(GLuint& texture_id, int width, int height,
       }
     }
 
-    glBindTexture(GL_TEXTURE_2D, texture_id);
-    /*
-	 * Set the texture wrapping parameters 
-	 */
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    /*
-	 * Set texture filtering parameters
-	 */
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                    GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // Register the image information in OpenGL
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format,
-                 GL_UNSIGNED_BYTE, data);
-    // Enable the mipmap property on the image
-    glGenerateMipmap(GL_TEXTURE_2D);
-
+    glTexImage2D(target + index, level, internal_format, width, height, border,
+                 format, type, data);
     stbi_image_free(data);
+    return true;
   }
 
   stbi_image_free(data);
-  texture_id = kLoadImageError;
-}
-void LoadImage::OpenStbImageFlipYAxis() {
-  stbi_set_flip_vertically_on_load(true);
+  return false;
 }

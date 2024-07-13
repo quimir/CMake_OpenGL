@@ -16,7 +16,7 @@
 
 #include "include/Buffer.h"
 #include "include/LoggerSystem.h"
-#include "include/MeshData.h"
+#include "include/Model/MeshData.h"
 
 Buffer::Buffer(GLenum type) : type_(type) {
   if (glGetString(GL_VERSION) == nullptr) {

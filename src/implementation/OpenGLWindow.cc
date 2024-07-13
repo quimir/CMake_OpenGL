@@ -19,7 +19,9 @@
 
 OpenGLWindow::OpenGLWindow(int width, int height, const char* title,
                            GLFWmonitor* monitor, GLFWwindow* share)
-    : Widget(width,height),frame_buffer_(nullptr) {
+    : Widget(width, height),
+      cursor_(nullptr),
+      render_timer_(RenderTimer::GetInstance()) {
   InitGLFW();
   InitWindow(width, height, title, monitor, share);
   InitGLAD();
@@ -32,6 +34,9 @@ OpenGLWindow::~OpenGLWindow() {
 }
 
 void OpenGLWindow::Run() {
+  if (this->cursor_) {
+    glfwSetCursor(window_, this->cursor_);
+  }
   InitializeGL();
   MainLoop();
 }
@@ -61,6 +66,7 @@ void OpenGLWindow::InitWindow(int width, int height, const char* title,
 
   glfwMakeContextCurrent(window_);
   glfwSetFramebufferSizeCallback(window_, FrameBufferSizeCallback);
+  glfwSetCursorEnterCallback(window_, CursorEnterCallback);
   glfwSetWindowUserPointer(window_, this);
 }
 
@@ -79,35 +85,44 @@ void OpenGLWindow::InitGLAD() {
 
 void OpenGLWindow::MainLoop() {
   while (!glfwWindowShouldClose(window_)) {
+    render_timer_.StartTimer();
     MakeContextCurrent();
 
     ProcessInput(this->window_);
-    
+
     this->frame_buffer_->Bind();
     RenderToFramebuffer();
     this->frame_buffer_->UnBind();
-    
+
     PaintGL();
 
     // Swap front and back buffers to display rendered content
     glfwSwapBuffers(window_);
     // Handle all waiting events
     glfwPollEvents();
+    render_timer_.StopTimer();
+    render_timer_.FrameEnd();
   }
 }
 
 void OpenGLWindow::Cleanup() {
+  if (this->cursor_) {
+    glfwDestroyCursor(this->cursor_);
+  }
   glfwDestroyWindow(this->window_);
   glfwTerminate();
 }
 
 void OpenGLWindow::FrameBufferSizeCallback(GLFWwindow* window, int width,
                                            int height) {
-  glViewport(0, 0, width, height);
+  double x_pos, y_pos;
+  glfwGetCursorPos(window, &x_pos, &y_pos);
+  glViewport((int)x_pos, (int)y_pos, width, height);
   auto* self = static_cast<OpenGLWindow*>(glfwGetWindowUserPointer(window));
   if (self) {
-    self->frame_buffer_->Resize(width,height);
+    self->frame_buffer_->Resize(width, height);
     self->ResizeGL(width, height);
+    self->ResizeWidget(width, height);
   }
 }
 
@@ -129,4 +144,47 @@ void OpenGLWindow::MakeContextCurrent() {
 }
 void OpenGLWindow::RenderToFramebuffer() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+void OpenGLWindow::DisplayMouse() {
+  glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_CAPTURED);
+}
+void OpenGLWindow::HideMouse() {
+  glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
+void OpenGLWindow::NormalMouse() {
+  glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+void OpenGLWindow::EnableRawMouseMotion() {
+  HideMouse();
+  if (glfwRawMouseMotionSupported()) {
+    glfwSetInputMode(window_, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+    LoggerSystem::GetInstance().Log(LoggerSystem::Level::kInfo,
+                                    "The user enables raw mouse motion");
+  } else {
+    LoggerSystem::GetInstance().Log(
+        LoggerSystem::Level::kWarning,
+        "Cannot be opened raw mouse motion , because this computer does not "
+        "support the original mouse movement.");
+    DisplayMouse();
+  }
+}
+bool OpenGLWindow::SetCursor(const GLFWimage* image, int x_hot, int y_hot) {
+  this->cursor_ = glfwCreateCursor(image, x_hot, y_hot);
+  if (!this->cursor_) {
+    LoggerSystem::GetInstance().Log(LoggerSystem::Level::kWarning,
+                                    "User initialized custom mouse error! The "
+                                    "existence of image will be rechecked!");
+    return false;
+  }
+  return true;
+}
+void OpenGLWindow::CursorEnterCallback(GLFWwindow* window, int entered) {
+  if (entered) {
+    // The cursor entered the content area of the window
+  } else {
+    // The cursor left the content area of the window
+  }
+}
+const RenderTimer& OpenGLWindow::GetRenderTimer() const {
+  return render_timer_;
 }

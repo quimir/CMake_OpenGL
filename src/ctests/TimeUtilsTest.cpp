@@ -14,23 +14,28 @@
  * limitations under the License.
  ******************************************************************************/
 
-
 #include <gtest/gtest.h>
-#include "include/TimeUtils.h"
 #include <thread>
+#include "include/LoggerSystem.h"
+#include "include/Time/TimeUtils.h"
 
 TEST(TimeUtilsTest, GetCurrentTime) {
   auto now = TimeUtils::GetInstance().GetCurrentTime();
   auto system_now = std::chrono::system_clock::now();
   auto diff = TimeUtils::GetInstance().GetDurationInSeconds(now, system_now);
-  ASSERT_LT(diff, 1.0); // Time difference should be less than 1 second
+  LoggerSystem::GetInstance().Log(
+      LoggerSystem::Level::kInfo,
+      "Test TimeUtils::GetInstance().GetDurationInSeconds: " +
+          std::to_string(diff));
+  ASSERT_LT(diff, 1.0);  // Time difference should be less than 1 second
 }
 
 TEST(TimeUtilsTest, FormatTime) {
   auto now = TimeUtils::GetInstance().GetCurrentTime();
   std::string formatted_time = TimeUtils::GetInstance().FormatTime(now);
   ASSERT_FALSE(formatted_time.empty());
-  ASSERT_EQ(formatted_time.size(), 19); // The length of formatting time should be 19
+  ASSERT_EQ(formatted_time.size(),
+            19);  // The length of formatting time should be 19
 }
 
 TEST(TimeUtilsTest, GetDurationInSeconds) {
@@ -39,7 +44,7 @@ TEST(TimeUtilsTest, GetDurationInSeconds) {
   auto end = TimeUtils::GetInstance().GetCurrentTime();
   double duration = TimeUtils::GetInstance().GetDurationInSeconds(start, end);
   ASSERT_GE(duration, 1.0);
-  ASSERT_LT(duration, 1.1); // Considering the imprecision of sleep
+  ASSERT_LT(duration, 1.1);  // Considering the imprecision of sleep
 }
 
 TEST(TimeUtilsTest, GetTimeStamp) {
@@ -47,8 +52,7 @@ TEST(TimeUtilsTest, GetTimeStamp) {
   ASSERT_GT(timestamp, 0.0);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
-
