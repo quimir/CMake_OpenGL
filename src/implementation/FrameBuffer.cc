@@ -44,9 +44,11 @@ void FrameBuffer::UnBind() const {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 void FrameBuffer::Initialize(GLint width, GLint height) {
+  // Generate frame buffer object
   glGenFramebuffers(1, &frame_buffer_);
   glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_);
 
+  // Generate color texture buffer
   glGenTextures(1, &texture_color_buffer_);
   glBindTexture(GL_TEXTURE_2D, texture_color_buffer_);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
@@ -56,6 +58,7 @@ void FrameBuffer::Initialize(GLint width, GLint height) {
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
                          texture_color_buffer_, 0);
 
+  // Generate depth template render buffer
   glGenRenderbuffers(1, &rbo_depth_stencil_);
   glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth_stencil_);
   glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);

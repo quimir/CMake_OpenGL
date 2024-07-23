@@ -22,15 +22,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
 find_package(GLM REQUIRED)
-message(STATUS "GLM included at ${GLM_INCLUDE_DIR}")
 find_package(GLFW3 REQUIRED)
-message(STATUS "Found GLFW3 in ${GLFW3_INCLUDE_DIR}")
 find_package(ASSIMP REQUIRED)
-message(STATUS "Found ASSIMP in ${ASSIMP_INCLUDE_DIR}")
 find_package(IMGUI REQUIRED)
-message(STATUS "Found IMGUI in ${IMGUI_INCLUDE_DIRS}")
 find_package(MODEL REQUIRED)
-message(STATUS "Found MODEL in ${MODEL_INCLUDE_DIRS}")
 
 # Obtain the installation directory of the application
 configure_file(configuration/root_directory.h.in ${CMAKE_BINARY_DIR}/configuration/root_directory.h)
@@ -59,7 +54,8 @@ set(IMGUI_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/ImGui")
 set(CHAPTERS
 	started_opengl
 	model_loading
-	started_opengl_texture)
+	started_opengl_texture
+	skeletal_animation)
 
 function(create_project_from_sources chapter)
   set(HEADER_FILES "${HEADER_FILES_DIR}/*.h"
@@ -144,22 +140,5 @@ include_directories(${CMAKE_SOURCE_DIR}/includes)
 option(ENABLE_TESTS "Enable test" ON)
 
 if (ENABLE_TESTS)
-  add_subdirectory(${CMAKE_SOURCE_DIR}/src/googletest-1.14.0)
-
   add_subdirectory(src/ctests)
-
-  aux_source_directory(/src/ctests SRC_LIST)
-
-  # Create the test executable
-  foreach (test ${SRC_LIST})
-	string(REGEX REPLACE "\\.cpp$" "" test_name${test})
-	add_executable(${test_name} ${test})
-	target_link_libraries(${test_name} PRIVATE your_library)
-	add_test(NAME ${test_name} COMMAND${test_name})
-  endforeach ()
-
-  # Set test properties such as WORKING DIRECTORY for the test
-  set_tests_properties(${test_name} PROPERTIES
-	  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test_data"
-  )
 endif ()

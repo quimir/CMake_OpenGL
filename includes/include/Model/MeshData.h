@@ -46,6 +46,6 @@ struct Texture {
   std::string type;
   std::string path;
 };
-}
+}  // namespace meshdata
 
-#endif //CMAKE_OPEN_INCLUDES_INCLUDE_MESHDATA_H_
+#endif  //CMAKE_OPEN_INCLUDES_INCLUDE_MESHDATA_H_

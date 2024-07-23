@@ -17,9 +17,11 @@
 #ifndef CMAKE_OPEN_INCLUDES_INCLUDE_LOADIMAGE_H_
 #define CMAKE_OPEN_INCLUDES_INCLUDE_LOADIMAGE_H_
 
+#include <mutex>
 #include <string>
 #include <vector>
 
+#include "assimp/texture.h"
 #include "glad/glad.h"
 #include "stb_image.h"
 
@@ -29,9 +31,14 @@
  * be used via GetInstance().Copy construction and copy construction are 
  * not allowed in this class.
  * 
- * Use reference:
+ * Usage example:
+ * @code
  * std::string path="/path/image.png"
  * GLuint opengl_index=LoadImage::GetInstance().LoadTexture2D(path);
+ * @endcode
+ * 
+ * @note This class is thread-safe. The use of an internal mutex ensures that 
+ * an instance is generated only once.
  */
 class LoadImage {
  public:
@@ -43,7 +50,9 @@ class LoadImage {
    * @return The OpenGL index of the texture is returned on success; 
    * otherwise, a runtime_error exception is thrown.
    */
-  GLuint LoadTexture2D(const std::string& path,
+  GLuint LoadTexture2D(const std::string& path, GLint wrap_mode = GL_REPEAT,
+                       GLint mag_filter_mode = GL_LINEAR_MIPMAP_LINEAR,
+                       GLint min_filter_mode = GL_LINEAR,
                        GLboolean gamma_correction = false);
 
   /**
@@ -58,10 +67,16 @@ class LoadImage {
   GLuint LoadCubeMap(std::vector<std::string> faces,
                      GLboolean gamma_correction = false);
 
+  GLuint LoadTexture2DFromAssimp(const aiTexture* ai_texture, GLint wrap_mode,
+                                 GLint mag_filter_mode, GLint min_filter_mode,
+                                 GLboolean gamma_correction = false);
+
   /**
    * Tell stb_image.h to flip loaded texture's on the y-axis.
    */
-  void OpenStbImageFlipYAxis();
+  void EnableStbImageFlipYAxis();
+
+  void DisEnableStbImageFlipYAxis();
 
   static LoadImage& GetInstance();
 
@@ -118,6 +133,10 @@ class LoadImage {
                             int nr_components, GLint border, GLenum type,
                             unsigned char* data, GLboolean gamma_correction);
   LoadImage() = default;
+
+ private:
+  static std::once_flag initialized_;
+  static LoadImage* instance_;
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_LOADIMAGE_H_

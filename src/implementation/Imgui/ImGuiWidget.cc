@@ -31,9 +31,9 @@ ImGuiWidget::ImGuiWidget(GLFWwindow* window, int window_width,
         "initializing OpenGL. Please initialize OpenGL before building ImGui "
         "Window");
   }
-  Initialize(window);
+  Initialized(window);
 }
-void ImGuiWidget::Initialize(GLFWwindow* window) {
+void ImGuiWidget::Initialized(GLFWwindow* window) {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
 
@@ -42,6 +42,7 @@ void ImGuiWidget::Initialize(GLFWwindow* window) {
   ImGui::StyleColorsDark();
 
   ImGui_ImplGlfw_InitForOpenGL(window, true);
+  //glfwGetCurrentContext();
   const char* version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
   auto major_version = ExtractMajorVersion(version);
   ImGui_ImplOpenGL3_Init(std::string("#version " + major_version).c_str());
@@ -86,9 +87,4 @@ void ImGuiWidget::Render() {
 }
 ImGuiIO* ImGuiWidget::GetIo() const {
   return io_;
-}
-void ImGuiWidget::Run() {
-  BeginFrame();
-  Render();
-  EndFrame();
 }

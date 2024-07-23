@@ -14,11 +14,12 @@
  * limitations under the License.
  ******************************************************************************/
 
-#include "include/Buffer.h"
+#include "include/Buffers.h"
 #include "include/LoggerSystem.h"
 #include "include/Model/MeshData.h"
 
-Buffer::Buffer(GLenum type) : type_(type) {
+Buffers::Buffers(GLenum type)
+    : type_(type), buffer_id_(0), binding_state_(false) {
   if (glGetString(GL_VERSION) == nullptr) {
     LoggerSystem::GetInstance().Log(LoggerSystem::Level::kWarning,
                                     "OpenGL is not initialized");
@@ -26,31 +27,49 @@ Buffer::Buffer(GLenum type) : type_(type) {
   }
   glGenBuffers(1, &buffer_id_);
 }
-Buffer::~Buffer() {
+Buffers::~Buffers() {
   glDeleteBuffers(1, &buffer_id_);
 }
-void Buffer::Bind() const {
-  glBindBuffer(this->type_, buffer_id_);
+void Buffers::Bind() {
+  if (!binding_state_) {
+    glBindBuffer(this->type_, buffer_id_);
+    binding_state_ = true;
+  }
 }
-void Buffer::UnBind() const {
-  glBindBuffer(type_, 0);
+void Buffers::UnBind() {
+  if (binding_state_) {
+    glBindBuffer(type_, 0);
+    binding_state_ = false;
+  }
 }
-void Buffer::SetData(const void* data, GLsizeiptr size, GLenum usage) const {
+void Buffers::SetData(const void* data, GLsizeiptr size, GLenum usage) const {
   glBufferData(type_, size, data, usage);
 }
-GLenum Buffer::GetType() const {
+GLenum Buffers::GetType() const {
   return type_;
 }
-void Buffer::SetType(GLenum type) {
+void Buffers::SetType(GLenum type) {
   type_ = type;
 }
+bool Buffers::IsBindingState() const {
+  return binding_state_;
+}
+void Buffers::ReGenBuffers(GLenum type) {
+  if (type != UINT_MAX) {
+    type_ = type;
+  }
+  if (buffer_id_ != 0) {
+    glDeleteBuffers(1, &buffer_id_);
+  }
+  glGenBuffers(1, &buffer_id_);
+}
 template <typename T>
-void Buffer::SetData(const std::vector<T>& data, GLenum usage) const {
-  glBufferData(type_,data.size()*sizeof(T),data.data(),usage);
+void Buffers::SetData(const std::vector<T>& data, GLenum usage) const {
+  glBufferData(type_, data.size() * sizeof(T), data.data(), usage);
 }
 
-template void Buffer::SetData<struct meshdata::Vertex>(
+template void Buffers::SetData<struct meshdata::Vertex>(
     const std::vector<meshdata::Vertex>& data, GLenum usage) const;
 
-template void Buffer::SetData<unsigned int>(
+template void Buffers::SetData<unsigned int>(
     const std::vector<unsigned int>& data, GLenum usage) const;

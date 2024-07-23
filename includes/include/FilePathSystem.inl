@@ -14,17 +14,24 @@
  * limitations under the License.
  ******************************************************************************/
 
-#ifndef CMAKE_OPEN_INCLUDES_INCLUDE_BONEINFO_H_
-#define CMAKE_OPEN_INCLUDES_INCLUDE_BONEINFO_H_
+#ifndef CMAKE_OPEN_INCLUDES_INCLUDE_FILEPATHSYSTEM_INL_
+#define CMAKE_OPEN_INCLUDES_INCLUDE_FILEPATHSYSTEM_INL_
 
-#include "glm/glm.hpp"
+#include <memory>
+#include <stdexcept>
+#include "FilePathSystem.h"
 
-struct BoneInfo {
-  // Id is index in final bone matrices
-  int id;
+template <typename... Args>
+std::string FilePathSystem::SplicePath(const std::string& format,
+                                       Args... args) {
+  size_t size = snprintf(nullptr, 0, format.c_str(), args...) +
+                1;  // Extra space for '\0'
+  if (size <= 0) {
+    throw std::runtime_error("Error during formatting.");
+  }
+  std::unique_ptr<char[]> buf(new char[size]);
+  snprintf(buf.get(), size, format.c_str(), args...);
+  return std::string(buf.get(), buf.get() + size - 1);
+}
 
-  // offset matrix transforms vertex from model space to bone space
-  glm::mat4 offset;
-};
-
-#endif  //CMAKE_OPEN_INCLUDES_INCLUDE_BONEINFO_H_
+#endif

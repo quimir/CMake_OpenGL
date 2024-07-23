@@ -17,6 +17,11 @@
 #ifndef CMAKE_OPEN_INCLUDES_INCLUDE_IMGUI_IMGUICONFIG_H_
 #define CMAKE_OPEN_INCLUDES_INCLUDE_IMGUI_IMGUICONFIG_H_
 
+/**
+ * Customize your ImGuiconfig in this header file. If not, check out 
+ * ../imgui/imconfig.h file.
+ */
+
 #define IMGUI_USER_CONFIG "../include/ImGui/ImGuiconfig.h"
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_IMGUI_IMGUICONFIG_H_

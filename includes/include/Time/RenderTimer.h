@@ -20,24 +20,22 @@
 #include <deque>
 #include "Timer.h"
 
+
 class RenderTimer : public Timer {
  public:
-  static RenderTimer& GetInstance();
-
-  double GetFPS() const;
-
-  double GetRenderDelay() const;
-
-  void FrameEnd();
-  
-  double GetProgramRunTime()const;
-
- private:
   explicit RenderTimer(
       const std::deque<
           std::chrono::time_point<std::chrono::high_resolution_clock>>&
           frame_times = std::deque<
               std::chrono::time_point<std::chrono::high_resolution_clock>>());
+  
+  double GetFPS() const;
+
+  double GetRenderDelay() const;
+
+  void FrameEnd();
+
+  double GetProgramRunTime() const;
 
  private:
   static std::chrono::time_point<std::chrono::system_clock> program_starts_;

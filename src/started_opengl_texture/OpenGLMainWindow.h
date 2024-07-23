@@ -21,10 +21,10 @@
 #ifndef CMAKE_OPEN_SRC_STARTED_OPENGL_TEXTURE_OPENGLMAINWINDOW_H_
 #define CMAKE_OPEN_SRC_STARTED_OPENGL_TEXTURE_OPENGLMAINWINDOW_H_
 
+#include "include/Buffers.h"
+#include "include/FilePathSystem.h"
 #include "include/OpenGLWindow.h"
 #include "include/Shader.h"
-#include "include/FilePathSystem.h"
-#include "include/Buffer.h"
 #include "include/VertexArray.h"
 
 class OpenGLMainWindow :public OpenGLWindow {
@@ -42,8 +42,8 @@ class OpenGLMainWindow :public OpenGLWindow {
   Shader shader_;
   
   VertexArray vao_;
-  
-  Buffer vbo_,ebo_;
+
+  Buffers vbo_,ebo_;
 
   GLuint VAO_, VBO_, EBO_;
 

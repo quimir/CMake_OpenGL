@@ -21,7 +21,8 @@ OpenGLWindow::OpenGLWindow(int width, int height, const char* title,
                            GLFWmonitor* monitor, GLFWwindow* share)
     : Widget(width, height),
       cursor_(nullptr),
-      render_timer_(RenderTimer::GetInstance()) {
+      render_timer_(),
+      mouse_state_(true) {
   InitGLFW();
   InitWindow(width, height, title, monitor, share);
   InitGLAD();
@@ -29,6 +30,9 @@ OpenGLWindow::OpenGLWindow(int width, int height, const char* title,
 }
 
 OpenGLWindow::~OpenGLWindow() {
+  if (this->render_timer_.IsRunning()) {
+    this->render_timer_.StopTimer();
+  }
   delete this->frame_buffer_;
   Cleanup();
 }
@@ -108,6 +112,7 @@ void OpenGLWindow::MainLoop() {
 void OpenGLWindow::Cleanup() {
   if (this->cursor_) {
     glfwDestroyCursor(this->cursor_);
+    this->mouse_state_ = true;
   }
   glfwDestroyWindow(this->window_);
   glfwTerminate();
@@ -147,12 +152,23 @@ void OpenGLWindow::RenderToFramebuffer() {
 }
 void OpenGLWindow::DisplayMouse() {
   glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_CAPTURED);
+  if (!this->mouse_state_)
+    this->mouse_state_ = true;
 }
 void OpenGLWindow::HideMouse() {
+  if (!this->mouse_state_) {
+    LoggerSystem::GetInstance().Log(LoggerSystem::Level::kWarning,
+                                    "The mouse state is now hidden, so there "
+                                    "is no need to reset it to hide it.");
+    return;
+  }
   glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  this->mouse_state_ = false;
 }
 void OpenGLWindow::NormalMouse() {
   glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+  if (!this->mouse_state_)
+    this->mouse_state_ = true;
 }
 void OpenGLWindow::EnableRawMouseMotion() {
   HideMouse();

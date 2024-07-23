@@ -20,6 +20,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <unordered_set>
@@ -33,11 +34,15 @@
  * of memory leaks; all memory is reclaimed in the destructor.This class does 
  * not support copy construction or copy operations.
  * 
- * Use reference:
+ * Usage example:
+ * @code
  * Shader shader("text.vert","text.frag");
  * shader.Bind();
  * shader.SetInt("text",1);
  * Shader.UnBind();
+ * @endcode
+ * @note This class is thread-safe. It uses internal mutexes to protect access to 
+ * shared resources.
  */
 class Shader {
  private:
@@ -58,7 +63,7 @@ class Shader {
    * Start the shader. Note that any function that wants to use a shader must
    * use it first, otherwise no other function will work.
    */
-  void Bind();
+  void Bind() const;
 
   /**
    * Remove shaders from use by using Bind() first.
@@ -399,7 +404,7 @@ class Shader {
    * @param error_type See Shader::ShaderErrorType for details.
    */
   void CheckCompileErrors(GLuint shader, ShaderErrorType error_type);
-  
+
   /**
    * Convert the ShaderErrorType variable to a string for output, using an 
    * all-capital name without the k.
@@ -445,6 +450,8 @@ class Shader {
   std::unordered_set<std::string> uniform_warnings_;
   // Record the wrong name for the Uniform block.
   std::unordered_set<std::string> uniform_block_warnings_;
+
+  static std::mutex gl_mutex_;
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_SHADER_H_

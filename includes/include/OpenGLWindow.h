@@ -18,8 +18,8 @@
 #define CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLWINDOW_H_
 
 #include "FrameBuffer.h"
-#include "GLFW/glfw3.h"
 #include "glad/glad.h"
+#include "GLFW/glfw3.h"
 #include "include/Time/RenderTimer.h"
 #include "include/Widget.h"
 
@@ -35,17 +35,19 @@
  * See the comments for more details about these three functions. 
  * 
  * Please note that you must add the following to the subclass 
- * constructor: glfwSetWindowUserPointer (this - > window_, this); 
+ * constructor: glfwSetWindowUserPointer(this->window_,this); 
  * Otherwise, the OpenGL window handle is still called from the superclass.
  * 
  * Use reference:
+ * @code
  * class OpenGLMainWindow:public OpenGLWindow
  * {};
  * 
  * OpenGLMainWindow *window;
  * window->Run();
+ * @endcode
  */
-class OpenGLWindow:public Widget{
+class OpenGLWindow : public Widget {
  public:
   /**
    * Initialize OpenGL, build OpenGL successfully if normal and output the 
@@ -74,7 +76,7 @@ class OpenGLWindow:public Widget{
    * set unless you set the request to close.
    */
   void Run();
-  
+
   /**
    * Prepares for rendering OpenGL content for this widget by making the 
    * corresponding context current and binding the framebuffer object in 
@@ -92,21 +94,21 @@ class OpenGLWindow:public Widget{
    * the function.
    */
   virtual ~OpenGLWindow();
-  
+
   /**
    * Displays the mouse, and the mouse cannot move beyond the window, only 
    * within the window. This is equivalent to using: glfwSetInputMode(
    * window_, GLFW_CURSOR, GLFW_CURSOR_CAPTURED);
    */
   void DisplayMouse();
-  
+
   /**
    * Hide the mouse, the mouse is not visible, the movement of the mouse is not 
    * allowed beyond the display of the screen. This is equivalent to using:
    * glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
    */
   void HideMouse();
-  
+
   /**
    * Display the mouse with no restrictions on the mouse state at all, which 
    * means that the mouse can now exceed the display screen. Using this mode 
@@ -115,7 +117,7 @@ class OpenGLWindow:public Widget{
    * window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
    */
   void NormalMouse();
-  
+
   /**
    * When the cursor is disabled, raw (unscaled and unaccelerated) mouse motion 
    * can be enabled if available.
@@ -132,7 +134,7 @@ class OpenGLWindow:public Widget{
    * entered into the log file.
    */
   void EnableRawMouseMotion();
-  
+
   /**
    * Create a new custom cursor image and store it in cursor_ which can be set 
    * for the window using glfwSetCursor. The cursor is destroyed by 
@@ -147,8 +149,8 @@ class OpenGLWindow:public Widget{
    * @param y_hot The desired y-coordinate, in pixels, of the cursor hotspot.
    * @return Returns true on success, false otherwise.
    */
-  bool SetCursor(const GLFWimage* image,int x_hot,int y_hot);
-  
+  bool SetCursor(const GLFWimage* image, int x_hot, int y_hot);
+
   const RenderTimer& GetRenderTimer() const;
 
  protected:
@@ -193,7 +195,7 @@ class OpenGLWindow:public Widget{
    * already written automatically when called.
    */
   virtual void ProcessInput(GLFWwindow* window);
-  
+
   /**
    * Render the frame buffer operation, here used as an operation to process 
    * the frame buffer. If you have a custom frame buffering operation, 
@@ -220,8 +222,7 @@ class OpenGLWindow:public Widget{
    * to not share resources.
    */
   void InitWindow(int width, int height, const char* title,
-                  GLFWmonitor* monitor,
-                  GLFWwindow* share);
+                  GLFWmonitor* monitor, GLFWwindow* share);
 
   /**
    * Initialize GLAD and throw an exception if an error occurs.
@@ -234,14 +235,15 @@ class OpenGLWindow:public Widget{
 
   static void FrameBufferSizeCallback(GLFWwindow* window, int width,
                                       int height);
-  
-  static void CursorEnterCallback(GLFWwindow* window,int entered);
+
+  static void CursorEnterCallback(GLFWwindow* window, int entered);
 
  protected:
   FrameBuffer* frame_buffer_;
   GLFWwindow* window_;
   GLFWcursor* cursor_;
-  
+  bool mouse_state_;
+
  private:
   // Render timer, which keeps track of the time until the render ends.
   RenderTimer render_timer_;

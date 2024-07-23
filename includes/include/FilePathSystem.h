@@ -18,6 +18,7 @@
 #define CMAKE_OPEN_INCLUDES_INCLUDE_FILEPATHSYSTEM_H_
 
 #include <cstdlib>
+#include <mutex>
 #include <string>
 
 /**
@@ -29,11 +30,16 @@
  * and the class does not allow copying and copying.It also uses the singleton 
  * pattern, so you have to call GetInstance() to get an instance of it.
  * 
- * Use reference:
+ * Usage example:
+ * @code
  * std::string path=FilePathSystem::GetInstance().GetPath(
  * "resource/image.image");
  * std::string path_resource=FilePathSystem::GetInstance().GetResources(
  * "image.image");
+ * @endcode
+ * 
+ * @note This class is thread-safe. The use of an internal mutex ensures that 
+ * an instance is generated only once.
  */
 class FilePathSystem {
  public:
@@ -63,12 +69,29 @@ class FilePathSystem {
       const std::string& resources_path = std::string("resources/"));
 
   static FilePathSystem& GetInstance();
-  
-  FilePathSystem(const FilePathSystem& other)=delete;
-  
-  FilePathSystem& operator=(const FilePathSystem& other)=delete;
-  
+
+  FilePathSystem(const FilePathSystem& other) = delete;
+
+  FilePathSystem& operator=(const FilePathSystem& other) = delete;
+
   std::string const& GetRoot();
+
+  /**
+   * The strings are concatenated according to some rule, and the input format 
+   * of the rule follows the form of the function snprintf.
+   * @tparam Args Multiple parameter templates.
+   * @param format The string to concatenate can consist of multiple arguments.
+   * @param args Rules for concatenation. Details please refer to:
+   * https://cplusplus.com/reference/cstdio/snprintf/
+   * @return The concatenated string is returned on success, otherwise an 
+   * exception is thrown.
+   */
+  template <typename... Args>
+  std::string SplicePath(const std::string& format, Args... args);
+
+  ~FilePathSystem();
+
+  FilePathSystem& operator=(FilePathSystem& other) = delete;
 
  private:
   FilePathSystem();
@@ -98,6 +121,11 @@ class FilePathSystem {
 
  private:
   std::string root_;
+
+  static std::once_flag initialized_;
+  static FilePathSystem* instance_;
 };
+
+#include "FilePathSystem.inl"
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_FILEPATHSYSTEM_H_

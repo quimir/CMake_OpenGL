@@ -15,15 +15,14 @@
  ******************************************************************************/
 
 #include "include/Imgui/ImGuiDashboard.h"
+#include "glm/glm.hpp"
 #include "include/Time/RenderTimer.h"
 
 constexpr float kDistance = 10.0f;
 
 ImGuiDashboard::ImGuiDashboard(GLFWwindow* window, int window_width,
                                int window_height)
-    : ImGuiWidget(window, window_width, window_height),
-      render_timer_(RenderTimer::GetInstance()),
-      camera_(Camera()) {}
+    : ImGuiWidget(window, window_width, window_height), render_timer_() {}
 void ImGuiDashboard::Render() {
   static bool dash_board_window = true;
   ShowDashboardWin(&dash_board_window);
@@ -90,13 +89,58 @@ void ImGuiDashboard::ShowDashboardWin(bool* open) {
 void ImGuiDashboard::SetRenderTimer(const RenderTimer& render_timer) {
   render_timer_ = render_timer;
 }
-void ImGuiDashboard::SetCamera(const Camera& camera) {
-  camera_ = camera;
-}
-void ImGuiDashboard::ShowToolsPanel(bool show_dashboard) {
+void ImGuiDashboard::ShowToolsPanel(bool& show_dashboard, glm::vec4& clear_col,
+                                    Camera& camera) {
   ImGui::Begin("OpenGL Control Panel");
   if (ImGui::CollapsingHeader("Informations")) {
-    ImGui::Text("IsAnyItemActive : %s", ImGui::IsAnyItemActive() ? "true" : "false");
+    ImGui::Text("IsAnyItemActive : %s",
+                ImGui::IsAnyItemActive() ? "true" : "false");
     ImGui::Checkbox("ShowDashBoard", &show_dashboard);
+  }
+  if (ImGui::CollapsingHeader("Draw State")) {
+    ImGui::ColorEdit4("ClearColor", &clear_col.x, ImGuiColorEditFlags_None);
+  }
+  if (ImGui::CollapsingHeader("Camera")) {
+    if (ImGui::Button("Reset")) {
+      camera.ResetCamera();
+    }
+    bool enable_camera = camera.IsEnabled();
+    ImGui::Checkbox("Enabled Camera Control(C)", &enable_camera);
+    if (enable_camera)
+      camera.Enable();
+    else
+      camera.DisEnable();
+    ImGui::Separator();
+    ImGui::Text("Transform: ");
+    ImGui::Separator();
+    ImGui::Indent();
+    glm::vec3 camera_setting = camera.GetPosition();
+    ImGui::DragFloat3("Pos: ", &camera_setting.x, 0.01f, -100.0f, 100.0f);
+    camera.SetPosition(camera_setting);
+    ImGui::Separator();
+    auto camera_view_setting = camera.GetZoom();
+    ImGui::DragFloat("Fov: ", &camera_view_setting, 0.1f, 1.0f, 60.0f);
+    camera.SetZoom(camera_view_setting);
+    camera_view_setting = camera.GetNearPlane();
+    ImGui::DragFloat("Near: ", &camera_view_setting, 0.1f, 0.1f, 1000.0f);
+    camera.SetNearPlane(camera_view_setting);
+    camera_view_setting = camera.GetFarPlane();
+    ImGui::DragFloat("Far: ", &camera_view_setting, 0.1f, 0.1f, 1000.0f);
+    camera.SetFarPlane(camera_view_setting);
+    camera_view_setting = camera.GetYaw();
+    ImGui::DragFloat("Yaw: ", &camera_view_setting, 0.1f);
+    camera.SetYaw(camera_view_setting);
+    camera_view_setting = camera.GetPitch();
+    ImGui::DragFloat("Pitch: ", &camera_view_setting, 0.01f);
+    camera.SetPitch(camera_view_setting);
+    camera_view_setting = camera.GetMovementSpeed();
+    ImGui::DragFloat("Movement Speed: ", &camera_view_setting, 0.1f);
+    camera.SetMovementSpeed(camera_view_setting);
+    ImGui::Unindent();
+  }
+
+  ImGui::End();
+  if (show_dashboard) {
+    ShowDashboardWin(&show_dashboard);
   }
 }

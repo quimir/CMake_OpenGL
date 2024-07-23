@@ -47,15 +47,52 @@ void Timer::StopTimer() {
   running_ = false;
 }
 double Timer::ElapsedSeconds() const {
+  if (!running_ &&
+      start_time_ ==
+          std::chrono::time_point<std::chrono::high_resolution_clock>()) {
+    LoggerSystem::GetInstance().Log(LoggerSystem::Level::kError,
+                                    "Error! The timer has not been started, "
+                                    "cannot calculate elapsed time.");
+    std::cerr << "Error! The timer has not been started, cannot calculate "
+                 "elapsed time."
+              << std::endl;
+    return -1;
+  }
   if (running_) {
     auto now_time = std::chrono::high_resolution_clock::now();
     return std::chrono::duration<double>(now_time - start_time_).count();
   } else {
-    return std::chrono::duration<double>(end_time_ - start_time_).count();
+    if (end_time_ !=
+        std::chrono::time_point<std::chrono::high_resolution_clock>()) {
+      return std::chrono::duration<double>(end_time_ - start_time_).count();
+    } else {
+      LoggerSystem::GetInstance().Log(
+          LoggerSystem::Level::kError,
+          "Error! The timer has not been stopped properly, cannot calculate "
+          "elapsed time.");
+      std::cerr << "Error! The timer has not been stopped properly, cannot "
+                   "calculate elapsed time."
+                << std::endl;
+      return -1;
+    }
   }
 }
-Timer::Timer() : running_(false) {
+Timer::Timer()
+    : running_(false), start_time_(std::chrono::high_resolution_clock::now()) {
+  static bool detection_system = false;
+  if (!detection_system) {
+    auto resolution =
+        std::chrono::high_resolution_clock::period::num /
+        static_cast<double>(std::chrono::high_resolution_clock::period::den);
+    LoggerSystem::GetInstance().Log(
+        LoggerSystem::Level::kInfo,
+        "std::chrono::high_resolution_clock resolution: " +
+            std::to_string(resolution) + " seconds");
+  }
 }
-double Timer::GetDeltaTimeMilliseconds() const {
+double Timer::ElapsedMilliseconds() const {
   return ElapsedSeconds() * 1000.0;
+}
+bool Timer::IsRunning() const {
+  return running_;
 }

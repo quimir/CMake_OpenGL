@@ -13,7 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
- 
-int main()
-{
+
+#include "OpenGLMainWindow.h"
+int main() {
+  auto* open_gl_main_window =
+      new OpenGLMainWindow(800, 600, "Model Loading");
+  open_gl_main_window->Run();
+  return 0;
 }

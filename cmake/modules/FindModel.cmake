@@ -27,7 +27,7 @@ if(NOT MODEL_LIBRARIES)
   file(GLOB MODEL_SOURCE_FILES
 	  "${CMAKE_CURRENT_SOURCE_DIR}/src/implementation/Model/*.cc"
 	  "${CMAKE_CURRENT_SOURCE_DIR}/src/implementation/Model/*.cpp")
-  add_library(MODEL STATIC ${MODEL_SOURCE_FILES})
+  add_library(MODEL ${MODEL_SOURCE_FILES})
   set(MODEL_LIBRARIES MODEL)
 endif()
 

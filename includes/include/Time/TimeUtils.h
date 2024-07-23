@@ -18,11 +18,21 @@
 #define CMAKE_OPEN_INCLUDES_INCLUDE_TIMEUTILS_H_
 
 #include <chrono>
+#include <mutex>
 #include <string>
 
 /**
  * Time class, this class provides a unified time, can guarantee the 
  * independence of time.
+ * 
+ * Usage example:
+ * @code
+ * auto now_time=TimeUtils::GetInstance().GetCurrentTime();
+ * auto format_string=TimeUtils::GetInstance().FormatTime(now_time);
+ * @endcode
+ * 
+ * @note This class is thread-safe. The use of an internal mutex ensures that 
+ * an instance is generated only once.
  */
 class TimeUtils {
  public:
@@ -62,8 +72,18 @@ class TimeUtils {
    */
   static double GetTimeStamp();
 
+  ~TimeUtils();
+
+  TimeUtils(TimeUtils& other) = delete;
+
+  TimeUtils& operator=(TimeUtils& other) = delete;
+
  private:
   TimeUtils() = default;
+
+ private:
+  static std::once_flag initialized_;
+  static TimeUtils* instance_;
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_TIMEUTILS_H_

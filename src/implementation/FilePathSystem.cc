@@ -17,41 +17,47 @@
 #include "include/FilePathSystem.h"
 #include "root_directory.h"
 
-std::string FilePathSystem::GetPath(const std::string &path) {
+std::once_flag FilePathSystem::initialized_;
+FilePathSystem* FilePathSystem::instance_= nullptr;
+
+std::string FilePathSystem::GetPath(const std::string& path) {
   if (!this->root_.empty())
-	return GetPathRelativeRoot(path);
+    return GetPathRelativeRoot(path);
   else
-	return GetPathRelativeBinary(path);
+    return GetPathRelativeBinary(path);
 }
 
-FilePathSystem &FilePathSystem::GetInstance() {
-  static FilePathSystem instance;
-  return instance;
+FilePathSystem& FilePathSystem::GetInstance() {
+  if (instance_ == nullptr) {
+    std::call_once(initialized_, []() { instance_ = new FilePathSystem(); });
+  }
+  return *instance_;
 }
 
 FilePathSystem::FilePathSystem() {
-  char const *env_root = getenv("LOGL_ROOT_PATH");
-  char const *given_root = (env_root != nullptr ? env_root : logl_root);
+  char const* env_root = getenv("LOGL_ROOT_PATH");
+  char const* given_root = (env_root != nullptr ? env_root : logl_root);
   this->root_ = (given_root != nullptr ? given_root : "");
 }
-std::string const &FilePathSystem::GetRoot() {
+std::string const& FilePathSystem::GetRoot() {
   return this->root_;
 }
 
-std::string FilePathSystem::GetPathRelativeRoot(const std::string &path) {
+std::string FilePathSystem::GetPathRelativeRoot(const std::string& path) {
   return GetRoot() + std::string("/") + path;
 }
 
-std::string FilePathSystem::GetPathRelativeBinary(const std::string &path) {
+std::string FilePathSystem::GetPathRelativeBinary(const std::string& path) {
   return "../../" + path;
 }
-std::string FilePathSystem::GetResourcesPath(const std::string &path,
-											 const std::string &resources_path) {
+std::string FilePathSystem::GetResourcesPath(
+    const std::string& path, const std::string& resources_path) {
   if (!this->root_.empty()) {
-	return GetPathRelativeRoot(resources_path + path);
-  }
-  else {
-	return GetPathRelativeBinary(resources_path + path);
+    return GetPathRelativeRoot(resources_path + path);
+  } else {
+    return GetPathRelativeBinary(resources_path + path);
   }
 }
-
+FilePathSystem::~FilePathSystem() {
+  delete instance_;
+}

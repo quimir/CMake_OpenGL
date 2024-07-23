@@ -14,47 +14,39 @@
  * limitations under the License.
  ******************************************************************************/
 
-#ifndef CMAKE_OPEN_SRC_STARTED_OPENGL_OPENGLMAINWINDOW_H_
-#define CMAKE_OPEN_SRC_STARTED_OPENGL_OPENGLMAINWINDOW_H_
+#ifndef CMAKE_OPEN_SRC_SKELETAL_ANIMATION_SKELETALANIMATION_H_
+#define CMAKE_OPEN_SRC_SKELETAL_ANIMATION_SKELETALANIMATION_H_
 
-#include "include/Buffers.h"
 #include "include/Camera.h"
-#include "include/Imgui/ImGuiDashboard.h"
-#include "include/Imgui/ImGuiWidget.h"
 #include "include/OpenGLWindow.h"
 #include "include/Shader.h"
-#include "include/VertexArray.h"
+#include "include/Model/Model.h"
+#include "include/Model/Animator.h"
 
-class OpenGLMainWindow:public OpenGLWindow{
+class SkeletalAnimation : public OpenGLWindow {
  protected:
  public:
-  OpenGLMainWindow(int width, int height, const char* title,
-                   GLFWmonitor* monitor= nullptr, GLFWwindow* share= nullptr);
+  SkeletalAnimation(int width, int height, const char* title,
+                    GLFWmonitor* monitor, GLFWwindow* share);
 
  protected:
   void InitializeGL() override;
   void ResizeGL(int width, int height) override;
   void PaintGL() override;
-  
   void ProcessInput(GLFWwindow* window) override;
-  
-  static void MouseCallback(GLFWwindow * window,double x_pos_in,double y_pos_in);
-  
-  static void ScrollCallback(GLFWwindow* window,double x_offset,double y_offset);
 
  private:
-  Shader shader_;
-  VertexArray vertex_array_;
-  Buffers buffer_;
-  GLuint texture_1_,texture_2_;
-  
-  glm::mat4 projection;
-  glm::mat4 view;
-  glm::mat4 model;
-  
-  static Camera camera_;
+  static void mouse_callback(GLFWwindow* window, double x_pos, double y_pos);
 
-  ImGuiDashboard* imgui_dashboard_;
+  static void scroll_callback(GLFWwindow* window, double x_offset,
+                              double y_offset);
+
+ private:
+  static Camera camera_;
+  Shader* shader_;
+  Model* model_;
+  Animator* animator_;
+  Animation* animation_;
 };
 
-#endif  //CMAKE_OPEN_SRC_STARTED_OPENGL_OPENGLMAINWINDOW_H_
+#endif  //CMAKE_OPEN_SRC_SKELETAL_ANIMATION_SKELETALANIMATION_H_

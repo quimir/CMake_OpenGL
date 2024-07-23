@@ -44,25 +44,43 @@ class FrameBuffer {
   
   FrameBuffer& operator=(const FrameBuffer& frame_buffer)=delete;
   
+  /**
+   * Bind the frame buffer object so that subsequent operations can be 
+   * performed against it.
+   */
   void Bind()const;
   
+  /**
+   * Unbind the currently bound frame buffer object.
+   */
   void UnBind()const;
   
   GLuint GetTextureColorBuffer() const;
   
   GLuint GetFrameBuffer() const;
   
+  /**
+   * Resize the frame buffer object and reinitialize it.
+   * @param width New frame buffer width.
+   * @param height New frame buffer height.
+   */
   void Resize(GLint width,GLint height);
 
  private:
+  /**
+   * Initialize the frame buffer object, create color and depth template 
+   * textures and associate them.
+   * @param width Width of the frame buffer.
+   * @param height Height of the frame buffer.
+   */
   void Initialize(GLint width, GLint height);
   
   void Cleanup();
   
  private:
-  GLuint frame_buffer_;
-  GLuint texture_color_buffer_;
-  GLuint rbo_depth_stencil_;
+  GLuint frame_buffer_; // Frame buffer object ID.
+  GLuint texture_color_buffer_;// Color texture buffer ID.
+  GLuint rbo_depth_stencil_;// Depth templates render buffer ids.
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_FRAMEBUFFER_H_

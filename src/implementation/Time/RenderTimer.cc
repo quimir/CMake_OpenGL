@@ -28,10 +28,6 @@ RenderTimer::RenderTimer(const std::deque<std::chrono::time_point<
     Initialized = true;
   }
 }
-RenderTimer& RenderTimer::GetInstance() {
-  static RenderTimer instance;
-  return instance;
-}
 void RenderTimer::FrameEnd() {
   auto now_time = std::chrono::high_resolution_clock::now();
   frame_times_.push_back(now_time);

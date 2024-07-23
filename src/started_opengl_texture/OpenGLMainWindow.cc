@@ -17,10 +17,10 @@
 #include "OpenGLMainWindow.h"
 #include "include/LoadImage.h"
 #include "include/OpenGLMessage.h"
-OpenGLMainWindow::OpenGLMainWindow(int width, int height, const char *title)
-	: OpenGLWindow(width, height, title, nullptr, nullptr),
-	  delta_time_(0),
-	  last_frame_(0),
+OpenGLMainWindow::OpenGLMainWindow(int width, int height, const char* title)
+    : OpenGLWindow(width, height, title, nullptr, nullptr),
+      delta_time_(0),
+      last_frame_(0),
       shader_("texture.vert", "texture.frag", nullptr, nullptr, nullptr) {
   glfwSetWindowUserPointer(this->window_, this);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
@@ -29,15 +29,15 @@ void OpenGLMainWindow::InitializeGL() {
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
   float vertices[] = {
-	  // positions          // colors           // texture coords
-	  0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
-	  0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
-	  -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-	  -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f  // top left 
+      // positions          // colors           // texture coords
+      0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // top right
+      0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
+      -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // bottom left
+      -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f   // top left
   };
   unsigned int indices[] = {
-	  0, 1, 3, // first triangle
-	  1, 2, 3  // second triangle
+      0, 1, 3,  // first triangle
+      1, 2, 3   // second triangle
   };
 
   this->vao_.Bind();
@@ -46,63 +46,55 @@ void OpenGLMainWindow::InitializeGL() {
   this->ebo_.Bind();
   this->vbo_.SetData(vertices, sizeof(vertices), GL_STATIC_DRAW);
   this->ebo_.SetData(indices, sizeof(indices), GL_STATIC_DRAW);
-  this->vao_.AddBuffer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) 0);
-  this->vao_.AddBuffer(1,
-					   3,
-					   GL_FLOAT,
-					   GL_FALSE,
-					   8 * sizeof(float),
-					   (void *) (3 * sizeof(float)));
-  this->vao_.AddBuffer(2,
-					   2,
-					   GL_FLOAT,
-					   GL_FALSE,
-					   8 * sizeof(float),
-					   (void *) (6 * sizeof(float)));
-//  glGenVertexArrays(1, &VAO_);
-//  glGenBuffers(1, &VBO_);
-//  glGenBuffers(1, &EBO_);
-//
-//  glBindVertexArray(VAO_);
-//
-//  glBindBuffer(GL_ARRAY_BUFFER, VBO_);
-//  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-//
-//  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_);
-//  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+  this->vao_.AddBuffer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+  this->vao_.AddBuffer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+                       (void*)(3 * sizeof(float)));
+  this->vao_.AddBuffer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+                       (void*)(6 * sizeof(float)));
+  //  glGenVertexArrays(1, &VAO_);
+  //  glGenBuffers(1, &VBO_);
+  //  glGenBuffers(1, &EBO_);
+  //
+  //  glBindVertexArray(VAO_);
+  //
+  //  glBindBuffer(GL_ARRAY_BUFFER, VBO_);
+  //  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  //
+  //  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_);
+  //  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-//  // position attribute
-//  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) 0);
-//  glEnableVertexAttribArray(0);
-//  // color attribute
-//  glVertexAttribPointer(1,
-//						3,
-//						GL_FLOAT,
-//						GL_FALSE,
-//						8 * sizeof(float),
-//						(void *) (3 * sizeof(float)));
-//  glEnableVertexAttribArray(1);
-//  // texture coord attribute
-//  glVertexAttribPointer(2,
-//						2,
-//						GL_FLOAT,
-//						GL_FALSE,
-//						8 * sizeof(float),
-//						(void *) (6 * sizeof(float)));
-//  glEnableVertexAttribArray(2);
+  //  // position attribute
+  //  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) 0);
+  //  glEnableVertexAttribArray(0);
+  //  // color attribute
+  //  glVertexAttribPointer(1,
+  //						3,
+  //						GL_FLOAT,
+  //						GL_FALSE,
+  //						8 * sizeof(float),
+  //						(void *) (3 * sizeof(float)));
+  //  glEnableVertexAttribArray(1);
+  //  // texture coord attribute
+  //  glVertexAttribPointer(2,
+  //						2,
+  //						GL_FLOAT,
+  //						GL_FALSE,
+  //						8 * sizeof(float),
+  //						(void *) (6 * sizeof(float)));
+  //  glEnableVertexAttribArray(2);
 
-  LoadImage::GetInstance().OpenStbImageFlipYAxis();
+  LoadImage::GetInstance().EnableStbImageFlipYAxis();
 
-  this->texture_1 =
-	  LoadImage::GetInstance().LoadTexture2D(FilePathSystem::GetInstance().GetPath(
-		  "resources/textures/container.jpg"));
+  this->texture_1 = LoadImage::GetInstance().LoadTexture2D(
+      FilePathSystem::GetInstance().GetPath(
+          "resources/textures/container.jpg"));
 
-  this->texture_2 =
-	  LoadImage::GetInstance().LoadTexture2D(FilePathSystem::GetInstance().GetPath(
-		  "resources/textures/awesomeface.png"));
+  this->texture_2 = LoadImage::GetInstance().LoadTexture2D(
+      FilePathSystem::GetInstance().GetPath(
+          "resources/textures/awesomeface.png"));
 
   shader_
-      .Bind(); // don't forget to activate/use the shader before setting uniforms!
+      .Bind();  // don't forget to activate/use the shader before setting uniforms!
   // either set it manually like so:
   shader_.SetInt("texture1", 0);
   // or set it via the texture class
@@ -123,6 +115,6 @@ void OpenGLMainWindow::PaintGL() {
 
   shader_.Bind();
   this->vao_.Bind();
-//  glBindVertexArray(this->VAO_);
+  //  glBindVertexArray(this->VAO_);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }

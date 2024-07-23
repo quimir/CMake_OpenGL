@@ -24,7 +24,7 @@ class CameraTest : public ::testing::Test {
   CameraTest() {
     // Create the Camera instance of the test case
     camera_ = new Camera(glm::vec3(0.0f, 0.0f, 0.0f),
-                         glm::vec3(0.0f, 1.0f, 0.0f), 0.0f, 0.0f);
+                         glm::vec3(0.0f, 1.0f, 0.0f), 0.0f, 0.0f, 0, 0);
   }
 
   ~CameraTest() override { delete camera_; }

@@ -17,6 +17,10 @@
 #include "include/Time/TimeUtils.h"
 #include <iomanip>
 #include <sstream>
+
+std::once_flag TimeUtils::initialized_;
+TimeUtils* TimeUtils::instance_ = nullptr;
+
 std::chrono::time_point<std::chrono::system_clock> TimeUtils::GetCurrentTime() {
   return std::chrono::system_clock::now();
 }
@@ -36,8 +40,10 @@ double TimeUtils::GetDurationInSeconds(
   return std::chrono::duration<double>(end - start).count();
 }
 TimeUtils& TimeUtils::GetInstance() {
-  static TimeUtils instance;
-  return instance;
+  if (nullptr == instance_) {
+    std::call_once(initialized_, []() { instance_ = new TimeUtils; });
+  }
+  return *instance_;
 }
 double TimeUtils::GetTimeStamp() {
   auto now = TimeUtils::GetInstance().GetCurrentTime();
@@ -51,8 +57,11 @@ double TimeUtils::GetTimeStamp() {
     last_time = epoch_time;
     initialized = true;
   }
-  
-  double time_stamp=epoch_time-last_time;
-  
+
+  double time_stamp = epoch_time - last_time;
+
   return time_stamp;
+}
+TimeUtils::~TimeUtils() {
+  delete instance_;
 }

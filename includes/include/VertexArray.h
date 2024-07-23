@@ -18,7 +18,6 @@
 #define CMAKE_OPEN_INCLUDES_INCLUDE_VERTEXARRAY_H_
 
 #include "glad/glad.h"
-#include "include/Buffer.h"
 
 /**
  * Vertex array buffer data, this class will OpenGL vertex array simple encapsulation. 
@@ -29,7 +28,8 @@
  * want to use this data again you need to use: ReGenVertexArrays() This re-registers 
  * the vertex array in OpenGL.
  * 
- * Use reference:
+ * Usage example:
+ * @code
  * shader.vertex:
  * #verison 330 core
  * layout (location = 0) in vec3 aPos;
@@ -44,6 +44,7 @@
  * vao.Bind();
  * vao.AddBuffer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) 0);
  * vao.UnBind();
+ * @endcode
  */
 class VertexArray {
  public:
@@ -60,13 +61,13 @@ class VertexArray {
    * bind a vertex array object.when this function is called, a unique 
    * representation of the class is bound to OpenGL.
    */
-  void Bind() const;
+  void Bind();
 
   /**
    * Unbind the vertex array object.It binds 0 to OpenGL, and in OpenGL 4.6 
    * binding to 0 means unbinding the vertex array object.
    */
-  void UnBind() const;
+  void UnBind();
 
   /**
    * Define an array of generic vertex attribute data. please note that this 
@@ -124,7 +125,7 @@ class VertexArray {
    */
   void AddIntBuffer(GLuint index, GLint size, GLenum type, GLsizei stride,
                     const void* pointer) const;
-  
+
   /**
    * Define an array of Long vertex attribute data.
    * @param index Specifies the index of the generic vertex attribute to be 
@@ -148,10 +149,12 @@ class VertexArray {
    * generic vertex attribute in the array in the data store of the buffer 
    * currently bound to the GL_ARRAY_BUFFER target. The initial value is 0.
    */
-  void AddLongBuffer(GLuint index,GLint size,GLenum type,GLsizei stride,
-                     const void* pointer)const;
+  void AddLongBuffer(GLuint index, GLint size, GLenum type, GLsizei stride,
+                     const void* pointer) const;
 
-  GLuint GetVaoId() const;
+  const GLuint GetVaoId() const;
+
+  bool IsBindingState() const;
 
  private:
   /**
@@ -159,6 +162,8 @@ class VertexArray {
    * class in OpenGL.
    */
   GLuint vao_id_;
+
+  bool binding_state_;
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_VERTEXARRAY_H_

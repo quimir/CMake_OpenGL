@@ -32,13 +32,11 @@ class ImGuiDashboard : public ImGuiWidget {
 
   void SetRenderTimer(const RenderTimer& render_timer);
 
-  void ShowToolsPanel(bool show_dashboard);
-
-  void SetCamera(const Camera& camera);
+  void ShowToolsPanel(bool& show_dashboard, glm::vec4& clear_col,
+                      Camera& camera);
 
  private:
   RenderTimer render_timer_;
-  Camera camera_;
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_IMGUI_IMGUIDASHBOARD_H_

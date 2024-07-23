@@ -16,51 +16,65 @@
 
 #include "include/Model/Animator.h"
 #include "include/LoggerSystem.h"
-const std::vector<glm::mat4> &Animator::GetFinalBoneMatrices() const {
+const std::vector<glm::mat4>& Animator::GetFinalBoneMatrices() const {
   return final_bone_matrices_;
 }
-Animator::Animator(Animation *animation) : current_time_(0.0f) {
-  if (nullptr == animation) {
-	LoggerSystem::GetInstance().Log(
-		LoggerSystem::Level::kWarning,
-		"The animation class is not initialized, so please initialize it and try again.");
-	return;
-  }
-
-  this->final_bone_matrices_ = std::vector<glm::mat4>(100, glm::mat4(1.0f));
+Animator::Animator(Animation* animation) {
+  SetupAnimator(animation);
 }
 void Animator::UpdateAnimation(glm::float64 delete_time) {
   this->delta_time_ = delete_time;
   if (this->current_animation_) {
-	this->current_time_ += current_animation_->GetTicksPerSecond();
-	this->current_time_ = fmod(this->current_time_, current_animation_->GetDuration());
-	CalculateBoneTransform(&this->current_animation_->GetRootNode(), glm::mat4(1.0f));
+    this->current_time_ +=
+        current_animation_->GetTicksPerSecond() * delta_time_;
+    this->current_time_ =
+        fmod(this->current_time_, current_animation_->GetDuration());
+    CalculateBoneTransform(this->current_animation_->GetRootNode(),
+                           glm::mat4(1.0f));
   }
 }
-void Animator::PlayAnimation(Animation *p_animation) {
-  this->current_animation_ = p_animation;
-  this->current_time_ = 0.0f;
+void Animator::ResetAnimation(Animation* p_animation) {
+  SetupAnimator(p_animation);
 }
-void Animator::CalculateBoneTransform(const Animation::AssimpNodeData *node_data,
-									  glm::mat4 parent_transform) {
-  std::string node_name = node_data->name;
-  glm::mat4 node_transform = node_data->transformation;
+void Animator::CalculateBoneTransform(
+    const Animation::AssimpNodeData& node_data, glm::mat4 parent_transform) {
+  std::lock_guard<std::recursive_mutex> lock(bone_matrices_mutex_);
+  std::string node_name = node_data.name;
+  glm::mat4 node_transform = node_data.transformation;
 
   auto bone = this->current_animation_->FindBone(node_name);
   if (bone) {
-	bone->Update(this->current_time_);
-	node_transform = bone->GetLocalTransform();
+    bone->Update(this->current_time_);
+    node_transform = bone->GetLocalTransform();
   }
 
   auto global_transformation = parent_transform * node_transform;
   auto bone_info_map = this->current_animation_->GetBoneInfoMap();
   if (bone_info_map.find(node_name) != bone_info_map.end()) {
-	auto index = bone_info_map[node_name].id;
-	auto offset = bone_info_map[node_name].offset;
-	this->final_bone_matrices_[index] = global_transformation * offset;
+    auto index = bone_info_map[node_name].id;
+    auto offset = bone_info_map[node_name].offset;
+    this->final_bone_matrices_[index] = global_transformation * offset;
   }
 
-  for (int i = 0; i < node_data->children_count; ++i) {
-	CalculateBoneTransform(&node_data->children[i], global_transformation);
+  for (int i = 0; i < node_data.children_count; ++i) {
+    CalculateBoneTransform(node_data.children[i], global_transformation);
   }
+}
+void Animator::SetupAnimator(Animation* animation) {
+  if (nullptr == animation) {
+    LoggerSystem::GetInstance().Log(LoggerSystem::Level::kWarning,
+                                    "The animation class is not initialized, "
+                                    "so please initialize it and try again.");
+    throw std::runtime_error(
+        "The animation class is not initialized, "
+        "so please initialize it and try again.");
+  }
+  this->current_animation_ = animation;
+  int bone_count = this->current_animation_->GetBones().size();
+  this->final_bone_matrices_ = std::vector<glm::mat4>(bone_count);
+  this->current_time_ = 0.0f;
+  this->delta_time_ = 0.0f;
+}
+Animator::~Animator() {
+  delete current_animation_;
 }

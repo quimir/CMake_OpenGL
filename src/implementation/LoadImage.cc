@@ -21,7 +21,11 @@ using namespace std;
 
 constexpr GLuint kLoadImageError = UINT_MAX;
 
-GLuint LoadImage::LoadTexture2D(const std::string& path,
+std::once_flag LoadImage::initialized_;
+LoadImage* LoadImage::instance_ = nullptr;
+
+GLuint LoadImage::LoadTexture2D(const std::string& path, GLint wrap_mode,
+                                GLint mag_filter_mode, GLint min_filter_mode,
                                 GLboolean gamma_correction) {
   GLuint texture;
   glGenTextures(1, &texture);
@@ -37,14 +41,13 @@ GLuint LoadImage::LoadTexture2D(const std::string& path,
     /*
 	 * Set the texture wrapping parameters 
 	 */
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_mode);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_mode);
     /*
 	 * Set texture filtering parameters
 	 */
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                    GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mag_filter_mode);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, min_filter_mode);
     // Enable the mipmap property on the image
     glGenerateMipmap(GL_TEXTURE_2D);
     return texture;
@@ -62,11 +65,13 @@ GLuint LoadImage::LoadTexture2D(const std::string& path,
 }
 
 LoadImage& LoadImage::GetInstance() {
-  static LoadImage instance;
-  return instance;
+  if (instance_ == nullptr) {
+    std::call_once(initialized_, []() { instance_ = new LoadImage(); });
+  }
+  return *instance_;
 }
 
-void LoadImage::OpenStbImageFlipYAxis() {
+void LoadImage::EnableStbImageFlipYAxis() {
   stbi_set_flip_vertically_on_load(true);
 }
 GLuint LoadImage::LoadCubeMap(std::vector<std::string> faces,
@@ -128,4 +133,73 @@ bool LoadImage::LoadTexture2DSetting(GLenum target, int index, GLint level,
 
   stbi_image_free(data);
   return false;
+}
+GLuint LoadImage::LoadTexture2DFromAssimp(const aiTexture* ai_texture,
+                                          GLint wrap_mode,
+                                          GLint mag_filter_mode,
+                                          GLint min_filter_mode,
+                                          GLboolean gamma_correction) {
+  if (nullptr == ai_texture) {
+    LoggerSystem::GetInstance().Log(
+        LoggerSystem::Level::kWarning,
+        "Error! The texture target does not exist.");
+    return 0;
+  }
+
+  GLuint texture_id = 0;
+  glGenTextures(1, &texture_id);
+  glBindTexture(GL_TEXTURE_2D, texture_id);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_mode);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_mode);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter_mode);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter_mode);
+
+  int width, height, nr_channels;
+  unsigned char* image_data = nullptr;
+  if (ai_texture->mHeight == 0) {
+    image_data = stbi_load_from_memory(
+        reinterpret_cast<unsigned char*>(ai_texture->pcData),
+        ai_texture->mWidth, &width, &height, &nr_channels, 0);
+  } else {
+    image_data = stbi_load_from_memory(
+        reinterpret_cast<unsigned char*>(ai_texture->pcData),
+        ai_texture->mWidth * ai_texture->mHeight, &width, &height, &nr_channels,
+        0);
+  }
+
+  if (image_data) {
+    GLenum format;
+    if (nr_channels == 1)
+      format = GL_RED;
+    else if (nr_channels == 3)
+      format = GL_RGB;
+    else if (nr_channels == 4)
+      format = GL_RGBA;
+
+    if (gamma_correction) {
+      // Apply gamma correction to the texture data
+      for (int i = 0; i < width * height * nr_channels; ++i) {
+        float value = static_cast<float>(image_data[i]) / 255.0f;
+        value = pow(value, 2.2f);
+        image_data[i] = static_cast<GLuint>(value * 255.0f);
+      }
+    }
+
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
+                 GL_UNSIGNED_BYTE, image_data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+  } else {
+    LoggerSystem::GetInstance().Log(
+        LoggerSystem::Level::kWarning,
+        "Texture failed to load at path: " +
+            std::string(ai_texture->mFilename.C_Str()));
+  }
+
+  stbi_image_free(image_data);
+  return texture_id;
+}
+void LoadImage::DisEnableStbImageFlipYAxis() {
+  stbi_set_flip_vertically_on_load(false);
 }

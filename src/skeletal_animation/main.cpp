@@ -14,35 +14,11 @@
  * limitations under the License.
  ******************************************************************************/
 
-#ifndef CMAKE_OPEN_INCLUDES_INCLUDE_VERTEXBUFFER_H_
-#define CMAKE_OPEN_INCLUDES_INCLUDE_VERTEXBUFFER_H_
+#include "SkeletalAnimation.h"
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <vector>
-
-class Buffer {
- public:
-  Buffer(GLenum type = GL_ARRAY_BUFFER);
-
-  ~Buffer();
-
-  GLenum GetType() const;
-
-  void SetType(GLenum type);
-
-  void Bind() const;
-
-  void UnBind() const;
-
-  void SetData(const void *data, GLsizeiptr size, GLenum usage) const;
-
-  template<typename T>
-  void SetData(const std::vector<T> &data, GLenum usage) const;
-
- private:
-  GLuint buffer_id_;
-  GLenum type_;
-};
-
-#endif //CMAKE_OPEN_INCLUDES_INCLUDE_VERTEXBUFFER_H_
+int main() {
+  auto* skeletal_animation =
+      new SkeletalAnimation(800, 600, "skeletal_animation", nullptr, nullptr);
+  skeletal_animation->Run();
+  return 0;
+}

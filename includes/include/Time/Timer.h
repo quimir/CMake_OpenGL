@@ -19,18 +19,43 @@
 
 #include "TimeUtils.h"
 
+/**
+ * Timer tool, which can achieve a simple high precision timing function.
+ */
 class Timer {
  public:
   Timer();
 
+  /**
+   * Starts the timer and generates a cerr warning if the previous timer 
+   * started and did not complete.
+   */
   void StartTimer();
 
+  /**
+   * Stop the timer, a cerr warning is issued if the previous timer has stopped 
+   * and no more timers are active.
+   */
   void StopTimer();
 
+  /**
+   * Returns the difference between the end and start time. If the start timer 
+   * is not started, a cerr error is emitted and -1 is returned. If a tick is 
+   * not completed when the function is called, the current time - the time the 
+   * timer started - is returned.
+   * @return -1 | present time - start timer time | end timer time - start timer 
+   * time.
+   */
   double ElapsedSeconds() const;
 
-  double GetDeltaTimeMilliseconds() const;
+  /**
+   * Returns the difference between the end and start time in milliseconds.
+   * @return the difference between the end and start time in milliseconds.
+   */
+  double ElapsedMilliseconds() const;
   
+  bool IsRunning() const;
+
  private:
   std::chrono::time_point<std::chrono::high_resolution_clock> start_time_;
   std::chrono::time_point<std::chrono::high_resolution_clock> end_time_;

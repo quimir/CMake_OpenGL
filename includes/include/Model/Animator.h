@@ -20,29 +20,88 @@
 #include <map>
 #include <vector>
 
-#include "glm/glm.hpp"
 #include "assimp/scene.h"
+#include "glm/glm.hpp"
 
 #include "Animation.h"
-#include "Bone.h"
 
+/**
+ * The Animator class is responsible for updating and resetting the animation 
+ * state of an Animation object. It calculates bone transformations based on 
+ * the animation data and provides access to the final bone matrices.
+ * 
+ * Usage example:
+ * @code
+ * Model* model_ = new Model(FilePathSystem::GetInstance().GetPath(
+ * "resources/objects/vampire/dancing_vampire.dae"));
+ * Animation* animation_ =new Animation(FilePathSystem::GetInstance().GetPath(
+ * "resources/objects/vampire/dancing_vampire.dae"),model_);
+ * Animator* animator_=new Animator(animation_);
+ * 
+ * animator_->UpdateAnimation(this->GetRenderTimer().ElapsedSeconds() * 10.0f);
+ * @endcode
+ * 
+ * @note This class is thread-safe. It uses internal mutexes to protect access 
+ * to shared resources.
+ */
 class Animator {
  public:
-  explicit Animator(Animation *animation);
+  /**
+   * Constructor for the Animator class. Initializes the animator with an
+   * Animation object.
+   * @param animation The Animation object to animate.
+   */
+  explicit Animator(Animation* animation);
 
+  /**
+   * Updates the animation state based on the specified delta time.
+   * @param delete_time The time difference since the last update.
+   */
   void UpdateAnimation(glm::float64 delete_time);
 
-  void PlayAnimation(Animation *p_animation);
+  /**
+   * Resets the animation state to the beginning of the current Animation.
+   * @param p_animation The new Animation object to animate.
+   */
+  void ResetAnimation(Animation* p_animation);
 
-  void CalculateBoneTransform(const Animation::AssimpNodeData *node_data,
-							  glm::mat4 parent_transform);
+  /**
+   * Calculates the bone transformations for the specified node data and parent
+   * transform.
+   * @param node_data The AssimpNodeData representing the node to calculate the
+   * transform for.
+   * @param parent_transform The parent transform matrix.
+   */
+  void CalculateBoneTransform(const Animation::AssimpNodeData& node_data,
+                              glm::mat4 parent_transform);
 
-  const std::vector<glm::mat4> &GetFinalBoneMatrices() const;
+  /**
+   * Retrieves the final bone matrices calculated by the animator.
+   * @return A const reference to the vector of final bone matrices.
+   */
+  const std::vector<glm::mat4>& GetFinalBoneMatrices() const;
+
+  ~Animator();
+
  private:
-  std::vector<glm::mat4> final_bone_matrices_;
-  Animation *current_animation_;
-  glm::float64 current_time_;
-  glm::float64 delta_time_;
+  /**
+   * Initializes the animator with the specified Animation object.
+   * @param animation The Animation object to animate.
+   */
+  void SetupAnimator(Animation* animation);
+
+ private:
+  std::vector<glm::mat4> final_bone_matrices_;  // The final bone matrices
+                                                // calculated by the animator.
+  Animation*
+      current_animation_;      // The current Animation object being animated.
+  glm::float64 current_time_;  // The current time in the animation.
+  glm::float64 delta_time_;    // The delta time since the last update.
+
+  std::recursive_mutex bone_matrices_mutex_;  // A recursive lock that prevents
+                                              // data from being accessed
+                                              // simultaneously in multiple
+                                              // threads.
 };
 
-#endif //CMAKE_OPEN_INCLUDES_INCLUDE_ANIMATOR_H_
+#endif  //CMAKE_OPEN_INCLUDES_INCLUDE_ANIMATOR_H_

@@ -17,39 +17,47 @@
 #ifndef CMAKE_OPEN_SRC_MODEL_LOADING_OPENGLMAINWINDOW_H_
 #define CMAKE_OPEN_SRC_MODEL_LOADING_OPENGLMAINWINDOW_H_
 
-#include "include/OpenGLWindow.h"
 #include "include/Camera.h"
+#include "include/OpenGLWindow.h"
+#include "include/Shader.h"
+#include "include/Model/Model.h"
 
-class OpenGLMainWindow: protected OpenGLWindow{
+class OpenGLMainWindow : public OpenGLWindow {
  public:
-  OpenGLMainWindow(int width,int height,const char* title);
+  OpenGLMainWindow(int width, int height, const char* title);
+
  protected:
   void InitializeGL() override;
-  
+
   void ResizeGL(int width, int height) override;
-  
+
   void PaintGL() override;
-  
-  void ProcessInput(GLFWwindow *window) override;
-  
+
+  void ProcessInput(GLFWwindow* window) override;
+
  private:
-  static void MouseCallback(GLFWwindow* window,GLdouble x_pos,GLdouble y_pos);
-  
-  static void ScrollCallback(GLFWwindow *glfw_window, GLdouble x_offset, GLdouble y_offset);
-  
-  static void MouseButtonCallback(GLFWwindow* window,int button,int action,int mods);
-  
+  static void MouseCallback(GLFWwindow* window, GLdouble x_pos, GLdouble y_pos);
+
+  static void ScrollCallback(GLFWwindow* glfw_window, GLdouble x_offset,
+                             GLdouble y_offset);
+
+  static void MouseButtonCallback(GLFWwindow* window, int button, int action,
+                                  int mods);
+
  private:
   static Camera camera_;
-  
+
   glm::float64 delta_time_;
   glm::float64 last_frame_;
-  
+
   bool paused;
-  
+
   static bool first_mouse_;
   static GLdouble last_x_;
   static GLdouble last_y_;
+
+  Shader* shader_;
+  Model* model_;
 };
 
-#endif //CMAKE_OPEN_SRC_MODEL_LOADING_OPENGLMAINWINDOW_H_
+#endif  //CMAKE_OPEN_SRC_MODEL_LOADING_OPENGLMAINWINDOW_H_

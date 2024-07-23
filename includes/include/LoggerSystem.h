@@ -33,10 +33,15 @@
  * You can set the time to clear all log files or call the DeleteAllLogs file, 
  * but it is not recommended to run it.
  * 
- * Use reference:
+ * Usage example:
+ * @code
  * LoggerSystem &logger = LoggerSystem::GetInstance();
  * logger.SetMaxSize(1025);
  * logger.Log(LoggerSystem::Level::kInfo, "This is an info message");
+ * @endcode
+ * 
+ * @note This class is thread-safe. It uses internal mutexes to protect access 
+ * to shared resources.
  */
 class LoggerSystem {
  public:

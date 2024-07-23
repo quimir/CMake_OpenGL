@@ -26,12 +26,14 @@ LoggerSystem& LoggerSystem::GetInstance() {
 void LoggerSystem::Log(LoggerSystem::Level level, const std::string& message) {
   std::lock_guard<std::mutex> lock(log_mutex_);
   RotateLogFile();
-  
+
   log_file_ << "[" << LevelToString(level) << "]"
             << "  "
             << "[" << GetCurrentTimeToString() << "]"
             << "  "
             << "[" << message << "]" << std::endl;
+
+  SaveLastLogFileName();
 }
 
 void LoggerSystem::SetMaxSize(std::size_t size) {
@@ -51,6 +53,8 @@ std::string LoggerSystem::GetCurrentTimeToString() const {
 
 LoggerSystem::~LoggerSystem() {
   SaveLastLogFileName();
+  std::lock_guard<std::mutex> lock(log_mutex_);
+  log_file_ << "----------------------------------------------------------\n";
   if (log_file_.is_open()) {
     log_file_.close();
   }
@@ -70,7 +74,6 @@ std::string LoggerSystem::LevelToString(LoggerSystem::Level level) {
 }
 
 void LoggerSystem::RotateLogFile() {
-
   if (log_file_.is_open() &&
       std::filesystem::file_size(last_log_file_name_) > max_size_) {
     RollOverLogs();
@@ -125,6 +128,7 @@ LoggerSystem::LoggerSystem(std::size_t size, std::chrono::seconds age,
   } catch (const std::exception& e) {
     std::cerr << "Error initializing Logger: " << e.what() << std::endl;
   }
+  log_file_ << "----------------------------------------------------------\n";
 }
 
 void LoggerSystem::RollOverLogs() {

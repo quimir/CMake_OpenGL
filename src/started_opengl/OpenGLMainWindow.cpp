@@ -30,6 +30,8 @@ float last_y = 0.0f;
 
 Camera OpenGLMainWindow::camera_(glm::vec3(0.0f, 0.0f, 3.0f));
 
+glm::vec4 clear_color(0.2f, 0.3f, 0.3f, 1.0f);
+
 // world space positions of our cubes
 glm::vec3 cubePositions[] = {
     glm::vec3(0.0f, 0.0f, 0.0f),    glm::vec3(2.0f, 5.0f, -15.0f),
@@ -76,7 +78,7 @@ void OpenGLMainWindow::InitializeGL() {
   this->vertex_array_.UnBind();
   this->buffer_.UnBind();
 
-  LoadImage::GetInstance().OpenStbImageFlipYAxis();
+  LoadImage::GetInstance().EnableStbImageFlipYAxis();
   this->texture_1_ = LoadImage::GetInstance().LoadTexture2D(
       FilePathSystem::GetInstance().GetResourcesPath("textures/container.jpg"));
   this->texture_2_ = LoadImage::GetInstance().LoadTexture2D(
@@ -94,10 +96,17 @@ void OpenGLMainWindow::ResizeGL(int width, int height) {
                        (float)width / (float)height, 0.1f, 100.0f);
   shader_.Bind();
   shader_.SetMat4("projection", projection);
+  this->imgui_dashboard_->ResizeWidget(width, height);
   glViewport(0, 0, width, height);
 }
 void OpenGLMainWindow::PaintGL() {
-  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+  auto current_time = static_cast<float>(glfwGetTime());
+  delta_time = current_time - last_frame;
+  std::cerr << "Glfw delta time: " << delta_time
+            << " render delta time: " << GetRenderTimer().ElapsedSeconds()
+            << std::endl;
+  last_frame = current_time;
+  glClearColor(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glActiveTexture(GL_TEXTURE0);
@@ -107,9 +116,7 @@ void OpenGLMainWindow::PaintGL() {
 
   shader_.Bind();
 
-  this->projection =
-      glm::perspective(glm::radians(camera_.GetZoom()),
-                       (float)GetWidth() / (float)GetHeight(), 0.1f, 100.0f);
+  this->projection = camera_.GetProjectionMatrix(GetWidth(), GetHeight());
   shader_.SetMat4("projection", projection);
   view = camera_.GetViewMatrix();
   shader_.SetMat4("view", view);
@@ -127,7 +134,9 @@ void OpenGLMainWindow::PaintGL() {
   }
   imgui_dashboard_->SetRenderTimer(this->GetRenderTimer());
   imgui_dashboard_->BeginFrame();
-  imgui_dashboard_->Render();
+  static bool show_dashboard = false;
+  imgui_dashboard_->ShowToolsPanel(show_dashboard, clear_color, camera_);
+  //imgui_dashboard_->Render();
   imgui_dashboard_->EndFrame();
 }
 OpenGLMainWindow::OpenGLMainWindow(int width, int height, const char* title,
@@ -139,19 +148,13 @@ OpenGLMainWindow::OpenGLMainWindow(int width, int height, const char* title,
   glfwSetCursorPosCallback(window_, MouseCallback);
   glfwSetScrollCallback(window_, ScrollCallback);
   //  glfwSwapInterval(1);
-  this->projection =
-      glm::perspective(glm::radians(camera_.GetZoom()),
-                       (float)width / (float)height, 0.1f, 100.0f);
-  shader_.Bind();
-  shader_.SetMat4("projection", projection);
   last_x = width / 2.0f;
   last_y = height / 2.0f;
   imgui_dashboard_ = new ImGuiDashboard(window_, width, height);
 }
 void OpenGLMainWindow::ProcessInput(GLFWwindow* window) {
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    camera_.ProcessKeyboard(Camera::CameraMovement::kForward,
-                            GetRenderTimer().ElapsedSeconds());
+    camera_.ProcessKeyboard(Camera::CameraMovement::kForward, delta_time);
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     camera_.ProcessKeyboard(Camera::CameraMovement::kBackward,
                             GetRenderTimer().ElapsedSeconds());

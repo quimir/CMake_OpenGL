@@ -15,13 +15,17 @@
  ******************************************************************************/
 
 #include "include/Camera.h"
+#include "include/LoggerSystem.h"
 
-const glm::vec3 &Camera::GetWorldUp() const {
+bool Camera::debug_message_=false;
+
+const glm::vec3& Camera::GetWorldUp() const {
   return world_up_;
 }
 
-void Camera::SetWorldUp(const glm::vec3 &world_up) {
+void Camera::SetWorldUp(const glm::vec3& world_up) {
   world_up_ = world_up;
+  UpdateCameraVectors();
 }
 
 glm::float32 Camera::GetYaw() const {
@@ -30,6 +34,7 @@ glm::float32 Camera::GetYaw() const {
 
 void Camera::SetYaw(glm::float32 yaw) {
   yaw_ = yaw;
+  UpdateCameraVectors();
 }
 
 glm::float32 Camera::GetPitch() const {
@@ -38,6 +43,7 @@ glm::float32 Camera::GetPitch() const {
 
 void Camera::SetPitch(glm::float32 pitch) {
   pitch_ = pitch;
+  UpdateCameraVectors();
 }
 
 glm::float32 Camera::GetMovementSpeed() const {
@@ -64,48 +70,56 @@ void Camera::SetZoom(glm::float32 zoom) {
   zoom_ = zoom;
 }
 
-const glm::vec3 &Camera::GetPosition() const {
+const glm::vec3& Camera::GetPosition() const {
   return position_;
 }
 
-void Camera::SetPosition(const glm::vec3 &position) {
+void Camera::SetPosition(const glm::vec3& position) {
   position_ = position;
 }
 
-const glm::vec3 &Camera::GetFront() const {
+const glm::vec3& Camera::GetFront() const {
   return front_;
 }
 
-void Camera::SetFront(const glm::vec3 &front) {
+void Camera::SetFront(const glm::vec3& front) {
   front_ = front;
+  UpdateCameraVectors();
 }
 
-const glm::vec3 &Camera::GetUp() const {
+const glm::vec3& Camera::GetUp() const {
   return up_;
 }
 
-void Camera::SetUp(const glm::vec3 &up) {
+void Camera::SetUp(const glm::vec3& up) {
   up_ = up;
 }
 
-const glm::vec3 &Camera::GetRight() const {
+const glm::vec3& Camera::GetRight() const {
   return right_;
 }
 
-void Camera::SetRight(const glm::vec3 &right) {
+void Camera::SetRight(const glm::vec3& right) {
   right_ = right;
+  UpdateCameraVectors();
 }
 
-Camera::Camera(glm::vec3 position, glm::vec3 up, glm::float32 yaw, glm::float32 pitch) :
-	front_(glm::vec3(0.0f, 0.0f, -1.0f)),
-	movement_speed_(cameraconstsetting::kSpeed),
-	mouse_sensitivity_(cameraconstsetting::kSensitivity),
-	zoom_(cameraconstsetting::kZoom) {
-  this->position_ = position;
-  this->world_up_ = up;
-  this->yaw_ = yaw;
-  this->pitch_ = pitch;
-  UpdateCameraVectors();
+glm::float32 Camera::GetFarPlane() const {
+  return far_plane_;
+}
+
+void Camera::SetFarPlane(glm::float32 far_plane) {
+  far_plane_ = far_plane;
+}
+
+glm::float32 Camera::GetNearPlane() const {
+  return near_plane_;
+}
+
+Camera::Camera(glm::vec3 position, glm::vec3 up, glm::float32 yaw,
+               glm::float32 pitch, glm::float32 near_plane,
+               glm::float32 far_plane) {
+  Initialized(position, up, yaw, pitch, near_plane, far_plane);
 }
 
 void Camera::UpdateCameraVectors() {
@@ -119,53 +133,51 @@ void Camera::UpdateCameraVectors() {
    * Also re-calculate the right and up vector
    */
 
-  // Normalize the vectors, because their length gets closer to 0 the more you look up or 
+  // Normalize the vectors, because their length gets closer to 0 the more you look up or
   // down which results in slower movement.
-  this->right_ = glm::normalize(glm::cross(front_,
-										   world_up_));
+  this->right_ = glm::normalize(glm::cross(front_, world_up_));
   this->up_ = glm::normalize(glm::cross(right_, front_));
 }
 
-Camera::Camera(glm::float32 pos_x,
-			   glm::float32 pos_y,
-			   glm::float32 pos_z,
-			   glm::float32 up_x,
-			   glm::float32 up_y,
-			   glm::float32 up_z,
-			   glm::float32 yaw,
-			   glm::float32 pitch)
-	: front_(glm::vec3(0.0f, 0.0f, -1.0f)),
-	  movement_speed_(cameraconstsetting::kSpeed),
-	  mouse_sensitivity_(cameraconstsetting::kSensitivity),
-	  zoom_(cameraconstsetting::kZoom) {
-  position_ = glm::vec3(pos_x, pos_y, pos_z);
-  world_up_ = glm::vec3(up_x, up_y, up_z);
-  yaw_ = yaw;
-  pitch_ = pitch;
-  UpdateCameraVectors();
+Camera::Camera(glm::float32 pos_x, glm::float32 pos_y, glm::float32 pos_z,
+               glm::float32 up_x, glm::float32 up_y, glm::float32 up_z,
+               glm::float32 yaw, glm::float32 pitch, glm::float32 near_plane,
+               glm::float32 far_plane) {
+  Initialized(glm::vec3(pos_x, pos_y, pos_z), glm::vec3(up_x, up_y, up_z), yaw,
+              pitch, near_plane, far_plane);
 }
 
 glm::mat4 Camera::GetViewMatrix() const {
-  return glm::lookAt(this->position_, this->position_ + this->front_, this->up_);
+  return glm::lookAt(this->position_, this->position_ + this->front_,
+                     this->up_);
 }
 
-void Camera::ProcessKeyboard(Camera::CameraMovement direction, glm::float64 delta_time) {
-  glm::float32 velocity = movement_speed_ * static_cast<glm::float32>(delta_time);
+void Camera::ProcessKeyboard(Camera::CameraMovement direction,
+                             glm::float64 delta_time) {
+  if (!this->enabled_)
+    return;
+  glm::float32 velocity =
+      movement_speed_ * static_cast<glm::float32>(delta_time);
   switch (direction) {
-	case CameraMovement::kForward: position_ += front_ * velocity;
-	  break;
-	case CameraMovement::kBackward: position_ -= front_ * velocity;
-	  break;
-	case CameraMovement::kLeft: position_ -= right_ * velocity;
-	  break;
-	case CameraMovement::kRight: position_ += right_ * velocity;
-	  break;
+    case CameraMovement::kForward:
+      position_ += front_ * velocity;
+      break;
+    case CameraMovement::kBackward:
+      position_ -= front_ * velocity;
+      break;
+    case CameraMovement::kLeft:
+      position_ -= right_ * velocity;
+      break;
+    case CameraMovement::kRight:
+      position_ += right_ * velocity;
+      break;
   }
 }
 
-void Camera::ProcessMouseMovement(glm::float32 x_offset,
-								  glm::float32 y_offset,
-								  bool constrain_pitch) {
+void Camera::ProcessMouseMovement(glm::float32 x_offset, glm::float32 y_offset,
+                                  bool constrain_pitch) {
+  if (!this->enabled_)
+    return;
   x_offset *= mouse_sensitivity_;
   y_offset *= mouse_sensitivity_;
 
@@ -174,12 +186,12 @@ void Camera::ProcessMouseMovement(glm::float32 x_offset,
 
   // Make sure that when pitch is out of bounds, screen doesn't get flipped
   if (constrain_pitch) {
-	if (this->pitch_ > 89.0f) {
-	  this->pitch_ = 89.0f;
-	}
-	if (this->pitch_ < -89.0f) {
-	  this->pitch_ = -89.0f;
-	}
+    if (this->pitch_ > 89.0f) {
+      this->pitch_ = 89.0f;
+    }
+    if (this->pitch_ < -89.0f) {
+      this->pitch_ = -89.0f;
+    }
   }
 
   // Update front, right and up vectors using the updated Euler angles
@@ -187,31 +199,40 @@ void Camera::ProcessMouseMovement(glm::float32 x_offset,
 }
 
 void Camera::ProcessMouseScroll(glm::float32 y_offset) {
+  if (!this->enabled_)
+    return;
   zoom_ -= static_cast<glm::float32>(y_offset);
   if (zoom_ < 1.0f) {
-	zoom_ = 1.0f;
+    zoom_ = 1.0f;
   }
   if (zoom_ > 45.0f) {
-	zoom_ = 45.0f;
+    zoom_ = 45.0f;
   }
 }
-void Camera::ProcessKeyboard(Camera::CameraMovement direction, glm::float32 delta_time) {
+void Camera::ProcessKeyboard(Camera::CameraMovement direction,
+                             glm::float32 delta_time) {
+  if (!enabled_)
+    return;
   glm::float32 velocity = movement_speed_ * delta_time;
   switch (direction) {
-	case CameraMovement::kForward: position_ += front_ * velocity;
-	  break;
-	case CameraMovement::kBackward: position_ -= front_ * velocity;
-	  break;
-	case CameraMovement::kLeft: position_ -= right_ * velocity;
-	  break;
-	case CameraMovement::kRight: position_ += right_ * velocity;
-	  break;
+    case CameraMovement::kForward:
+      position_ += front_ * velocity;
+      break;
+    case CameraMovement::kBackward:
+      position_ -= front_ * velocity;
+      break;
+    case CameraMovement::kLeft:
+      position_ -= right_ * velocity;
+      break;
+    case CameraMovement::kRight:
+      position_ += right_ * velocity;
+      break;
   }
 }
-void Camera::ProcessMouseMovement(glm::float64 x_offset,
-								  glm::float64 y_offset,
-								  bool constrain_pitch) {
-
+void Camera::ProcessMouseMovement(glm::float64 x_offset, glm::float64 y_offset,
+                                  bool constrain_pitch) {
+  if (!enabled_)
+    return;
   x_offset *= mouse_sensitivity_;
   y_offset *= mouse_sensitivity_;
 
@@ -220,14 +241,90 @@ void Camera::ProcessMouseMovement(glm::float64 x_offset,
 
   // Make sure that when pitch is out of bounds, screen doesn't get flipped
   if (constrain_pitch) {
-	if (this->pitch_ > 89.0f) {
-	  this->pitch_ = 89.0f;
-	}
-	if (this->pitch_ < -89.0f) {
-	  this->pitch_ = -89.0f;
-	}
+    if (this->pitch_ > 89.0f) {
+      this->pitch_ = 89.0f;
+    }
+    if (this->pitch_ < -89.0f) {
+      this->pitch_ = -89.0f;
+    }
   }
 
   // Update front, right and up vectors using the updated Euler angles
   UpdateCameraVectors();
+}
+void Camera::Initialized(glm::vec3 position, glm::vec3 world_up,
+                         glm::float32 yaw, glm::float32 pitch,
+                         glm::float32 near_plane, glm::float32 far_plane) {
+  this->front_ = glm::vec3(0.0f, 0.0f, -1.0f);
+  movement_speed_ = cameraconstsetting::kSpeed;
+  mouse_sensitivity_ = cameraconstsetting::kSensitivity;
+  zoom_ = cameraconstsetting::kZoom;
+  enabled_ = true;
+  near_plane_ = near_plane;
+  far_plane_ = far_plane;
+  position_ = position;
+  world_up_ = world_up;
+  yaw_ = yaw;
+  pitch_ = pitch;
+  UpdateCameraVectors();
+  DebugMessage(Camera::debug_message_);
+}
+bool Camera::IsEnabled() const {
+  return enabled_;
+}
+void Camera::Enable() {
+  this->enabled_ = true;
+}
+void Camera::DisEnable() {
+  this->enabled_ = false;
+}
+
+void Camera::SetNearPlane(glm::float32 near_plane) {
+  if (near_plane > far_plane_) {
+    near_plane = far_plane_ - 1;
+    LoggerSystem::GetInstance().Log(
+        LoggerSystem::Level::kWarning,
+        "Warning! The parameter set is wrong, and the distance of the near "
+        "clipping plane is larger than the distance of the far clipping plane. "
+        "The distance of the near clipping plane is adjusted as follows. " +
+            std::to_string(near_plane));
+  }
+  near_plane_ = near_plane;
+}
+
+glm::mat4 Camera::GetProjectionMatrix(const float width,
+                                      const float height) const {
+  return glm::perspective(glm::radians(zoom_), width / height, near_plane_,
+                          far_plane_);
+}
+std::string Camera::GlmVec3ToString(glm::vec3 other) const {
+  return "X: " + std::to_string(other.x) + " Y: " + std::to_string(other.y) +
+         " Z: " + std::to_string(other.y);
+}
+void Camera::ResetCamera(glm::vec3 position, glm::vec3 world_up,
+                         glm::float32 yaw, glm::float32 pitch,
+                         glm::float32 near_plane, glm::float32 far_plane) {
+  Initialized(position, world_up, yaw, pitch, near_plane, far_plane);
+}
+void Camera::DebugMessage(bool is_open) {
+  if (is_open) {
+    LoggerSystem::GetInstance().Log(
+        LoggerSystem::Level::kInfo,
+        "Camera was successfully created with the "
+        "following parameters: camera position: \n" +
+            GlmVec3ToString(position_) +
+            " camera front: " + GlmVec3ToString(front_) + " camera up: \n" +
+            GlmVec3ToString(up_) + " camera right: " + GlmVec3ToString(right_) +
+            " camera world up: \n" + GlmVec3ToString(world_up_) +
+            " camera yaw: " + std::to_string(yaw_) + " camera pitch " +
+            std::to_string(pitch_) + " camera movement speed: \n" +
+            std::to_string(movement_speed_) +
+            " camera mouse sensitivity: " + std::to_string(mouse_sensitivity_) +
+            " camera zoom: " + std::to_string(zoom_) +
+            " camera near plane: " + std::to_string(near_plane_) +
+            " camera far plane: \n" + std::to_string(far_plane_));
+  }
+}
+void Camera::SetDebugMessage(bool debug_message) {
+  debug_message_ = debug_message;
 }

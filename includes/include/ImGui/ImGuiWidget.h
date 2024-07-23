@@ -36,16 +36,20 @@
  * 
  * Use reference:
  * ImGuiWidget imgui_widget(this->window_);
- * imgui_widget.Run();
- * 
- * OR:
- * ImGuiWidget imgui_widget(this->window_);
  * imgui_widget.BeginFrame();
  * imgui_widget.Render();
  * imgui_widget.EndFrame();
  */
 class ImGuiWidget : public Widget {
  public:
+  /**
+   * To initialize the ImGui widget because it is attached to OpenGL3 and GLFW 
+   * it is necessary to enter the window pointer of GLFW. It will check if 
+   * OpenGL is empty and if it is, it will not allow the build.
+   * @param window OpenGL window pointer.
+   * @param window_width The width of the window.
+   * @param window_height The length of the window.
+   */
   explicit ImGuiWidget(GLFWwindow* window, int window_width, int window_height);
 
   ImGuiWidget(const ImGuiWidget& other) = delete;
@@ -54,13 +58,38 @@ class ImGuiWidget : public Widget {
 
   virtual ~ImGuiWidget();
   
+  /**
+   * Start a new ImGui frame, must be called at the beginning of each render 
+   * frame.
+   * 
+   * This function initializes ImGui integration with OpenGL and GLFW to prepare 
+   * ImGui for drawing new frames.
+   */
   virtual void BeginFrame();
-
+  
+  /**
+   * To end the current ImGui frame, must be called at the end of each render 
+   * frame. 
+   * 
+   * This function is responsible for rendering all the drawing data collected 
+   * by ImGui and rendering them to the screen using OpenGL.
+   */
   virtual void EndFrame();
 
+  /**
+   * Render ImGui frames.
+   * 
+   * This function needs to be called between BeginFrame() and EndFrame() to 
+   * implement custom ImGui rendering logic.Subclasses can override this
+   * function to add specific rendering code, such as drawing ImGui controls,
+   * handling user input, etc.
+   * 
+   * Example call order:
+   * BeginFrame();
+   * // Custom rendering logic
+   * EndFrame();
+   */
   virtual void Render();
-
-  void Run();
 
   ImGuiIO* GetIo() const;
 
@@ -69,7 +98,7 @@ class ImGuiWidget : public Widget {
    * Build the ImGui window.
    * @param window GLFW window pointer.
    */
-  void Initialize(GLFWwindow* window);
+  void Initialized(GLFWwindow* window);
 
   void Cleanup();
 

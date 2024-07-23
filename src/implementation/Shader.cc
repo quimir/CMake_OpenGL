@@ -21,8 +21,11 @@ using namespace std;
 
 constexpr GLuint kInfoLogLength = 1024;
 
+std::mutex Shader::gl_mutex_;
+
 void Shader::CheckCompileErrors(GLuint shader,
                                 Shader::ShaderErrorType error_type) {
+  std::lock_guard<std::mutex> lock(gl_mutex_);
   GLint success;
   char* info_log = nullptr;
   if (error_type != ShaderErrorType::kProgram) {
@@ -467,7 +470,8 @@ Shader::Shader(const std::string& vertex_path, const std::string& fragment_path,
   }
 }
 
-void Shader::Bind() {
+void Shader::Bind() const {
+  std::lock_guard<std::mutex> lock(gl_mutex_);
   glUseProgram(this->id_);
 }
 
