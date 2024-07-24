@@ -62,9 +62,12 @@ class TimeUtils {
    * @return Returns the difference between two times, as a double, down to 
    * seconds.
    */
-  double GetDurationInSeconds(
+  double DeltaTimeToDouble(
       const std::chrono::time_point<std::chrono::system_clock>& start,
       const std::chrono::time_point<std::chrono::system_clock>& end);
+
+  std::chrono::seconds TimePointToSeconds(
+      const std::chrono::time_point<std::chrono::system_clock>& time_point);
 
   /**
    * Get the current time node.

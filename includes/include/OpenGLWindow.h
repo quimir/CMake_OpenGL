@@ -164,7 +164,7 @@ class OpenGLWindow : public Widget {
    * yet available at this stage, so avoid issuing draw calls from here. 
    * Defer such calls to PaintGL() instead.
    */
-  virtual void InitializeGL() = 0;
+  virtual void InitializeGL();
 
   /**
    * This virtual function is called whenever the widget has been resized. 
@@ -172,7 +172,7 @@ class OpenGLWindow : public Widget {
    * @param width Change the width of the screen
    * @param height Change the screen length
    */
-  virtual void ResizeGL(int width, int height) = 0;
+  virtual void ResizeGL(int width, int height);
 
   /**
    * This virtual function is called whenever the widget needs to be painted. 
@@ -185,7 +185,7 @@ class OpenGLWindow : public Widget {
    * and the viewport is set up by a call to glViewport(). No other state is 
    * set and no clearing or drawing is performed by the framework.
    */
-  virtual void PaintGL() = 0;
+  virtual void PaintGL();
 
   /**
    * The user's key is processed, and the default is that the user presses 

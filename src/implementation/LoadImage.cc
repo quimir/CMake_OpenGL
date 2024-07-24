@@ -74,7 +74,8 @@ LoadImage& LoadImage::GetInstance() {
 void LoadImage::EnableStbImageFlipYAxis() {
   stbi_set_flip_vertically_on_load(true);
 }
-GLuint LoadImage::LoadCubeMap(std::vector<std::string> faces,
+GLuint LoadImage::LoadCubeMap(std::vector<std::string> faces, GLint wrap_mode,
+                              GLint mag_filter_mode, GLint min_filter_mode,
                               GLboolean gamma_correction) {
   GLuint texture_id;
   glGenTextures(1, &texture_id);
@@ -84,19 +85,19 @@ GLuint LoadImage::LoadCubeMap(std::vector<std::string> faces,
   for (unsigned int i = 0; i < faces.size(); ++i) {
     auto* data = stbi_load(faces[i].c_str(), &width, &height, &nr_channels, 0);
     if (!LoadTexture2DSetting(GL_TEXTURE_CUBE_MAP_POSITIVE_X, i, 0, GL_RGB,
-                              width, height, nr_channels, 0, GL_RGB, data,
-                              gamma_correction)) {
+                              width, height, nr_channels, 0, GL_UNSIGNED_BYTE,
+                              data, gamma_correction)) {
       LoggerSystem::GetInstance().Log(
           LoggerSystem::Level::kWarning,
           "Cube map texture failed to load at path: " + faces[i]);
     }
   }
 
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, wrap_mode);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, wrap_mode);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, wrap_mode);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, min_filter_mode);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, mag_filter_mode);
 
   return texture_id;
 }

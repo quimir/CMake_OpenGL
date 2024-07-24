@@ -204,3 +204,12 @@ void OpenGLWindow::CursorEnterCallback(GLFWwindow* window, int entered) {
 const RenderTimer& OpenGLWindow::GetRenderTimer() const {
   return render_timer_;
 }
+void OpenGLWindow::ResizeGL(int width, int height) {
+  glViewport(0, 0, width, height);
+  this->frame_buffer_->Resize(width, height);
+  ResizeWidget(width, height);
+}
+void OpenGLWindow::InitializeGL() {}
+void OpenGLWindow::PaintGL() {
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+}

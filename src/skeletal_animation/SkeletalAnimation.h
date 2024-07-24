@@ -17,11 +17,13 @@
 #ifndef CMAKE_OPEN_SRC_SKELETAL_ANIMATION_SKELETALANIMATION_H_
 #define CMAKE_OPEN_SRC_SKELETAL_ANIMATION_SKELETALANIMATION_H_
 
+#include "include/Buffers.h"
 #include "include/Camera.h"
+#include "include/Model/Animator.h"
+#include "include/Model/Model.h"
 #include "include/OpenGLWindow.h"
 #include "include/Shader.h"
-#include "include/Model/Model.h"
-#include "include/Model/Animator.h"
+#include "include/VertexArray.h"
 
 class SkeletalAnimation : public OpenGLWindow {
  protected:
@@ -43,10 +45,13 @@ class SkeletalAnimation : public OpenGLWindow {
 
  private:
   static Camera camera_;
-  Shader* shader_;
+  Shader *shader_, *cube_map_shader_, *sky_box_shader_;
   Model* model_;
   Animator* animator_;
   Animation* animation_;
+  GLuint cube_map_texture_, sky_box_texture_;
+  VertexArray sky_box_vao_, cube_map_vao_;
+  Buffers sky_box_vbo_, cube_map_vbo_;
 };
 
 #endif  //CMAKE_OPEN_SRC_SKELETAL_ANIMATION_SKELETALANIMATION_H_

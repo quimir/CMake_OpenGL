@@ -34,7 +34,7 @@ std::string TimeUtils::FormatTime(
   oss << std::put_time(&local_time, "%Y-%m-%d_%H-%M-%S");
   return oss.str();
 }
-double TimeUtils::GetDurationInSeconds(
+double TimeUtils::DeltaTimeToDouble(
     const std::chrono::time_point<std::chrono::system_clock>& start,
     const std::chrono::time_point<std::chrono::system_clock>& end) {
   return std::chrono::duration<double>(end - start).count();
@@ -64,4 +64,8 @@ double TimeUtils::GetTimeStamp() {
 }
 TimeUtils::~TimeUtils() {
   delete instance_;
+}
+std::chrono::seconds TimeUtils::TimePointToSeconds(
+    const std::chrono::time_point<std::chrono::system_clock>& time_point) {
+  return std::chrono::duration_cast<std::chrono::seconds>(time_point.time_since_epoch());
 }

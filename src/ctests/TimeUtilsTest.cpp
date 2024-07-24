@@ -22,10 +22,10 @@
 TEST(TimeUtilsTest, GetCurrentTime) {
   auto now = TimeUtils::GetInstance().GetCurrentTime();
   auto system_now = std::chrono::system_clock::now();
-  auto diff = TimeUtils::GetInstance().GetDurationInSeconds(now, system_now);
+  auto diff = TimeUtils::GetInstance().DeltaTimeToDouble(now, system_now);
   LoggerSystem::GetInstance().Log(
       LoggerSystem::Level::kInfo,
-      "Test TimeUtils::GetInstance().GetDurationInSeconds: " +
+      "Test TimeUtils::GetInstance().DeltaTimeToDouble: " +
           std::to_string(diff));
   ASSERT_LT(diff, 1.0);  // Time difference should be less than 1 second
 }
@@ -42,7 +42,7 @@ TEST(TimeUtilsTest, GetDurationInSeconds) {
   auto start = TimeUtils::GetInstance().GetCurrentTime();
   std::this_thread::sleep_for(std::chrono::seconds(1));
   auto end = TimeUtils::GetInstance().GetCurrentTime();
-  double duration = TimeUtils::GetInstance().GetDurationInSeconds(start, end);
+  double duration = TimeUtils::GetInstance().DeltaTimeToDouble(start, end);
   ASSERT_GE(duration, 1.0);
   ASSERT_LT(duration, 1.1);  // Considering the imprecision of sleep
 }

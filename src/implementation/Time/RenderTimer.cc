@@ -55,6 +55,5 @@ double RenderTimer::GetRenderDelay() const {
 }
 double RenderTimer::GetProgramRunTime() const {
   auto now_time = TimeUtils::GetInstance().GetCurrentTime();
-  return TimeUtils::GetInstance().GetDurationInSeconds(program_starts_,
-                                                       now_time);
+  return TimeUtils::GetInstance().DeltaTimeToDouble(program_starts_, now_time);
 }

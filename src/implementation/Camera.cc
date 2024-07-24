@@ -17,7 +17,7 @@
 #include "include/Camera.h"
 #include "include/LoggerSystem.h"
 
-bool Camera::debug_message_=false;
+bool Camera::debug_message_ = true;
 
 const glm::vec3& Camera::GetWorldUp() const {
   return world_up_;
@@ -311,20 +311,23 @@ void Camera::DebugMessage(bool is_open) {
     LoggerSystem::GetInstance().Log(
         LoggerSystem::Level::kInfo,
         "Camera was successfully created with the "
-        "following parameters: camera position: \n" +
-            GlmVec3ToString(position_) +
-            " camera front: " + GlmVec3ToString(front_) + " camera up: \n" +
-            GlmVec3ToString(up_) + " camera right: " + GlmVec3ToString(right_) +
-            " camera world up: \n" + GlmVec3ToString(world_up_) +
+        "following parameters: camera position: " +
+            GlmVec3ToString(position_) + " camera front: " +
+            GlmVec3ToString(front_) + " camera up: " + GlmVec3ToString(up_) +
+            " camera right: " + GlmVec3ToString(right_) +
+            " camera world up: " + GlmVec3ToString(world_up_) +
             " camera yaw: " + std::to_string(yaw_) + " camera pitch " +
-            std::to_string(pitch_) + " camera movement speed: \n" +
-            std::to_string(movement_speed_) +
+            std::to_string(pitch_) +
+            " camera movement speed: " + std::to_string(movement_speed_) +
             " camera mouse sensitivity: " + std::to_string(mouse_sensitivity_) +
             " camera zoom: " + std::to_string(zoom_) +
             " camera near plane: " + std::to_string(near_plane_) +
-            " camera far plane: \n" + std::to_string(far_plane_));
+            " camera far plane: " + std::to_string(far_plane_));
   }
 }
 void Camera::SetDebugMessage(bool debug_message) {
   debug_message_ = debug_message;
+}
+bool Camera::IsDebugMessage() {
+  return debug_message_;
 }

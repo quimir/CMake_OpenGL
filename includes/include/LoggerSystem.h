@@ -90,6 +90,15 @@ class LoggerSystem {
 
   void SetMaxAge(double_t age);
 
+  /**
+   * Enable log file wrapping. Once set, log messages will be automatically 
+   * wrapped before row.
+   * @param row Sets the character length of the newline.
+   */
+  void EnableLogWrapping(int row);
+
+  void DisEnableLogWrapping();
+
  private:
   explicit LoggerSystem(std::size_t size = std::size_t(1024 * 1024),
                         std::chrono::seconds age =
@@ -97,8 +106,6 @@ class LoggerSystem {
                         std::string log_file_path = std::string("log/"));
 
   ~LoggerSystem();
-
-  std::string GetCurrentTimeToString() const;
 
   /**
    * Convert the log level to a string format, and convert the format to uppercase 
@@ -117,11 +124,18 @@ class LoggerSystem {
 
   void RollOverLogs();
 
-  void DeleteAllLogs();
-
   void LoadLastLogFileName();
 
   void SaveLastLogFileName();
+
+  void DeleteAllLogs();
+  
+  void DeleteLogs();
+
+  std::chrono::time_point<std::chrono::system_clock> ExtractFirstTimestamp();
+
+  std::chrono::time_point<std::chrono::system_clock> ParseTimestamp(
+      const std::string& time_stamp);
 
  private:
   std::ofstream log_file_;
@@ -136,7 +150,9 @@ class LoggerSystem {
    * Log Time
    */
   std::chrono::time_point<std::chrono::system_clock> start_log_time_;
-  std::chrono::time_point<std::chrono::system_clock> last_log_time_;
+
+  bool log_wrapping_;
+  int wrapping_row_;
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_LOGGERSYSTEM_H_

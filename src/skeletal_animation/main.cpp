@@ -15,8 +15,10 @@
  ******************************************************************************/
 
 #include "SkeletalAnimation.h"
+#include "include/LoggerSystem.h"
 
 int main() {
+  LoggerSystem::GetInstance().EnableLogWrapping(80);
   auto* skeletal_animation =
       new SkeletalAnimation(800, 600, "skeletal_animation", nullptr, nullptr);
   skeletal_animation->Run();

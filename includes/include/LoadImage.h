@@ -65,6 +65,9 @@ class LoadImage {
    * @return If successful, the OpenGL index of the CubeMap is returned.
    */
   GLuint LoadCubeMap(std::vector<std::string> faces,
+                     GLint wrap_mode = GL_CLAMP_TO_EDGE,
+                     GLint mag_filter_mode = GL_LINEAR,
+                     GLint min_filter_mode = GL_LINEAR,
                      GLboolean gamma_correction = false);
 
   GLuint LoadTexture2DFromAssimp(const aiTexture* ai_texture, GLint wrap_mode,

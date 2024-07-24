@@ -17,6 +17,9 @@
 #include "SkeletalAnimation.h"
 #include "include/FilePathSystem.h"
 #include "include/LoadImage.h"
+#include "include/LoggerSystem.h"
+
+using namespace std;
 
 float last_x;
 float last_y;
@@ -25,7 +28,55 @@ float delta_time = 0;
 float last_frame = 0;
 Camera SkeletalAnimation::camera_(glm::vec3(0.0f, 0.0f, 3.0f));
 void SkeletalAnimation::InitializeGL() {
-  LoadImage::GetInstance().EnableStbImageFlipYAxis();
+  float skyboxVertices[] = {
+      // positions
+      -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f,
+      1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f,
+
+      -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f,
+      -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,
+
+      1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,
+      1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f,
+
+      -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
+      1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,
+
+      -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,
+      1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f,
+
+      -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f,
+      1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f};
+
+  float cubeVertices[] = {
+      // positions          // texture Coords
+      -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.5f,  -0.5f, -0.5f, 1.0f, 0.0f,
+      0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,
+      -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+
+      -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, 0.5f,  -0.5f, 0.5f,  1.0f, 0.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+      -0.5f, 0.5f,  0.5f,  0.0f, 1.0f, -0.5f, -0.5f, 0.5f,  0.0f, 0.0f,
+
+      -0.5f, 0.5f,  0.5f,  1.0f, 0.0f, -0.5f, 0.5f,  -0.5f, 1.0f, 1.0f,
+      -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+      -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, -0.5f, 0.5f,  0.5f,  1.0f, 0.0f,
+
+      0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,
+      0.5f,  -0.5f, -0.5f, 0.0f, 1.0f, 0.5f,  -0.5f, -0.5f, 0.0f, 1.0f,
+      0.5f,  -0.5f, 0.5f,  0.0f, 0.0f, 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+      -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.5f,  -0.5f, -0.5f, 1.0f, 1.0f,
+      0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, 0.5f,  -0.5f, 0.5f,  1.0f, 0.0f,
+      -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+
+      -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+      -0.5f, 0.5f,  0.5f,  0.0f, 0.0f, -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f};
+
+  vector<string> faces{"right.jpg",  "left.jpg",  "top.jpg",
+                       "bottom.jpg", "front.jpg", "back.jpg"};
+  //LoadImage::GetInstance().EnableStbImageFlipYAxis();
 
   glEnable(GL_DEPTH_TEST);
 
@@ -40,6 +91,45 @@ void SkeletalAnimation::InitializeGL() {
                         "resources/objects/vampire/dancing_vampire.dae"),
                     model_);
   animator_ = new Animator(animation_);
+  cube_map_shader_ = new Shader(
+      FilePathSystem::GetInstance().GetResourcesPath("glsl/cube_maps.vert"),
+      FilePathSystem::GetInstance().GetResourcesPath("glsl/cube_maps.frag"));
+  sky_box_shader_ = new Shader(
+      FilePathSystem::GetInstance().GetResourcesPath("glsl/sky_box.vert"),
+      FilePathSystem::GetInstance().GetResourcesPath("glsl/sky_box.frag"));
+
+  cube_map_vao_.Bind();
+  cube_map_vbo_.Bind();
+  cube_map_vbo_.SetData(&cubeVertices, sizeof(cubeVertices), GL_STATIC_DRAW);
+  cube_map_vao_.AddBuffer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                          (void*)0);
+  cube_map_vao_.AddBuffer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                          (void*)(3 * sizeof(float)));
+  cube_map_vao_.UnBind();
+  cube_map_vbo_.UnBind();
+
+  sky_box_vao_.Bind();
+  sky_box_vbo_.Bind();
+  sky_box_vbo_.SetData(&skyboxVertices, sizeof(skyboxVertices), GL_STATIC_DRAW);
+  sky_box_vao_.AddBuffer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  sky_box_vao_.UnBind();
+  sky_box_vbo_.UnBind();
+  for (auto& face : faces) {
+    face.insert(
+        0, FilePathSystem::GetInstance().GetPath("resources/textures/skybox/"));
+  }
+  sky_box_texture_ = LoadImage::GetInstance().LoadCubeMap(
+      faces, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR);
+  sky_box_shader_->Bind();
+  sky_box_shader_->SetInt("skybox", 0);
+  sky_box_shader_->UnBind();
+
+  cube_map_texture_ = LoadImage::GetInstance().LoadTexture2D(
+      FilePathSystem::GetInstance().GetPath(
+          "resources/textures/container.jpg"));
+  cube_map_shader_->Bind();
+  cube_map_shader_->SetInt("texture1", 0);
+  cube_map_shader_->UnBind();
 }
 void SkeletalAnimation::ResizeGL(int width, int height) {
   glViewport(0, 0, width, height);
@@ -73,6 +163,33 @@ void SkeletalAnimation::PaintGL() {
 
   model_->Draw(*shader_);
   shader_->UnBind();
+
+  cube_map_shader_->Bind();
+  cube_map_shader_->SetMat4("projection", projection);
+  cube_map_shader_->SetMat4("view", view);
+  model = glm::mat4(1.0f);
+  model=glm::translate(model,glm::vec3(0.0f,-1.0f,0.0f));
+  cube_map_shader_->SetMat4("model", model);
+  cube_map_vao_.Bind();
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, cube_map_texture_);
+  glDrawArrays(GL_TRIANGLES, 0, 36);
+  cube_map_vao_.UnBind();
+  cube_map_shader_->UnBind();
+
+  glDepthFunc(GL_LEQUAL);
+  sky_box_shader_->Bind();
+  view = glm::mat4(glm::mat3(view));
+  sky_box_shader_->SetMat4("view", view);
+  sky_box_shader_->SetMat4("projection", projection);
+
+  sky_box_vao_.Bind();
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, cube_map_texture_);
+  glDrawArrays(GL_TRIANGLES, 0, 36);
+  sky_box_vao_.UnBind();
+  sky_box_shader_->UnBind();
+  glDepthFunc(GL_LESS);
 }
 void SkeletalAnimation::ProcessInput(GLFWwindow* window) {
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -96,6 +213,7 @@ SkeletalAnimation::SkeletalAnimation(int width, int height, const char* title,
   glfwSetCursorPosCallback(window_, mouse_callback);
   glfwSetScrollCallback(window_, scroll_callback);
   HideMouse();
+  camera_.IsEnabled();
 }
 void SkeletalAnimation::mouse_callback(GLFWwindow* window, double x_pos,
                                        double y_pos) {

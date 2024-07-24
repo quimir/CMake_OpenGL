@@ -36,10 +36,8 @@ void Shader::CheckCompileErrors(GLuint shader,
       LoggerSystem::GetInstance().Log(
           LoggerSystem::Level::kError,
           string("ERROR::SHADER_COMPILATION_ERROR of type: ") +
-              ShaderErrorTypeToString(error_type) + string("\n") + info_log +
-              string(
-                  "\n -- --------------------------------------------------- "
-                  "-- "));
+              ShaderErrorTypeToString(error_type) +
+              string(" cause of error: ") + info_log);
       delete info_log;
     }
   } else {
@@ -50,10 +48,8 @@ void Shader::CheckCompileErrors(GLuint shader,
       LoggerSystem::GetInstance().Log(
           LoggerSystem::Level::kError,
           string("ERROR::PROGRAM_LINKING_ERROR of type: ") +
-              ShaderErrorTypeToString(error_type) + string("\n") + info_log +
-              string(
-                  "\n -- --------------------------------------------------- "
-                  "-- "));
+              ShaderErrorTypeToString(error_type) +
+              string(" cause of error: ") + info_log);
       delete info_log;
     }
   }
