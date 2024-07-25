@@ -28,26 +28,6 @@ float delta_time = 0;
 float last_frame = 0;
 Camera SkeletalAnimation::camera_(glm::vec3(0.0f, 0.0f, 3.0f));
 void SkeletalAnimation::InitializeGL() {
-  float skyboxVertices[] = {
-      // positions
-      -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f,
-      1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f,
-
-      -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f,
-      -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,
-
-      1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,
-      1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f,
-
-      -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
-      1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,
-
-      -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,
-      1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f,
-
-      -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f,
-      1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f};
-
   float cubeVertices[] = {
       // positions          // texture Coords
       -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.5f,  -0.5f, -0.5f, 1.0f, 0.0f,
@@ -76,8 +56,6 @@ void SkeletalAnimation::InitializeGL() {
 
   vector<string> faces{"right.jpg",  "left.jpg",  "top.jpg",
                        "bottom.jpg", "front.jpg", "back.jpg"};
-  //LoadImage::GetInstance().EnableStbImageFlipYAxis();
-
   glEnable(GL_DEPTH_TEST);
 
   last_x = GetWidth() / 2.0f;
@@ -94,7 +72,7 @@ void SkeletalAnimation::InitializeGL() {
   cube_map_shader_ = new Shader(
       FilePathSystem::GetInstance().GetResourcesPath("glsl/cube_maps.vert"),
       FilePathSystem::GetInstance().GetResourcesPath("glsl/cube_maps.frag"));
-  sky_box_shader_ = new Shader(
+  new Shader(
       FilePathSystem::GetInstance().GetResourcesPath("glsl/sky_box.vert"),
       FilePathSystem::GetInstance().GetResourcesPath("glsl/sky_box.frag"));
 
@@ -107,29 +85,19 @@ void SkeletalAnimation::InitializeGL() {
                           (void*)(3 * sizeof(float)));
   cube_map_vao_.UnBind();
   cube_map_vbo_.UnBind();
-
-  sky_box_vao_.Bind();
-  sky_box_vbo_.Bind();
-  sky_box_vbo_.SetData(&skyboxVertices, sizeof(skyboxVertices), GL_STATIC_DRAW);
-  sky_box_vao_.AddBuffer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-  sky_box_vao_.UnBind();
-  sky_box_vbo_.UnBind();
+  
   for (auto& face : faces) {
     face.insert(
         0, FilePathSystem::GetInstance().GetPath("resources/textures/skybox/"));
   }
-  sky_box_texture_ = LoadImage::GetInstance().LoadCubeMap(
-      faces, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR);
-  sky_box_shader_->Bind();
-  sky_box_shader_->SetInt("skybox", 0);
-  sky_box_shader_->UnBind();
-
   cube_map_texture_ = LoadImage::GetInstance().LoadTexture2D(
       FilePathSystem::GetInstance().GetPath(
           "resources/textures/container.jpg"));
-  cube_map_shader_->Bind();
+  cube_map_shader_->Use();
   cube_map_shader_->SetInt("texture1", 0);
-  cube_map_shader_->UnBind();
+  cube_map_shader_->UnUse();
+
+  sky_box_shader_ = new SkyBox(faces);
 }
 void SkeletalAnimation::ResizeGL(int width, int height) {
   glViewport(0, 0, width, height);
@@ -143,7 +111,7 @@ void SkeletalAnimation::PaintGL() {
   glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  shader_->Bind();
+  shader_->Use();
 
   auto projection = camera_.GetProjectionMatrix(GetWidth(), GetHeight());
   auto view = camera_.GetViewMatrix();
@@ -162,34 +130,22 @@ void SkeletalAnimation::PaintGL() {
   shader_->SetMat4("model", model);
 
   model_->Draw(*shader_);
-  shader_->UnBind();
+  shader_->UnUse();
 
-  cube_map_shader_->Bind();
+  cube_map_shader_->Use();
   cube_map_shader_->SetMat4("projection", projection);
   cube_map_shader_->SetMat4("view", view);
   model = glm::mat4(1.0f);
-  model=glm::translate(model,glm::vec3(0.0f,-1.0f,0.0f));
+  model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
   cube_map_shader_->SetMat4("model", model);
   cube_map_vao_.Bind();
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, cube_map_texture_);
   glDrawArrays(GL_TRIANGLES, 0, 36);
   cube_map_vao_.UnBind();
-  cube_map_shader_->UnBind();
+  cube_map_shader_->UnUse();
 
-  glDepthFunc(GL_LEQUAL);
-  sky_box_shader_->Bind();
-  view = glm::mat4(glm::mat3(view));
-  sky_box_shader_->SetMat4("view", view);
-  sky_box_shader_->SetMat4("projection", projection);
-
-  sky_box_vao_.Bind();
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_CUBE_MAP, cube_map_texture_);
-  glDrawArrays(GL_TRIANGLES, 0, 36);
-  sky_box_vao_.UnBind();
-  sky_box_shader_->UnBind();
-  glDepthFunc(GL_LESS);
+  sky_box_shader_->Bind(projection, view);
 }
 void SkeletalAnimation::ProcessInput(GLFWwindow* window) {
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)

@@ -50,6 +50,7 @@ GLenum Buffers::GetType() const {
 }
 void Buffers::SetType(GLenum type) {
   type_ = type;
+  this->binding_state_ = false;
 }
 bool Buffers::IsBindingState() const {
   return binding_state_;
@@ -62,6 +63,7 @@ void Buffers::ReGenBuffers(GLenum type) {
     glDeleteBuffers(1, &buffer_id_);
   }
   glGenBuffers(1, &buffer_id_);
+  this->binding_state_ = false;
 }
 template <typename T>
 void Buffers::SetData(const std::vector<T>& data, GLenum usage) const {

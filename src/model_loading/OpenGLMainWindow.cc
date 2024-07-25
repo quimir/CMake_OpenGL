@@ -48,7 +48,7 @@ void OpenGLMainWindow::PaintGL() {
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  shader_->Bind();
+  shader_->Use();
   glm::mat4 projection = camera_.GetProjectionMatrix(GetWidth(), GetHeight());
   glm::mat4 view = camera_.GetViewMatrix();
   shader_->SetMat4("projection", projection);
@@ -66,7 +66,7 @@ void OpenGLMainWindow::PaintGL() {
                 1.0f));  // it's a bit too big for our scene, so scale it down
   shader_->SetMat4("model", model);
   model_->Draw(*shader_);
-  shader_->UnBind();
+  shader_->UnUse();
 }
 void OpenGLMainWindow::ProcessInput(GLFWwindow* window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)

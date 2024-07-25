@@ -94,7 +94,7 @@ void OpenGLMainWindow::InitializeGL() {
           "resources/textures/awesomeface.png"));
 
   shader_
-      .Bind();  // don't forget to activate/use the shader before setting uniforms!
+      .Use();  // don't forget to activate/use the shader before setting uniforms!
   // either set it manually like so:
   shader_.SetInt("texture1", 0);
   // or set it via the texture class
@@ -113,7 +113,7 @@ void OpenGLMainWindow::PaintGL() {
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, texture_2);
 
-  shader_.Bind();
+  shader_.Use();
   this->vao_.Bind();
   //  glBindVertexArray(this->VAO_);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

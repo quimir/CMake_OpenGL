@@ -85,16 +85,16 @@ void OpenGLMainWindow::InitializeGL() {
       FilePathSystem::GetInstance().GetResourcesPath(
           "textures/awesomeface.png"));
 
-  shader_.Bind();
+  shader_.Use();
   shader_.SetInt("texture1", 0);
   shader_.SetInt("texture2", 1);
-  shader_.UnBind();
+  shader_.UnUse();
 }
 void OpenGLMainWindow::ResizeGL(int width, int height) {
   this->projection =
       glm::perspective(glm::radians(camera_.GetZoom()),
                        (float)width / (float)height, 0.1f, 100.0f);
-  shader_.Bind();
+  shader_.Use();
   shader_.SetMat4("projection", projection);
   this->imgui_dashboard_->ResizeWidget(width, height);
   glViewport(0, 0, width, height);
@@ -114,7 +114,7 @@ void OpenGLMainWindow::PaintGL() {
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, texture_2_);
 
-  shader_.Bind();
+  shader_.Use();
 
   this->projection = camera_.GetProjectionMatrix(GetWidth(), GetHeight());
   shader_.SetMat4("projection", projection);

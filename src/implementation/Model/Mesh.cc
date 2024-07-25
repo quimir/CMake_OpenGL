@@ -99,7 +99,7 @@ void Mesh::SetupMesh() {
 void Mesh::Draw(Shader& shader) {
   std::lock_guard<std::mutex> lock(mesh_mutex_);
   GLuint diffuser_nr = 1, specular_nr = 1, normal_nr = 1, height_nr = 1;
-  shader.Bind();
+  shader.Use();
   for (GLuint i = 0; i < this->textures_.size(); i++) {
     glActiveTexture(GL_TEXTURE0 +
                     i);  // Active proper texture unit before binding
@@ -139,7 +139,7 @@ void Mesh::Draw(Shader& shader) {
 
   // Always good practice to set everything back to defaults once configured.
   glActiveTexture(GL_TEXTURE0);
-  shader.UnBind();
+  shader.UnUse();
 }
 const VertexArray& Mesh::GetVao() const {
   return vao_;

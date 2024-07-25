@@ -21,35 +21,78 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
+# Essential modules cannot be omitted
 find_package(GLM REQUIRED)
 find_package(GLFW3 REQUIRED)
 find_package(ASSIMP REQUIRED)
-find_package(IMGUI REQUIRED)
 find_package(MODEL REQUIRED)
+
+# Optional modules can be turned on or off to be omitted.
+# Use imgui as an additional window. imgui can use opengl to create a simple window, better create graphical 
+# interface and debug functions. Details please see: https://github.com/ocornut/imgui
+option(ENABLE_IMGUI "Use imgui as an additional window. imgui can use opengl to create a simple window, 
+better create graphical interface and debug functions. Details please see: https://github.com/ocornut/imgui" ON)
+if (ENABLE_IMGUI)
+  find_package(IMGUI REQUIRED)
+endif ()
 
 # Obtain the installation directory of the application
 configure_file(configuration/root_directory.h.in ${CMAKE_BINARY_DIR}/configuration/root_directory.h)
 include_directories(${CMAKE_BINARY_DIR}/configuration)
 
-set(LIBS glfw3 opengl32 assimp IMGUI MODEL)
-
-# First create relevant static libraries required for other projects
-add_library(STB_IMAGE "src/stb_image.cpp")
-set(LIBS ${LIBS} STB_IMAGE)
-add_library(GLAD "${CMAKE_SOURCE_DIR}/src/glad.c")
-target_include_directories(GLAD PUBLIC "${CMAKE_SOURCE_DIR}/includes")
-set(LIBS ${LIBS} GLAD)
-
-if (MSVC)
+if (WIN32)
+  set(LIBS glfw3 opengl32 assimp MODEL)
+  if (ENABLE_IMGUI)
+	set(LIBS ${LIBS} IMGUI)
+  endif ()
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-endif ()
+elseif (APPLE)
+  INCLUDE_DIRECTORIES(/System/Library/Frameworks)
+  FIND_LIBRARY(COCOA_LIBRARY Cocoa)
+  FIND_LIBRARY(OpenGL_LIBRARY OpenGL)
+  FIND_LIBRARY(IOKit_LIBRARY IOKit)
+  FIND_LIBRARY(CoreVideo_LIBRARY CoreVideo)
+  MARK_AS_ADVANCED(COCOA_LIBRARY OpenGL_LIBRARY)
+  SET(APPLE_LIBS ${COCOA_LIBRARY} ${IOKit_LIBRARY} ${OpenGL_LIBRARY} ${CoreVideo_LIBRARY})
+  SET(APPLE_LIBS ${APPLE_LIBS} ${GLFW3_LIBRARY} ${ASSIMP_LIBRARY} ${FREETYPE_LIBRARIES})
+  set(LIBS ${LIBS} ${APPLE_LIBS})
+endif (WIN32)
 
 set(HEADER_FILES_DIR "${CMAKE_SOURCE_DIR}/includes/include")
 set(SOURCE_FILES_DIR "${CMAKE_SOURCE_DIR}/src/implementation")
 set(TIME_HEADER_FILES_DIR "${HEADER_FILES_DIR}/Time")
-set(IMGUI_HEADER_FILES_DIR "${HEADER_FILES_DIR}/ImGui")
 set(TIME_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/Time")
-set(IMGUI_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/ImGui")
+# Initialize ALL_HEADER_FILES_DIR and ALL_SOURCE_FILES_DIR
+set(ALL_HEADER_FILES_DIR "${HEADER_FILES_DIR};${TIME_HEADER_FILES_DIR}")
+set(ALL_SOURCE_FILES_DIR "${SOURCE_FILES_DIR};${TIME_SOURCE_FILES_DIR}")
+
+if (ENABLE_IMGUI)
+  set(IMGUI_HEADER_FILES_DIR "${HEADER_FILES_DIR}/ImGui")
+  set(IMGUI_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/ImGui")
+  list(APPEND ALL_HEADER_FILES_DIR "${IMGUI_HEADER_FILES_DIR}")
+  list(APPEND ALL_SOURCE_FILES_DIR "${IMGUI_SOURCE_FILES_DIR}")
+endif ()
+
+option(ENABLE_EXPERIMENTAL "A quick extension. It could be experimental (unsafe), or it could be a defragment of 
+OpenGL code that doesn't fit in the main code area and is therefore placed here. s details will be noted at 
+the beginning of each.h with ///." ON)
+if (ENABLE_EXPERIMENTAL)
+  set(EXPERIMENTAL_HEADER_FILES_DIR "${HEADER_FILES_DIR}/EXPERIMENTAL")
+  set(EXPERIMENTAL_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/EXPERIMENTAL")
+  list(APPEND ALL_HEADER_FILES_DIR "${EXPERIMENTAL_HEADER_FILES_DIR}")
+  list(APPEND ALL_SOURCE_FILES_DIR "${EXPERIMENTAL_SOURCE_FILES_DIR}")
+endif ()
+
+message(STATUS "Header directories: ${ALL_HEADER_FILES_DIR}")
+message(STATUS "Source directories: ${ALL_SOURCE_FILES_DIR}")
+
+# First create relevant static libraries required for other projects
+add_library(STB_IMAGE "src/stb_image.cpp")
+set(LIBS ${LIBS} STB_IMAGE)
+
+add_library(GLAD "${CMAKE_SOURCE_DIR}/src/glad.c")
+target_include_directories(GLAD PUBLIC "${CMAKE_SOURCE_DIR}/includes")
+set(LIBS ${LIBS} GLAD)
 
 set(CHAPTERS
 	started_opengl
@@ -58,27 +101,29 @@ set(CHAPTERS
 	skeletal_animation)
 
 function(create_project_from_sources chapter)
-  set(HEADER_FILES "${HEADER_FILES_DIR}/*.h"
-	  "${HEADER_FILES_DIR}/*.hpp"
-	  "${HEADER_FILES_DIR}/*.inl"
-	  "${TIME_HEADER_FILES_DIR}/*.h"
-	  "${TIME_HEADER_FILES_DIR}/*.hpp"
-	  "${TIME_HEADER_FILES_DIR}/*.inl"
-	  "${IMGUI_HEADER_FILES_DIR}/*.h"
-	  "${IMGUI_HEADER_FILES_DIR}/*.hpp"
-	  "${IMGUI_HEADER_FILES_DIR}/*.inl"
-	  "src/${chapter}/*.h")
+  # Please do not delete this paragraph, because this is adding the files in the project folder to the project.
+  list(APPEND ALL_HEADER_FILES_DIR "src/${chapter}")
+  # Glob all header files from the directories
+  foreach (HEADER_DIR IN LISTS ALL_HEADER_FILES_DIR)
+	file(GLOB HEADER_FILES_TMP
+		"${HEADER_DIR}/*.h"
+		"${HEADER_DIR}/*.hpp"
+		"${HEADER_DIR}/*.inl")
+	list(APPEND HEADER_FILES ${HEADER_FILES_TMP})
+  endforeach ()
 
-  set(SOURCE_FILES "${SOURCE_FILES_DIR}/*.cc"
-	  "${SOURCE_FILES_DIR}/*.cpp"
-	  "${TIME_SOURCE_FILES_DIR}/*.cc"
-	  "${TIME_SOURCE_FILES_DIR}/*.cpp"
-	  "${IMGUI_SOURCE_FILES_DIR}/*.cc"
-	  "${IMGUI_SOURCE_FILES_DIR}/*.cpp"
-	  "src/${chapter}/*.cpp"
-	  "src/${chapter}/*.cc")
+  # Please do not delete this paragraph, because this is adding the files in the project folder to the project.
+  list(APPEND ALL_SOURCE_FILES_DIR "src/${chapter}")
+  # Glob all source files from the directories
+  foreach (SOURCE_DIR IN LISTS ALL_SOURCE_FILES_DIR)
+	file(GLOB SOURCE_FILES_TMP
+		"${SOURCE_DIR}/*.cpp"
+		"${SOURCE_DIR}/*.cc")
+	list(APPEND SOURCE_FILES ${SOURCE_FILES_TMP})
+  endforeach ()
 
-  set(SHADER_FILES "src/${chapter}/*.glsl"
+  file(GLOB SHADER_FILES
+	  "src/${chapter}/*.glsl"
 	  "src/${chapter}/*.vert"
 	  "src/${chapter}/*.frag"
 	  "src/${chapter}/*.geom"
@@ -89,15 +134,13 @@ function(create_project_from_sources chapter)
 	  "src/${chapter}/*.comp"
 	  "src/${chapter}/*.vsh")
 
-  file(GLOB SOURCE
+  list(APPEND SOURCE_FILES
 	  ${HEADER_FILES}
-	  ${SOURCE_FILES}
-	  ${SHADER_FILES}
-  )
+	  ${SHADER_FILES})
 
   set(NAME "${chapter}")
 
-  add_executable(${NAME} ${SOURCE})
+  add_executable(${NAME} ${SOURCE_FILES})
   target_link_libraries(${NAME} ${LIBS})
 
   if (MSVC)
@@ -108,13 +151,13 @@ function(create_project_from_sources chapter)
   if (WIN32)
 	set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${chapter}")
 	set_target_properties(${NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${chapter}/Debug")
+  elseif (APPLE)
+	set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${chapter}")
+	set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/${chapter}")
+	set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/${chapter}")
   endif (WIN32)
 
-  # copy shader files to build directory
-  file(GLOB SHADERS
-	  ${SHADER_FILES})
-
-  foreach (SHADER ${SHADERS})
+  foreach (SHADER ${SHADER_FILES})
 	if (WIN32)
 	  add_custom_command(TARGET ${NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SHADER} $<TARGET_FILE_DIR:${NAME}>)
 	endif (WIN32)
@@ -129,6 +172,11 @@ function(create_project_from_sources chapter)
   endif (WIN32)
 endfunction()
 
+# Define the makeLink macro
+macro(makeLink src dest target)
+  add_custom_command(TARGET ${target} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dest} DEPENDS ${dest} COMMENT "mklink ${src} -> ${dest}")
+endmacro()
+
 # then create a project file per tutorial
 foreach (CHAPTER ${CHAPTERS})
   create_project_from_sources(${CHAPTER})
@@ -136,9 +184,5 @@ endforeach (CHAPTER)
 
 include_directories(${CMAKE_SOURCE_DIR}/includes)
 
-# Add option to enable or disable tests
-option(ENABLE_TESTS "Enable test" ON)
-
-if (ENABLE_TESTS)
-  add_subdirectory(src/ctests)
-endif ()
+# test module.
+add_subdirectory(src/ctests)

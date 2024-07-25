@@ -41,9 +41,9 @@
  * 
  * main.cpp:
  * VertexArray vao;
- * vao.Bind();
+ * vao.Use();
  * vao.AddBuffer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) 0);
- * vao.UnBind();
+ * vao.UnUse();
  * @endcode
  */
 class VertexArray {
@@ -158,7 +158,7 @@ class VertexArray {
 
  private:
   /**
-   * Bind this ID to the OpenGL vertex array. This ID is also unique to the 
+   * Use this ID to the OpenGL vertex array. This ID is also unique to the 
    * class in OpenGL.
    */
   GLuint vao_id_;

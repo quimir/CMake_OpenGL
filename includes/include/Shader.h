@@ -37,9 +37,9 @@
  * Usage example:
  * @code
  * Shader shader("text.vert","text.frag");
- * shader.Bind();
+ * shader.Use();
  * shader.SetInt("text",1);
- * Shader.UnBind();
+ * Shader.UnUse();
  * @endcode
  * @note This class is thread-safe. It uses internal mutexes to protect access to 
  * shared resources.
@@ -63,12 +63,12 @@ class Shader {
    * Start the shader. Note that any function that wants to use a shader must
    * use it first, otherwise no other function will work.
    */
-  void Bind() const;
+  void Use();
 
   /**
-   * Remove shaders from use by using Bind() first.
+   * Remove shaders from use by using Use() first.
    */
-  void UnBind();
+  void UnUse();
 
   /**
    * Specify the value of a uniform variable for the current program object.If 
@@ -396,6 +396,19 @@ class Shader {
 
   Shader& operator=(const Shader& other) = delete;
 
+  void ResetShader(const std::string& vertex_path,
+                   const std::string& fragment_path,
+                   const std::string& geometry_path = std::string(),
+                   const std::string& tess_control_path = std::string(),
+                   const std::string& tess_evaluation_path = std::string(),
+                   const std::string& compute_path = std::string());
+
+  bool IsUseState() const;
+  
+  static void EnableUseCheck();
+  
+  static void DisEnableUseCheck();
+
  private:
   /**
    * Determines if there are any errors in the shader build and prints them to 
@@ -443,6 +456,25 @@ class Shader {
    */
   void CheckOpenGLVersion(int major_number, int minor_number) const;
 
+  /**
+   * Build an OpenGL shader. It must have a path for a vertex shader and a path 
+   * for a fragment shader. After linking, the registered shader ID is stored in 
+   * id_. If an error occurs, the error message is displayed on the console and 
+   * in the log file
+   * @param vertex_path Path to vertex shader path. 
+   * @param fragment_path Fragment shader path.
+   * @param geometry_path Geometry shader path.
+   * @param tess_control_path Tess control shader path.
+   * @param tess_evaluation_path Tess evaluation shader path.
+   * @param compute_path Compute shader path.
+   */
+  void Initialized(const std::string& vertex_path,
+                   const std::string& fragment_path,
+                   const std::string& geometry_path,
+                   const std::string& tess_control_path,
+                   const std::string& tess_evaluation_path,
+                   const std::string& compute_path);
+
  private:
   // Record the ID of the shader registered with OpenGL.
   GLuint id_;
@@ -451,7 +483,12 @@ class Shader {
   // Record the wrong name for the Uniform block.
   std::unordered_set<std::string> uniform_block_warnings_;
 
+  bool use_state_;
+
+  // Asynchronous lock
   static std::mutex gl_mutex_;
+  
+  static bool use_check_;
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_SHADER_H_

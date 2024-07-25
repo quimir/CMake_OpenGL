@@ -61,6 +61,7 @@ void VertexArray::ReGenVertexArrays() {
     glDeleteVertexArrays(1, &vao_id_);
   }
   glGenVertexArrays(1, &vao_id_);
+  binding_state_ = false;
 }
 const GLuint VertexArray::GetVaoId() const {
   return vao_id_;

@@ -44,7 +44,7 @@ void VertexArrayManager::Bind(const std::string& name) {
   if (item == this->vertex_array_registry_.end()) {
     LoggerSystem::GetInstance().Log(
         LoggerSystem::Level::kWarning,
-        "Error location: VertexArrayManager::Bind(const std::string &name)" +
+        "Error location: VertexArrayManager::Use(const std::string &name)" +
             std::string("error message:") + name + "not found.");
   }
 
