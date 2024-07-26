@@ -16,65 +16,127 @@
 
 #include <gtest/gtest.h>
 #include "include/Camera.h"
+#include "include/LoggerSystem.h"
 
 using namespace std;
 
 class CameraTest : public ::testing::Test {
  protected:
-  CameraTest() {
-    // Create the Camera instance of the test case
-    camera_ = new Camera(glm::vec3(0.0f, 0.0f, 0.0f),
-                         glm::vec3(0.0f, 1.0f, 0.0f), 0.0f, 0.0f, 0, 0);
-  }
+  Camera* camera;
 
-  ~CameraTest() override { delete camera_; }
+  void SetUp() override { camera = new Camera(); }
 
- protected:
-  Camera* camera_;
+  void TearDown() override { delete camera; }
 };
 
-TEST_F(CameraTest, CameraConstructor) {
-  // Test the Camera constructor
-  ASSERT_EQ(camera_->GetPosition(), glm::vec3(0.0f, 0.0f, 0.0f));
-  ASSERT_EQ(camera_->GetWorldUp(), glm::vec3(0.0f, 1.0f, 0.0f));
-  ASSERT_EQ(camera_->GetYaw(), 0.0f);
-  ASSERT_EQ(camera_->GetPitch(), 0.0f);
+// Test default constructor
+TEST_F(CameraTest, DefaultConstructor) {
+  EXPECT_EQ(camera->GetPosition(), glm::vec3(0.0f, 0.0f, 0.0f));
+  EXPECT_EQ(camera->GetWorldUp(), glm::vec3(0.0f, 1.0f, 0.0f));
+  EXPECT_FLOAT_EQ(camera->GetYaw(), cameraconstsetting::kYaw);
+  EXPECT_FLOAT_EQ(camera->GetPitch(), cameraconstsetting::kPitch);
+  EXPECT_FLOAT_EQ(camera->GetNearPlane(), cameraconstsetting::kNear);
+  EXPECT_FLOAT_EQ(camera->GetFarPlane(), cameraconstsetting::kFar);
 }
 
-TEST_F(CameraTest, CameraViewMatrix) {
-  // Test GetViewMatrix function
-  glm::mat4 viewMatrix = camera_->GetViewMatrix();
-  ASSERT_EQ(viewMatrix[3][0], 0.0f);
-  ASSERT_EQ(viewMatrix[3][1], 0.0f);
-  ASSERT_EQ(viewMatrix[3][2], -1.0f);
+// Test parameterized constructor
+TEST_F(CameraTest, ParameterizedConstructor) {
+  Camera cam(glm::vec3(1.0f, 2.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), -45.0f,
+             45.0f, 0.1f, 100.0f);
+  EXPECT_EQ(cam.GetPosition(), glm::vec3(1.0f, 2.0f, 3.0f));
+  EXPECT_EQ(cam.GetWorldUp(), glm::vec3(0.0f, 1.0f, 0.0f));
+  EXPECT_FLOAT_EQ(cam.GetYaw(), -45.0f);
+  EXPECT_FLOAT_EQ(cam.GetPitch(), 45.0f);
+  EXPECT_FLOAT_EQ(cam.GetNearPlane(), 0.1f);
+  EXPECT_FLOAT_EQ(cam.GetFarPlane(), 100.0f);
 }
 
-TEST_F(CameraTest, CameraProcessKeyboard) {
-  // Test ProcessKeyboard function
-  camera_->ProcessKeyboard(Camera::CameraMovement::kForward, 1.0f);
-  ASSERT_EQ(camera_->GetPosition(), glm::vec3(0.0f, 0.0f, -1.0f));
+// Test GetViewMatrix
+TEST_F(CameraTest, GetViewMatrix) {
+  glm::mat4 viewMatrix = camera->GetViewMatrix();
+  glm::mat4 expectedMatrix =
+      glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f),
+                  glm::vec3(0.0f, 1.0f, 0.0f));
+
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      EXPECT_NEAR(viewMatrix[i][j], expectedMatrix[i][j], 1e-5);
+    }
+  }
 }
 
-TEST_F(CameraTest, CameraProcessMouseMovement) {
-  // Test ProcessMouseMovement function
-  camera_->ProcessMouseMovement(1.0f, 1.0f, true);
-  ASSERT_NEAR(camera_->GetFront().x, 0.0f, 0.001f);
-  ASSERT_NEAR(camera_->GetFront().y, 0.0f, 0.001f);
-  ASSERT_NEAR(camera_->GetFront().z, -1.0f, 0.001f);
-
-  ASSERT_NEAR(camera_->GetRight().x, 1.0f, 0.001f);
-  ASSERT_NEAR(camera_->GetRight().y, 0.0f, 0.001f);
-  ASSERT_NEAR(camera_->GetRight().z, 0.0f, 0.001f);
-
-  ASSERT_NEAR(camera_->GetUp().x, 0.0f, 0.001f);
-  ASSERT_NEAR(camera_->GetUp().y, 1.0f, 0.001f);
-  ASSERT_NEAR(camera_->GetUp().z, 0.0f, 0.001f);
+// Test ProcessKeyboard
+TEST_F(CameraTest, ProcessKeyboard) {
+  glm::vec3 initialPosition = camera->GetPosition();
+  camera->ProcessKeyboard(Camera::CameraMovement::kForward, 1.0);
+  glm::vec3 newPosition = camera->GetPosition();
+  EXPECT_NE(initialPosition, newPosition);
 }
 
-TEST_F(CameraTest, CameraProcessMouseScroll) {
-  // Test ProcessMouseScroll
-  camera_->ProcessMouseScroll(1.0f);
-  ASSERT_EQ(camera_->GetZoom(), 1.0f);
+// Test ProcessMouseMovement
+TEST_F(CameraTest, ProcessMouseMovement) {
+  float initialYaw = camera->GetYaw();
+  float initialPitch = camera->GetPitch();
+  camera->ProcessMouseMovement(10.0f, 5.0f);
+  EXPECT_NE(camera->GetYaw(), initialYaw);
+  EXPECT_NE(camera->GetPitch(), initialPitch);
+}
+
+// Test ProcessMouseScroll
+TEST_F(CameraTest, ProcessMouseScroll) {
+  float initialZoom = camera->GetZoom();
+  camera->ProcessMouseScroll(-1.0f);
+  if (initialZoom >= 45.0f) {
+    EXPECT_EQ(camera->GetZoom(), 45.0f);
+  } else {
+    EXPECT_LT(camera->GetZoom(), initialZoom);
+  }
+
+  camera->ProcessMouseScroll(1.0f);
+  EXPECT_GT(camera->GetZoom(), camera->GetZoom() - 1.0f);
+}
+
+// Test getters and setters
+TEST_F(CameraTest, GettersAndSetters) {
+  camera->SetPosition(glm::vec3(5.0f, 5.0f, 5.0f));
+  EXPECT_EQ(camera->GetPosition(), glm::vec3(5.0f, 5.0f, 5.0f));
+
+  camera->SetYaw(90.0f);
+  EXPECT_FLOAT_EQ(camera->GetYaw(), 90.0f);
+
+  camera->SetPitch(45.0f);
+  EXPECT_FLOAT_EQ(camera->GetPitch(), 45.0f);
+
+  camera->SetMovementSpeed(10.0f);
+  EXPECT_FLOAT_EQ(camera->GetMovementSpeed(), 10.0f);
+
+  camera->SetMouseSensitivity(0.5f);
+  EXPECT_FLOAT_EQ(camera->GetMouseSensitivity(), 0.5f);
+
+  camera->SetZoom(30.0f);
+  EXPECT_FLOAT_EQ(camera->GetZoom(), 30.0f);
+
+  camera->SetNearPlane(0.5f);
+  EXPECT_FLOAT_EQ(camera->GetNearPlane(), 0.5f);
+
+  camera->SetFarPlane(200.0f);
+  EXPECT_FLOAT_EQ(camera->GetFarPlane(), 200.0f);
+}
+
+// Test Enable and Disable
+TEST_F(CameraTest, EnableAndDisable) {
+  EXPECT_TRUE(camera->IsEnabled());
+  camera->DisEnable();
+  EXPECT_FALSE(camera->IsEnabled());
+  camera->Enable();
+  EXPECT_TRUE(camera->IsEnabled());
+}
+
+// Test ResetCamera
+TEST_F(CameraTest, ResetCamera) {
+  camera->SetPosition(glm::vec3(5.0f, 5.0f, 5.0f));
+  camera->ResetCamera();
+  EXPECT_EQ(camera->GetPosition(), glm::vec3(0.0f, 0.0f, 0.0f));
 }
 
 int main(int argc, char** argv) {

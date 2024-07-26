@@ -17,7 +17,6 @@
 #include "include/LoggerSystem.h"
 #include <iostream>
 #include <sstream>
-#include <utility>
 #include "include/Time/TimeUtils.h"
 
 LoggerSystem& LoggerSystem::GetInstance() {
@@ -50,23 +49,29 @@ void LoggerSystem::Log(LoggerSystem::Level level, const std::string& message) {
   }
   formatted_message += current_message + "]\n";
 
+  if (!log_file_.is_open()) {
+    log_file_.open(last_log_file_name_, std::ios_base::app);
+  }
+
   log_file_ << formatted_message;
 
-  SaveLastLogFileName();
+  SaveLogFileSetting(false, this->log_file_path_);
 }
 
 void LoggerSystem::SetMaxSize(std::size_t size) {
   if (size != this->max_size_)
     this->max_size_ = size;
+  SaveLogFileSetting(false, this->log_file_path_);
 }
 
 void LoggerSystem::SetMaxAge(std::chrono::seconds age) {
   if (age != this->max_age_)
     this->max_age_ = age;
+  SaveLogFileSetting(false, this->log_file_path_);
 }
 
 LoggerSystem::~LoggerSystem() {
-  SaveLastLogFileName();
+  SaveLogFileSetting(false, this->log_file_path_);
   std::lock_guard<std::mutex> lock(log_mutex_);
   log_file_ << "----------------------------------------------------------\n";
   if (log_file_.is_open()) {
@@ -106,47 +111,8 @@ void LoggerSystem::RotateLogFile() {
 }
 
 LoggerSystem::LoggerSystem(std::size_t size, std::chrono::seconds age,
-                           std::string log_file_path)
-    : max_size_(size),
-      max_age_(age),
-      log_file_path_(std::move(log_file_path)),
-      wrapping_row_(0),
-      log_wrapping_(false) {
-  try {
-    std::filesystem::path log_dir(log_file_path_);
-
-    // Check and create the log directory
-    if (!log_dir.empty() && !std::filesystem::exists(log_dir)) {
-      std::filesystem::create_directories(log_dir);
-    }
-
-    LoadLastLogFileName();
-
-    // Check whether the log file exists, and if it does not, create it
-    if (last_log_file_name_.empty() ||
-        !std::filesystem::exists(last_log_file_name_)) {
-      last_log_file_name_ =
-          (log_dir / ("log_" +
-                      TimeUtils::GetInstance().FormatTime(
-                          TimeUtils::GetInstance().GetCurrentTime()) +
-                      ".log"))
-              .string();
-      log_file_.open(last_log_file_name_, std::ios_base::out);
-      if (!log_file_.is_open()) {
-        throw std::runtime_error("Unable to open log file");
-      }
-      this->start_log_time_ = TimeUtils::GetInstance().GetCurrentTime();
-    } else {
-      log_file_.open(last_log_file_name_, std::ios_base::app);
-      if (!log_file_.is_open()) {
-        throw std::runtime_error("Unable to open log file");
-      }
-      this->start_log_time_ = ExtractFirstTimestamp();
-    }
-  } catch (const std::exception& e) {
-    std::cerr << "Error initializing Logger: " << e.what() << std::endl;
-  }
-  log_file_ << "----------------------------------------------------------\n";
+                           const std::string& log_file_path) {
+  Initialized(size, age, log_file_path, false, 0);
 }
 
 void LoggerSystem::RollOverLogs() {
@@ -171,7 +137,7 @@ void LoggerSystem::RollOverLogs() {
   }
 
   this->start_log_time_ = TimeUtils::GetInstance().GetCurrentTime();
-  SaveLastLogFileName();
+  SaveLogFileSetting(false, this->log_file_path_);
 }
 
 void LoggerSystem::DeleteAllLogs() {
@@ -183,9 +149,10 @@ void LoggerSystem::DeleteAllLogs() {
   }
 }
 
-void LoggerSystem::LoadLastLogFileName() {
+void LoggerSystem::LoadLogFileSetting() {
   std::ifstream last_log_file(this->log_file_path_ + "last_time_log.txt");
   if (last_log_file.is_open()) {
+    std::getline(last_log_file, log_file_path_);
     std::getline(last_log_file, last_log_file_name_);
 
     std::string max_age_str;
@@ -203,9 +170,23 @@ void LoggerSystem::LoadLastLogFileName() {
   }
 }
 
-void LoggerSystem::SaveLastLogFileName() {
-  std::ofstream last_log_file(this->log_file_path_ + "last_time_log.txt");
+void LoggerSystem::SaveLogFileSetting(bool change_dir,
+                                      const std::string& log_file_path) {
+  std::filesystem::path log_dir(log_file_path);
+  // Check and create the log directory
+  if (!log_dir.empty() && !std::filesystem::exists(log_dir)) {
+    std::filesystem::create_directories(log_dir);
+  }
+  //  if (change_dir)
+  //  std::ofstream last_log_file(log_file_path + "last_time_log.txt");
+  std::ofstream last_log_file;
+  if (change_dir) {
+    last_log_file = std::ofstream(this->log_file_path_ + "last_time_log.txt");
+  } else {
+    last_log_file = std::ofstream(log_file_path + "last_time_log.txt");
+  }
   if (last_log_file.is_open()) {
+    last_log_file << log_file_path << "\n";
     last_log_file << last_log_file_name_ << "\n";
     last_log_file
         << std::chrono::duration_cast<std::chrono::seconds>(max_age_).count()
@@ -319,5 +300,80 @@ void LoggerSystem::DeleteLogs() {
     throw std::runtime_error("Unable to open new log file after deletion");
   }
   log_file_ << "----------------------------------------------------------\n";
-  SaveLastLogFileName();
+  SaveLogFileSetting(false, this->log_file_path_);
+}
+
+void LoggerSystem::Initialized(std::size_t size, std::chrono::seconds age,
+                               const std::string& log_file_path,
+                               bool log_wrapping, int wrapping_row) {
+  if (log_file_path.empty()) {
+    throw std::runtime_error("The log file path is not allowed to be empty.");
+  }
+  Close();
+  log_file_path_ = log_file_path;
+  max_size_ = size;
+  max_age_ = age;
+  wrapping_row_ = wrapping_row;
+  log_wrapping_ = log_wrapping;
+
+  try {
+    std::filesystem::path log_dir(log_file_path_);
+
+    // Check and create the log directory
+    if (!log_dir.empty() && !std::filesystem::exists(log_dir)) {
+      std::filesystem::create_directories(log_dir);
+    }
+
+    LoadLogFileSetting();
+
+    // Check whether the log file exists, and if it does not, create it
+    if (last_log_file_name_.empty() ||
+        !std::filesystem::exists(last_log_file_name_)) {
+      last_log_file_name_ =
+          (log_dir / ("log_" +
+                      TimeUtils::GetInstance().FormatTime(
+                          TimeUtils::GetInstance().GetCurrentTime()) +
+                      ".log"))
+              .string();
+      log_file_.open(last_log_file_name_, std::ios_base::out);
+      if (!log_file_.is_open()) {
+        throw std::runtime_error("Unable to open log file");
+      }
+      this->start_log_time_ = TimeUtils::GetInstance().GetCurrentTime();
+    } else {
+      log_file_.open(last_log_file_name_, std::ios_base::app);
+      if (!log_file_.is_open()) {
+        throw std::runtime_error("Unable to open log file");
+      }
+      this->start_log_time_ = ExtractFirstTimestamp();
+    }
+  } catch (const std::exception& e) {
+    std::cerr << "Error initializing Logger: " << e.what() << std::endl;
+  }
+  log_file_ << "----------------------------------------------------------\n";
+}
+
+const std::string& LoggerSystem::GetLogFilePath() const {
+  return log_file_path_;
+}
+
+void LoggerSystem::SetLogFilePath(const std::string& log_file_path) {
+  SaveLogFileSetting(true, log_file_path);
+  log_file_path_ = log_file_path;
+  last_log_file_name_.clear();
+  Initialized(max_size_, max_age_, log_file_path_, log_wrapping_,
+              wrapping_row_);
+}
+
+void LoggerSystem::Reset(std::size_t size, std::chrono::seconds age,
+                         const std::string& log_file_path, bool log_wrapping,
+                         int wrapping_row) {
+  Initialized(size, age, log_file_path, log_wrapping, wrapping_row);
+}
+
+void LoggerSystem::Close() {
+  std::lock_guard<std::mutex> lock(log_mutex_);
+  if (log_file_.is_open()) {
+    log_file_.close();
+  }
 }

@@ -207,8 +207,6 @@ class Camera {
                    glm::float32 pitch = cameraconstsetting::kPitch,
                    glm::float32 near_plane = cameraconstsetting::kNear,
                    glm::float32 far_plane = cameraconstsetting::kFar);
-  
-  static void SetDebugMessage(bool debug_message);
 
  private:
   /**
@@ -236,8 +234,6 @@ class Camera {
    * @return Transformed string representation.
    */
   std::string GlmVec3ToString(glm::vec3 other) const;
-  
-  void DebugMessage(bool is_open=true);
 
  private:
   // Camera attributes
@@ -257,11 +253,6 @@ class Camera {
   glm::float32 far_plane_;   // Far clipping plane distance
 
   bool enabled_;
-  
-  static bool debug_message_;
-
- public:
-  static bool IsDebugMessage();
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_CAMERA_H_

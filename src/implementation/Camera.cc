@@ -17,8 +17,6 @@
 #include "include/Camera.h"
 #include "include/LoggerSystem.h"
 
-bool Camera::debug_message_ = true;
-
 const glm::vec3& Camera::GetWorldUp() const {
   return world_up_;
 }
@@ -267,7 +265,6 @@ void Camera::Initialized(glm::vec3 position, glm::vec3 world_up,
   yaw_ = yaw;
   pitch_ = pitch;
   UpdateCameraVectors();
-  DebugMessage(Camera::debug_message_);
 }
 bool Camera::IsEnabled() const {
   return enabled_;
@@ -305,29 +302,4 @@ void Camera::ResetCamera(glm::vec3 position, glm::vec3 world_up,
                          glm::float32 yaw, glm::float32 pitch,
                          glm::float32 near_plane, glm::float32 far_plane) {
   Initialized(position, world_up, yaw, pitch, near_plane, far_plane);
-}
-void Camera::DebugMessage(bool is_open) {
-  if (is_open) {
-    LoggerSystem::GetInstance().Log(
-        LoggerSystem::Level::kInfo,
-        "Camera was successfully created with the "
-        "following parameters: camera position: " +
-            GlmVec3ToString(position_) + " camera front: " +
-            GlmVec3ToString(front_) + " camera up: " + GlmVec3ToString(up_) +
-            " camera right: " + GlmVec3ToString(right_) +
-            " camera world up: " + GlmVec3ToString(world_up_) +
-            " camera yaw: " + std::to_string(yaw_) + " camera pitch " +
-            std::to_string(pitch_) +
-            " camera movement speed: " + std::to_string(movement_speed_) +
-            " camera mouse sensitivity: " + std::to_string(mouse_sensitivity_) +
-            " camera zoom: " + std::to_string(zoom_) +
-            " camera near plane: " + std::to_string(near_plane_) +
-            " camera far plane: " + std::to_string(far_plane_));
-  }
-}
-void Camera::SetDebugMessage(bool debug_message) {
-  debug_message_ = debug_message;
-}
-bool Camera::IsDebugMessage() {
-  return debug_message_;
 }

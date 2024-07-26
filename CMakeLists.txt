@@ -184,5 +184,9 @@ endforeach (CHAPTER)
 
 include_directories(${CMAKE_SOURCE_DIR}/includes)
 
-# test module.
+# Load the necessary parameters for the test.
+set(ALL_HEADER_FILES_DIR "${ALL_HEADER_FILES_DIR}" CACHE STRING "All header files directory")
+set(ALL_SOURCE_FILES_DIR "${ALL_SOURCE_FILES_DIR}" CACHE STRING "All source files directory")
+set(LIBS "${LIBS}" CACHE STRING "All the link libraries")
+# Test module.
 add_subdirectory(src/ctests)

@@ -97,13 +97,53 @@ class LoggerSystem {
    */
   void EnableLogWrapping(int row);
 
+  /**
+   * Disable log newline mode.
+   */
   void DisEnableLogWrapping();
+
+  const std::string& GetLogFilePath() const;
+
+  /**
+   * Reset the path to the log file. Notethis resets everything in the logfile.
+   * @param log_file_path Log file path
+   */
+  void SetLogFilePath(const std::string& log_file_path);
+
+  /**
+   * Reset the journaling filesystem.
+   * @param size The maximum amount of log storage, in bits.
+   * @param age The maximum lifetime of the log, in units of s.
+   * @param log_file_path Path to the log file.
+   * @param log_wrapping Whether log wrapping is enabled.
+   * @param wrapping_row Change lines every number of characters.
+   */
+  void Reset(std::size_t size, std::chrono::seconds age,
+                         const std::string& log_file_path, bool log_wrapping,
+                         int wrapping_row);
+  
+  /**
+   * Disable the use of log files.
+   */
+  void Close();
 
  private:
   explicit LoggerSystem(std::size_t size = std::size_t(1024 * 1024),
                         std::chrono::seconds age =
                             std::chrono::seconds(std::chrono::seconds::max()),
-                        std::string log_file_path = std::string("log/"));
+                        const std::string& log_file_path = std::string("log/"));
+
+  /**
+   * Initialize the log management system.
+   * @param size The maximum amount of log storage, in bits.
+   * @param age The maximum lifetime of the log, in units of s.
+   * @param log_file_path Path to the log file.
+   * @param log_wrapping Whether log wrapping is enabled.
+   * @param wrapping_row Change lines every number of characters.
+   */
+  void Initialized(std::size_t size, std::chrono::seconds age,
+                   const std::string& log_file_path, bool log_wrapping,
+                   int wrapping_row);
 
   ~LoggerSystem();
 
@@ -122,18 +162,53 @@ class LoggerSystem {
    */
   void RotateLogFile();
 
+  /**
+   * The log rotation system resets the name of the previous log to 
+   * log_[start time]- [end time].log, and updates the current log file to 
+   * log_[start time].log.
+   */
   void RollOverLogs();
 
-  void LoadLastLogFileName();
-
-  void SaveLastLogFileName();
-
-  void DeleteAllLogs();
+  /**
+   * Load the information of the last log file. The full details are stored in 
+   * a file named last_time_log.txt.
+   */
+  void LoadLogFileSetting();
   
+  /**
+   * Load the information of the last log file. The full details are stored in 
+   * a file named last_time_log.txt.
+   * @param change_dir If so, write the current directory information back to 
+   * the original last_time_log.txt.
+   * @param log_file_path The directory of the log.
+   */
+  void SaveLogFileSetting(bool change_dir, const std::string& log_file_path);
+
+  /**
+   * Remove all files in the log directory.
+   */
+  void DeleteAllLogs();
+
+  /**
+   * Deleting the log file will create a new log file to store the new 
+   * information. (Because it is possible that the time exceeds the set 
+   * time and the message is still written when it is divided, a new log must 
+   * be set or the risk of a null pointer will be generated.)
+   */
   void DeleteLogs();
 
+  /**
+   * Parse the time at which a message was first written to the log file.
+   * @return The time point of the first log file.
+   */
   std::chrono::time_point<std::chrono::system_clock> ExtractFirstTimestamp();
 
+  /**
+   * Point in time to convert the log file, because the stored string is 
+   * "%Y-%m-%d_%H-%M-%S", it can be parsed into the required time format now.
+   * @param time_stamp A point in time string in the log file.
+   * @return Converted time format.
+   */
   std::chrono::time_point<std::chrono::system_clock> ParseTimestamp(
       const std::string& time_stamp);
 

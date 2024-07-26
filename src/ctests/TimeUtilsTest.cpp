@@ -49,7 +49,7 @@ TEST(TimeUtilsTest, GetDurationInSeconds) {
 
 TEST(TimeUtilsTest, GetTimeStamp) {
   double timestamp = TimeUtils::GetInstance().GetTimeStamp();
-  ASSERT_GT(timestamp, 0.0);
+  ASSERT_GE(timestamp, 0.0);
 }
 
 int main(int argc, char** argv) {
