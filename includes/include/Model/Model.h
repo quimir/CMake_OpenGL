@@ -39,7 +39,7 @@ class Model {
    * @param path The file path of the model file.
    * @param gamma Whether to apply gamma correction to the textures.
    */
-  explicit Model(std::string path, bool gamma = false);
+  explicit Model(const std::string& path, bool gamma = false);
 
   /**
    * Destructor for the Model class. Frees all allocated resources.
@@ -68,7 +68,7 @@ class Model {
    * Retrieves the meshes of the model.
    * @return A const reference to the vector of meshes.
    */
-  const std::vector<Mesh*> GetMeshes() const;
+  std::vector<Mesh*> GetMeshes() const;
 
   /**
    * Sets the meshes of the model.

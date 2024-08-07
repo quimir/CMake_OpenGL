@@ -14,41 +14,35 @@
  * limitations under the License.
  ******************************************************************************/
 
-//
-// Created by Acer on 2024/7/3.
-//
+#ifndef CMAKE_OPEN_SRC_ADVANCED_OPENGL_OPENGLMAINWINDOW_H_
+#define CMAKE_OPEN_SRC_ADVANCED_OPENGL_OPENGLMAINWINDOW_H_
 
-#ifndef CMAKE_OPEN_SRC_STARTED_OPENGL_TEXTURE_OPENGLMAINWINDOW_H_
-#define CMAKE_OPEN_SRC_STARTED_OPENGL_TEXTURE_OPENGLMAINWINDOW_H_
-
-#include "include/Buffers.h"
-#include "include/FilePathSystem.h"
-#include "include/OpenGLWindow.h"
+#include "include/Experimental/OpenGLCameraWindow.h"
 #include "include/Shader.h"
 #include "include/VertexArray.h"
+#include "include/Buffers.h"
+#include "include/ImGui/ImGuiDashboard.h"
 
-class OpenGLMainWindow : public OpenGLWindow {
+class OpenGLMainWindow : public OpenGLCameraWindow {
+ protected:
  public:
-  OpenGLMainWindow(int width, int height, const char* title);
+  OpenGLMainWindow(int width, int height, const char* title,
+                   GLFWmonitor* monitor = nullptr, GLFWwindow* share = nullptr);
 
  protected:
   void InitializeGL() override;
   void ResizeGL(int width, int height) override;
   void PaintGL() override;
-
+  
  private:
-  glm::float64 delta_time_;
-  glm::float64 last_frame_;
-
-  Shader shader_;
-
-  VertexArray vao_;
-
-  Buffers vbo_, ebo_;
-
-  GLuint VAO_, VBO_, EBO_;
-
-  GLuint texture_1, texture_2;
+  Shader* shader_;
+  
+  VertexArray cube_vao_,plane_vao_;
+  Buffers cube_vbo_,plane_vbo_;
+  
+  GLuint cube_texture_,floor_texture_;
+  
+  ImGuiDashboard* imgui_dashboard_;
 };
 
-#endif  //CMAKE_OPEN_SRC_STARTED_OPENGL_TEXTURE_OPENGLMAINWINDOW_H_
+#endif  //CMAKE_OPEN_SRC_ADVANCED_OPENGL_OPENGLMAINWINDOW_H_

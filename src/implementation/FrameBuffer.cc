@@ -16,12 +16,32 @@
 
 #include "include/FrameBuffer.h"
 #include "include/LoggerSystem.h"
-GLuint FrameBuffer::GetTextureColorBuffer() const {
-  return texture_color_buffer_;
+#include "include/OpenGLStateManager.h"
+
+FrameBuffer::FrameBuffer(GLint width, GLint height, GLenum frame_buffer_type,
+                         GLenum texture_color_buffer_type,
+                         GLenum rbo_depth_stencil_type)
+    : window_width_(width),
+      window_height_(height),
+      frame_buffer_(0),
+      texture_color_buffer_(0),
+      rbo_depth_stencil_(0),
+      frame_buffer_type_(frame_buffer_type),
+      texture_color_buffer_type_(texture_color_buffer_type),
+      rbo_depth_stencil_type_(rbo_depth_stencil_type) {
+  Initialize(this->window_width_, this->window_height_);
 }
-FrameBuffer::FrameBuffer(GLint width, GLint height)
-    : frame_buffer_(0), texture_color_buffer_(0), rbo_depth_stencil_(0) {
-  if (glGetString(GL_VERSION) == nullptr) {
+FrameBuffer::~FrameBuffer() {
+  Cleanup();
+}
+void FrameBuffer::BindFrameBuffer() const {
+  glBindFramebuffer(frame_buffer_type_, this->frame_buffer_);
+}
+void FrameBuffer::UnBindFrameBuffer() const {
+  glBindFramebuffer(frame_buffer_type_, 0);
+}
+void FrameBuffer::Initialize(GLint width, GLint height) {
+  if (!OpenGLStateManager::GetInstance().IsEnableOpenGL()) {
     LoggerSystem::GetInstance().Log(
         LoggerSystem::Level::kWarning,
         "OpenGL was not built successfully when building the frame buffer "
@@ -32,46 +52,48 @@ FrameBuffer::FrameBuffer(GLint width, GLint height)
         "object. Please rebuild OpenGL and try again or check the log file for "
         "an OpenGL build error.");
   }
-  Initialize(width, height);
-}
-FrameBuffer::~FrameBuffer() {
-  Cleanup();
-}
-void FrameBuffer::Bind() const {
-  glBindFramebuffer(GL_FRAMEBUFFER, this->frame_buffer_);
-}
-void FrameBuffer::UnBind() const {
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-void FrameBuffer::Initialize(GLint width, GLint height) {
+
+  if (width < 0 || height < 0) {
+    LoggerSystem::GetInstance().Log(
+        LoggerSystem::Level::kWarning,
+        "Do not allow the input screen length or width less than 0, will exit "
+        "the frame buffer system.");
+    throw std::runtime_error(
+        "Do not allow the input screen length or width less than 0, will exit "
+        "the frame buffer system.");
+  }
+
   // Generate frame buffer object
   glGenFramebuffers(1, &frame_buffer_);
-  glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_);
+  glBindFramebuffer(frame_buffer_type_, frame_buffer_);
 
   // Generate color texture buffer
   glGenTextures(1, &texture_color_buffer_);
-  glBindTexture(GL_TEXTURE_2D, texture_color_buffer_);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+  glBindTexture(texture_color_buffer_type_, texture_color_buffer_);
+  glTexImage2D(texture_color_buffer_type_, 0, GL_RGB, width, height, 0, GL_RGB,
                GL_UNSIGNED_BYTE, nullptr);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                         texture_color_buffer_, 0);
+  glTexParameteri(texture_color_buffer_type_, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(texture_color_buffer_type_, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glFramebufferTexture2D(frame_buffer_type_, GL_COLOR_ATTACHMENT0,
+                         texture_color_buffer_type_, texture_color_buffer_, 0);
 
   // Generate depth template render buffer
   glGenRenderbuffers(1, &rbo_depth_stencil_);
-  glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth_stencil_);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
-                            GL_RENDERBUFFER, rbo_depth_stencil_);
+  glBindRenderbuffer(rbo_depth_stencil_type_, rbo_depth_stencil_);
+  glRenderbufferStorage(rbo_depth_stencil_type_, GL_DEPTH24_STENCIL8, width,
+                        height);
+  glFramebufferRenderbuffer(frame_buffer_type_, GL_DEPTH_STENCIL_ATTACHMENT,
+                            rbo_depth_stencil_type_, rbo_depth_stencil_);
 
-  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+  // now that we actually created the framebuffer and added all attachments we
+  // want to check if it is actually complete now
+  if (glCheckFramebufferStatus(frame_buffer_type_) != GL_FRAMEBUFFER_COMPLETE) {
     LoggerSystem::GetInstance().Log(LoggerSystem::Level::kWarning,
                                     "Framebuffer is not complete!");
     throw std::runtime_error("Framebuffer is not complete!");
   }
 
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glBindFramebuffer(frame_buffer_type_, 0);
 }
 void FrameBuffer::Cleanup() {
   glDeleteFramebuffers(1, &frame_buffer_);
@@ -79,9 +101,49 @@ void FrameBuffer::Cleanup() {
   glDeleteRenderbuffers(1, &rbo_depth_stencil_);
 }
 void FrameBuffer::Resize(GLint width, GLint height) {
-  Cleanup();
-  Initialize(width, height);
+  Initialize(this->window_width_, this->window_height_);
 }
-GLuint FrameBuffer::GetFrameBuffer() const {
-  return frame_buffer_;
+GLenum FrameBuffer::GetFrameBufferType() const {
+  return frame_buffer_type_;
+}
+void FrameBuffer::SetFrameBufferType(GLuint frame_buffer_type) {
+  frame_buffer_type_ = frame_buffer_type;
+  ClearColorAndDepthBit();
+  Cleanup();
+  Initialize(this->window_width_, this->window_height_);
+}
+GLenum FrameBuffer::GetTextureColorBufferType() const {
+  return texture_color_buffer_type_;
+}
+void FrameBuffer::SetTextureColorBufferType(GLenum texture_color_buffer_type) {
+  texture_color_buffer_type_ = texture_color_buffer_type;
+}
+GLenum FrameBuffer::GetRboDepthStencilType() const {
+  return rbo_depth_stencil_type_;
+}
+void FrameBuffer::SetRboDepthStencilType(GLenum rbo_depth_stencil_type) {
+  rbo_depth_stencil_type_ = rbo_depth_stencil_type;
+}
+void FrameBuffer::BindTextureColor() const {
+  glBindTexture(texture_color_buffer_type_, texture_color_buffer_);
+}
+void FrameBuffer::UnBindTextureColor() const {
+  glBindTexture(texture_color_buffer_type_, 0);
+}
+void FrameBuffer::ClearColorAndDepthBit() const {
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+void FrameBuffer::Reset(GLint width, GLint height, GLenum frame_buffer_type,
+                        GLenum texture_color_buffer_type,
+                        GLenum depth_stencil_type) {
+  Cleanup();
+  this->window_width_ = width;
+  this->window_height_ = height;
+  this->frame_buffer_type_ = frame_buffer_type;
+  this->texture_color_buffer_type_ = texture_color_buffer_type;
+  this->rbo_depth_stencil_type_ = depth_stencil_type;
+  this->frame_buffer_ = 0;
+  this->texture_color_buffer_ = 0;
+  this->rbo_depth_stencil_ = 0;
+  Initialize(this->window_width_, this->window_height_);
 }

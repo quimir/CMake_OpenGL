@@ -56,10 +56,10 @@ class Buffers {
   GLenum GetType() const;
 
   /**
-   * Sets the type of the buffer.
+   * Re sets the type of the buffer.
    * @param type The new GLenum type for the buffer.
    */
-  void SetType(GLenum type);
+  void ReSetType(GLenum type);
 
   /**
    * Bind the buffer to the OpenGL context. This method must be called before 
@@ -93,12 +93,6 @@ class Buffers {
   void SetData(const std::vector<T>& data, GLenum usage) const;
 
   /**
-   * Checks if the buffer is currently in a bound state.
-   * @return True if the buffer is bound, false otherwise.
-   */
-  bool IsBindingState() const;
-
-  /**
    * Regenerates the buffer with the specified type or the current type if 
    * UINT_MAX is passed.
    * @param type The GLenum type for the new buffer, or UINT_MAX to use the 
@@ -109,8 +103,6 @@ class Buffers {
  private:
   GLuint buffer_id_;  // Buffer object id.
   GLenum type_;       // Buffer types.
-
-  bool binding_state_;  // Flag indicating if the buffer is currently bound.
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_VERTEXBUFFER_H_

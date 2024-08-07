@@ -72,9 +72,6 @@ void SkeletalAnimation::InitializeGL() {
   cube_map_shader_ = new Shader(
       FilePathSystem::GetInstance().GetResourcesPath("glsl/cube_maps.vert"),
       FilePathSystem::GetInstance().GetResourcesPath("glsl/cube_maps.frag"));
-  new Shader(
-      FilePathSystem::GetInstance().GetResourcesPath("glsl/sky_box.vert"),
-      FilePathSystem::GetInstance().GetResourcesPath("glsl/sky_box.frag"));
 
   cube_map_vao_.Bind();
   cube_map_vbo_.Bind();
@@ -85,7 +82,7 @@ void SkeletalAnimation::InitializeGL() {
                           (void*)(3 * sizeof(float)));
   cube_map_vao_.UnBind();
   cube_map_vbo_.UnBind();
-  
+
   for (auto& face : faces) {
     face.insert(
         0, FilePathSystem::GetInstance().GetPath("resources/textures/skybox/"));

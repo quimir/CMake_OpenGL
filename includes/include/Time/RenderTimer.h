@@ -36,6 +36,8 @@ class RenderTimer : public Timer {
   void FrameEnd();
 
   double GetProgramRunTime() const;
+  
+  void Cleanup();
 
  private:
   static std::chrono::time_point<std::chrono::system_clock> program_starts_;

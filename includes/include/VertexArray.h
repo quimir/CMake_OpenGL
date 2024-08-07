@@ -152,9 +152,7 @@ class VertexArray {
   void AddLongBuffer(GLuint index, GLint size, GLenum type, GLsizei stride,
                      const void* pointer) const;
 
-  const GLuint GetVaoId() const;
-
-  bool IsBindingState() const;
+  GLuint GetVaoId() const;
 
  private:
   /**
@@ -162,8 +160,6 @@ class VertexArray {
    * class in OpenGL.
    */
   GLuint vao_id_;
-
-  bool binding_state_;
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_VERTEXARRAY_H_

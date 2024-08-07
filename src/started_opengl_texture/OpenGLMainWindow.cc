@@ -42,7 +42,7 @@ void OpenGLMainWindow::InitializeGL() {
 
   this->vao_.Bind();
   this->vbo_.Bind();
-  this->ebo_.SetType(GL_ELEMENT_ARRAY_BUFFER);
+  this->ebo_.ReSetType(GL_ELEMENT_ARRAY_BUFFER);
   this->ebo_.Bind();
   this->vbo_.SetData(vertices, sizeof(vertices), GL_STATIC_DRAW);
   this->ebo_.SetData(indices, sizeof(indices), GL_STATIC_DRAW);
@@ -51,37 +51,6 @@ void OpenGLMainWindow::InitializeGL() {
                        (void*)(3 * sizeof(float)));
   this->vao_.AddBuffer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
                        (void*)(6 * sizeof(float)));
-  //  glGenVertexArrays(1, &VAO_);
-  //  glGenBuffers(1, &VBO_);
-  //  glGenBuffers(1, &EBO_);
-  //
-  //  glBindVertexArray(VAO_);
-  //
-  //  glBindBuffer(GL_ARRAY_BUFFER, VBO_);
-  //  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-  //
-  //  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_);
-  //  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-  //  // position attribute
-  //  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) 0);
-  //  glEnableVertexAttribArray(0);
-  //  // color attribute
-  //  glVertexAttribPointer(1,
-  //						3,
-  //						GL_FLOAT,
-  //						GL_FALSE,
-  //						8 * sizeof(float),
-  //						(void *) (3 * sizeof(float)));
-  //  glEnableVertexAttribArray(1);
-  //  // texture coord attribute
-  //  glVertexAttribPointer(2,
-  //						2,
-  //						GL_FLOAT,
-  //						GL_FALSE,
-  //						8 * sizeof(float),
-  //						(void *) (6 * sizeof(float)));
-  //  glEnableVertexAttribArray(2);
 
   LoadImage::GetInstance().EnableStbImageFlipYAxis();
 

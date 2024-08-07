@@ -16,8 +16,8 @@
 
 #include <stdexcept>
 #include "include/LoggerSystem.h"
-
 #include "include/Model/Animation.h"
+
 glm::float64 Animation::GetDuration() const {
   return this->duration_;
 }
@@ -46,10 +46,10 @@ void Animation::SetBoneInfoMap(
 void Animation::ReadMissingBones(const aiAnimation* animation, Model* model) {
   auto size = animation->mNumChannels;
 
-  auto bone_info_map =
-      model->GetBoneInfoMap();  //getting m_BoneInfoMap from Model class
-  auto bone_count =
-      model->GetBoneCounter();  //getting the m_BoneCounter from Model class
+  //getting m_BoneInfoMap from Model class
+  auto bone_info_map = model->GetBoneInfoMap();
+  //getting the m_BoneCounter from Model class
+  auto bone_count = model->GetBoneCounter();
 
   //Reading channels(bones engaged in an animation and their keyframes)
   for (int i = 0; i < size; ++i) {
@@ -111,9 +111,9 @@ Animation::Animation(const std::string& animation_path, Model* model) {
   ReadMissingBones(animation, model);
 }
 Bone* Animation::FindBone(const std::string& name) {
-  auto iter =
-      std::find_if(this->bones_.begin(), this->bones_.end(),
-                   [&](const Bone& bone) { return bone.GetBoneName() == name; });
+  auto iter = std::find_if(
+      this->bones_.begin(), this->bones_.end(),
+      [&](const Bone& bone) { return bone.GetBoneName() == name; });
 
   if (iter == this->bones_.end())
     return nullptr;

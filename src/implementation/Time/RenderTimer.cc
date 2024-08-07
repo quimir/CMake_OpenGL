@@ -57,3 +57,7 @@ double RenderTimer::GetProgramRunTime() const {
   auto now_time = TimeUtils::GetInstance().GetCurrentTime();
   return TimeUtils::GetInstance().DeltaTimeToDouble(program_starts_, now_time);
 }
+void RenderTimer::Cleanup() {
+  frame_times_ =
+      std::deque<std::chrono::time_point<std::chrono::high_resolution_clock>>();
+}

@@ -115,20 +115,20 @@ OpenGLMainWindow::OpenGLMainWindow(int width, int height, const char* title)
   glfwSetWindowUserPointer(this->window_, this);
   HideMouse();
 }
-void OpenGLMainWindow::MouseCallback(GLFWwindow* window, GLdouble x_pos,
-                                     GLdouble y_pos) {
+void OpenGLMainWindow::MouseCallback(GLFWwindow* window, double x_pos_in,
+                                     double y_pos_in) {
   if (first_mouse_) {
-    last_x_ = x_pos;
-    last_y_ = y_pos;
+    last_x_ = x_pos_in;
+    last_y_ = y_pos_in;
     first_mouse_ = false;
   }
 
-  auto x_offset = x_pos - last_x_;
+  auto x_offset = x_pos_in - last_x_;
   auto y_offset =
-      last_y_ - y_pos;  // Reversed since y-coordinates go from bottom to top
+      last_y_ - y_pos_in;  // Reversed since y-coordinates go from bottom to top
 
-  last_x_ = x_pos;
-  last_y_ = y_pos;
+  last_x_ = x_pos_in;
+  last_y_ = y_pos_in;
 
   camera_.ProcessMouseMovement(x_offset, y_offset);
 }

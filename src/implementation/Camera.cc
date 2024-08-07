@@ -294,10 +294,7 @@ glm::mat4 Camera::GetProjectionMatrix(const float width,
   return glm::perspective(glm::radians(zoom_), width / height, near_plane_,
                           far_plane_);
 }
-std::string Camera::GlmVec3ToString(glm::vec3 other) const {
-  return "X: " + std::to_string(other.x) + " Y: " + std::to_string(other.y) +
-         " Z: " + std::to_string(other.y);
-}
+
 void Camera::ResetCamera(glm::vec3 position, glm::vec3 world_up,
                          glm::float32 yaw, glm::float32 pitch,
                          glm::float32 near_plane, glm::float32 far_plane) {

@@ -18,21 +18,21 @@
 #define CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLWINDOW_H_
 
 #include "FrameBuffer.h"
-#include "glad/glad.h"
 #include "GLFW/glfw3.h"
+#include "glad/glad.h"
 #include "include/Time/RenderTimer.h"
 #include "include/Widget.h"
 
 /**
  * OpenGL window, which encapsulates some of the most basic methods of 
  * generating OpenGL. It is recommended that all Windows that use OpenGL 
- * build and use OpenGL inherit from this class. If you use GLFW and GLAD, 
- * they automatically build the OpenGL for you and store the address of 
- * the resulting OpenGL window in window_. To use this class, you must 
- * implement void InitializeGL(), void ResizeGL(int width,int height), 
- * and void PaintGL() by calling void first InitializeGL(), Then call void 
- * ResizeGL(int width,int height), and finally loop through void PaintGL(). 
- * See the comments for more details about these three functions. 
+ * inherit from this class. If you use GLFW and GLAD,this automatically build 
+ * the OpenGL for you and store the address of the resulting OpenGL window in 
+ * window_. To use this class, you must implement void InitializeGL(), void 
+ * ResizeGL(int width,int height), and void PaintGL() by calling void first 
+ * InitializeGL(), Then call void ResizeGL(int width,int height), and finally 
+ * loop through void PaintGL(). See the comments for more details about these 
+ * three functions. 
  * 
  * Please note that you must add the following to the subclass 
  * constructor: glfwSetWindowUserPointer(this->window_,this); 
@@ -48,6 +48,18 @@
  * @endcode
  */
 class OpenGLWindow : public Widget {
+ public:
+  enum class OpenGLType { kCore, kES, kCompatibility, kUnknown };
+
+ protected:
+  struct OpenGLVersion {
+    int major;             // Major version number
+    int minor;             // Divided version number
+    OpenGLType type;       // OpenGL types
+    std::string renderer;  // Display card information.
+    std::string vendor;    // Display card manufacturers.
+  };
+
  public:
   /**
    * Initialize OpenGL, build OpenGL successfully if normal and output the 
@@ -153,6 +165,12 @@ class OpenGLWindow : public Widget {
 
   const RenderTimer& GetRenderTimer() const;
 
+  static const OpenGLVersion& GetOpenglVersion();
+
+  void ResetOpenGLWindow(int major, int minor, OpenGLType opengl_type,
+                         int width, int height, const char* title,
+                         GLFWmonitor* monitor, GLFWwindow* share);
+
  protected:
   /**
    * This virtual function is called for the first time after the first call 
@@ -196,13 +214,6 @@ class OpenGLWindow : public Widget {
    */
   virtual void ProcessInput(GLFWwindow* window);
 
-  /**
-   * Render the frame buffer operation, here used as an operation to process 
-   * the frame buffer. If you have a custom frame buffering operation, 
-   * override this function. This fires before PaintGL ().
-   */
-  virtual void RenderToFramebuffer();
-
  private:
   /**
    * Initialize GLFW and throw an exception if an error occurs.
@@ -238,6 +249,15 @@ class OpenGLWindow : public Widget {
 
   static void CursorEnterCallback(GLFWwindow* window, int entered);
 
+  /**
+   * This function queries the native OpenGL information and returns the native 
+   * OpenGL information. The idea is to create a hidden OpenGL window and 
+   * initialize GLFW and GLAD. Bind the context of OpenGL to it. Its OpenGL 
+   * information is extracted by the information extractor.
+   * @return Native OpenGL information.
+   */
+  OpenGLVersion QueryOpenGLVersion();
+
  protected:
   FrameBuffer* frame_buffer_;
   GLFWwindow* window_;
@@ -247,6 +267,8 @@ class OpenGLWindow : public Widget {
  private:
   // Render timer, which keeps track of the time until the render ends.
   RenderTimer render_timer_;
+
+  static OpenGLVersion opengl_version_;
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLWINDOW_H_

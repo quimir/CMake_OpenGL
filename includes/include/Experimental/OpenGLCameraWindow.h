@@ -14,41 +14,31 @@
  * limitations under the License.
  ******************************************************************************/
 
-//
-// Created by Acer on 2024/7/3.
-//
+#ifndef CMAKE_OPEN_INCLUDES_INCLUDE_EXPERIMENTAL_OPENGLCAMERAWINDOW_H_
+#define CMAKE_OPEN_INCLUDES_INCLUDE_EXPERIMENTAL_OPENGLCAMERAWINDOW_H_
 
-#ifndef CMAKE_OPEN_SRC_STARTED_OPENGL_TEXTURE_OPENGLMAINWINDOW_H_
-#define CMAKE_OPEN_SRC_STARTED_OPENGL_TEXTURE_OPENGLMAINWINDOW_H_
-
-#include "include/Buffers.h"
-#include "include/FilePathSystem.h"
+#include "include/Camera.h"
 #include "include/OpenGLWindow.h"
-#include "include/Shader.h"
-#include "include/VertexArray.h"
 
-class OpenGLMainWindow : public OpenGLWindow {
+class OpenGLCameraWindow : public OpenGLWindow {
  public:
-  OpenGLMainWindow(int width, int height, const char* title);
+  OpenGLCameraWindow(int width, int height, const char* title,
+                     GLFWmonitor* monitor, GLFWwindow* share);
+
+  static void MouseCallBack(GLFWwindow* window, double x_pos, double y_pos);
+
+  static void ScrollCallBack(GLFWwindow* window, double x_offset,
+                             double y_offset);
 
  protected:
-  void InitializeGL() override;
-  void ResizeGL(int width, int height) override;
-  void PaintGL() override;
+  void ProcessInput(GLFWwindow* window) override;
 
+ protected:
+  static Camera camera_;
  private:
-  glm::float64 delta_time_;
-  glm::float64 last_frame_;
-
-  Shader shader_;
-
-  VertexArray vao_;
-
-  Buffers vbo_, ebo_;
-
-  GLuint VAO_, VBO_, EBO_;
-
-  GLuint texture_1, texture_2;
+  static bool first_mouse;
+  static float last_x_;
+  static float last_y_;
 };
 
-#endif  //CMAKE_OPEN_SRC_STARTED_OPENGL_TEXTURE_OPENGLMAINWINDOW_H_
+#endif  //CMAKE_OPEN_INCLUDES_INCLUDE_EXPERIMENTAL_OPENGLCAMERAWINDOW_H_

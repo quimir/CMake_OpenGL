@@ -15,7 +15,10 @@
  ******************************************************************************/
 
 #include "include/OpenGLWindow.h"
+#include <regex>
 #include "include/LoggerSystem.h"
+
+OpenGLWindow::OpenGLVersion OpenGLWindow::opengl_version_{};
 
 OpenGLWindow::OpenGLWindow(int width, int height, const char* title,
                            GLFWmonitor* monitor, GLFWwindow* share)
@@ -32,6 +35,7 @@ OpenGLWindow::OpenGLWindow(int width, int height, const char* title,
 OpenGLWindow::~OpenGLWindow() {
   if (this->render_timer_.IsRunning()) {
     this->render_timer_.StopTimer();
+    this->render_timer_.Cleanup();
   }
   delete this->frame_buffer_;
   Cleanup();
@@ -46,22 +50,47 @@ void OpenGLWindow::Run() {
 }
 
 void OpenGLWindow::InitGLFW() {
+  opengl_version_ = QueryOpenGLVersion();
+  LoggerSystem::GetInstance().Log(
+      LoggerSystem::Level::kInfo,
+      "OpenGL Renderer: " + opengl_version_.renderer);
+  LoggerSystem::GetInstance().Log(LoggerSystem::Level::kInfo,
+                                  "OpenGL Vendor: " + opengl_version_.vendor);
+}
+
+void OpenGLWindow::InitWindow(int width, int height, const char* title,
+                              GLFWmonitor* monitor, GLFWwindow* share) {
   if (!glfwInit()) {
     LoggerSystem::GetInstance().Log(LoggerSystem::Level::kError,
                                     "Failed to initialize GLFW");
     throw std::runtime_error("Failed to initialize GLFW");
   }
-}
 
-void OpenGLWindow::InitWindow(int width, int height, const char* title,
-                              GLFWmonitor* monitor, GLFWwindow* share) {
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
+  switch (opengl_version_.type) {
+    case OpenGLType::kCore:
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, opengl_version_.major);
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, opengl_version_.minor);
+      glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #ifdef __APPLE__
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+      glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
+      break;
+    case OpenGLType::kES:
+      glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, opengl_version_.major);
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, opengl_version_.minor);
+      glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+      break;
+    case OpenGLType::kCompatibility:
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, opengl_version_.major);
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, opengl_version_.minor);
+      glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+      break;
+    case OpenGLType::kUnknown:
+      LoggerSystem::GetInstance().Log(LoggerSystem::Level::kError,
+                                      "Unsupported OpenGL version type");
+      throw std::runtime_error("Unsupported OpenGL version type");
+  }
 
   window_ = glfwCreateWindow(width, height, title, monitor, share);
 
@@ -97,10 +126,6 @@ void OpenGLWindow::MainLoop() {
     MakeContextCurrent();
 
     ProcessInput(this->window_);
-
-    this->frame_buffer_->Bind();
-    RenderToFramebuffer();
-    this->frame_buffer_->UnBind();
 
     PaintGL();
 
@@ -150,9 +175,6 @@ void OpenGLWindow::MakeContextCurrent() {
         "Cannot make context current: window is null");
     throw std::runtime_error("Cannot make context current: window is null");
   }
-}
-void OpenGLWindow::RenderToFramebuffer() {
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 void OpenGLWindow::DisplayMouse() {
   glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_CAPTURED);
@@ -205,9 +227,11 @@ void OpenGLWindow::CursorEnterCallback(GLFWwindow* window, int entered) {
     // The cursor left the content area of the window
   }
 }
+
 const RenderTimer& OpenGLWindow::GetRenderTimer() const {
   return render_timer_;
 }
+
 void OpenGLWindow::ResizeGL(int width, int height) {
   glViewport(0, 0, width, height);
   this->frame_buffer_->Resize(width, height);
@@ -216,4 +240,99 @@ void OpenGLWindow::ResizeGL(int width, int height) {
 void OpenGLWindow::InitializeGL() {}
 void OpenGLWindow::PaintGL() {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+OpenGLWindow::OpenGLVersion OpenGLWindow::QueryOpenGLVersion() {
+  if (!glfwInit()) {
+    LoggerSystem::GetInstance().Log(LoggerSystem::Level::kError,
+                                    "Failed to initialize GLFW");
+    throw std::runtime_error("Failed to initialize GLFW");
+  }
+
+  glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+  GLFWwindow* window = glfwCreateWindow(1, 1, "", nullptr, nullptr);
+  if (!window) {
+    LoggerSystem::GetInstance().Log(LoggerSystem::Level::kError,
+                                    "Failed to create hidden GLFW window");
+    glfwTerminate();
+    throw std::runtime_error("Failed to create hidden GLFW window");
+  }
+
+  glfwMakeContextCurrent(window);
+  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    LoggerSystem::GetInstance().Log(LoggerSystem::Level::kError,
+                                    "Failed to initialize GLAD");
+    glfwDestroyWindow(window);
+    glfwTerminate();
+    throw std::runtime_error("Failed to initialize GLAD");
+  }
+
+  const char* versionStr = (const char*)glGetString(GL_VERSION);
+  const char* rendererStr = (const char*)glGetString(GL_RENDERER);
+  const char* vendorStr = (const char*)glGetString(GL_VENDOR);
+
+  if (!versionStr || !rendererStr || !vendorStr) {
+    LoggerSystem::GetInstance().Log(LoggerSystem::Level::kError,
+                                    "Failed to retrieve OpenGL information");
+    glfwDestroyWindow(window);
+    glfwTerminate();
+    throw std::runtime_error("Failed to retrieve OpenGL information");
+  }
+
+  int major = 0, minor = 0;
+  OpenGLType type = OpenGLType::kUnknown;
+  std::string versionString(versionStr);
+
+  /**
+   * Extract information from OpenGL.
+   */
+  if (versionString.find("OpenGL ES") != std::string::npos) {
+    type = OpenGLType::kES;
+    std::size_t start = versionString.find("OpenGL ES") + 9;
+    char* endPtr;
+    major = strtol(versionString.c_str() + start, &endPtr, 10);
+    if (*endPtr == '.') {
+      minor = strtol(endPtr + 1, &endPtr, 10);
+    }
+  } else {
+    char* endPtr;
+    major = strtol(versionStr, &endPtr, 10);
+    if (*endPtr == '.') {
+      minor = strtol(endPtr + 1, &endPtr, 10);
+      if (versionString.find("Compatibility Profile") != std::string::npos) {
+        type = OpenGLType::kCompatibility;
+      } else {
+        type = OpenGLType::kCore;
+      }
+    }
+  }
+
+  if (major == 0 && minor == 0) {
+    LoggerSystem::GetInstance().Log(LoggerSystem::Level::kError,
+                                    "Failed to parse OpenGL version");
+    glfwDestroyWindow(window);
+    glfwTerminate();
+    throw std::runtime_error("Failed to parse OpenGL version");
+  }
+
+  glfwDestroyWindow(window);
+  glfwTerminate();
+
+  return {major, minor, type, rendererStr, vendorStr};
+}
+const OpenGLWindow::OpenGLVersion& OpenGLWindow::GetOpenglVersion() {
+  return opengl_version_;
+}
+void OpenGLWindow::ResetOpenGLWindow(int major, int minor,
+                                     OpenGLType opengl_type, int width,
+                                     int height, const char* title,
+                                     GLFWmonitor* monitor, GLFWwindow* share) {
+  Cleanup();
+  ResizeWidget(width, height);
+  opengl_version_ =
+      OpenGLVersion{major, minor, opengl_type, opengl_version_.renderer,
+                    opengl_version_.vendor};
+  InitWindow(width, height, title, monitor, share);
+  InitGLAD();
+  frame_buffer_ = new FrameBuffer(width, height);
 }

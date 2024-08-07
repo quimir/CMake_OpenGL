@@ -135,7 +135,9 @@ void OpenGLMainWindow::PaintGL() {
   imgui_dashboard_->SetRenderTimer(this->GetRenderTimer());
   imgui_dashboard_->BeginFrame();
   static bool show_dashboard = false;
-  imgui_dashboard_->ShowToolsPanel(show_dashboard, clear_color, camera_);
+  static GLenum depth_mode=GL_ALWAYS;
+  imgui_dashboard_->ShowToolsPanel(show_dashboard, clear_color, camera_,
+                                   depth_mode, <#initializer #>);
   //imgui_dashboard_->Render();
   imgui_dashboard_->EndFrame();
 }

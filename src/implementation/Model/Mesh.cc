@@ -131,30 +131,19 @@ void Mesh::Draw(Shader& shader) {
 
   // Draw mesh
   this->vao_.Bind();
-  //  glBindVertexArray(this->vao_);
   glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices_.size()),
-                 GL_UNSIGNED_INT, 0);
+                 GL_UNSIGNED_INT, nullptr);
   this->vao_.UnBind();
-  //  glBindVertexArray(0);
 
   // Always good practice to set everything back to defaults once configured.
   glActiveTexture(GL_TEXTURE0);
   shader.UnUse();
 }
+
 const VertexArray& Mesh::GetVao() const {
   return vao_;
 }
-Mesh::~Mesh() {
-  if (this->vao_.IsBindingState()) {
-    this->vao_.UnBind();
-  }
-  if (this->vbo_.IsBindingState()) {
-    this->vbo_.UnBind();
-  }
-  if (this->ebo_.IsBindingState()) {
-    this->ebo_.UnBind();
-  }
-}
+
 Mesh::Mesh(Mesh&& other) noexcept
     : vertices_(std::move(other.vertices_)),
       indices_(std::move(other.indices_)),

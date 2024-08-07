@@ -42,8 +42,11 @@ struct Vertex {
 };
 
 struct Texture {
+  // Texture ID in OpenGL
   glm::uint32 id;
+  // Texture type
   std::string type;
+  // Texture path
   std::string path;
 };
 }  // namespace meshdata

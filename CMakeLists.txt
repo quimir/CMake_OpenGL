@@ -98,7 +98,9 @@ set(CHAPTERS
 	started_opengl
 	model_loading
 	started_opengl_texture
-	skeletal_animation)
+	skeletal_animation
+	frame_buffers
+	advanced_OpenGL)
 
 function(create_project_from_sources chapter)
   # Please do not delete this paragraph, because this is adding the files in the project folder to the project.

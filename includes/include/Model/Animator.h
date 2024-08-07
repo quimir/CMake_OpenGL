@@ -91,17 +91,21 @@ class Animator {
   void SetupAnimator(Animation* animation);
 
  private:
-  std::vector<glm::mat4> final_bone_matrices_;  // The final bone matrices
-                                                // calculated by the animator.
-  Animation*
-      current_animation_;      // The current Animation object being animated.
-  glm::float64 current_time_;  // The current time in the animation.
-  glm::float64 delta_time_;    // The delta time since the last update.
+  // The final bone matrices calculated by the animator.
+  std::vector<glm::mat4> final_bone_matrices_;
 
-  std::recursive_mutex bone_matrices_mutex_;  // A recursive lock that prevents
-                                              // data from being accessed
-                                              // simultaneously in multiple
-                                              // threads.
+  // The current Animation object being animated.
+  Animation* current_animation_;
+  // The current time in the animation.
+  glm::float64 current_time_;
+  // The delta time since the last update.
+  glm::float64 delta_time_;
+
+  /**
+   * A recursive lock that prevents data from being accessed simultaneously in 
+   * multiple threads.
+   */
+  std::recursive_mutex bone_matrices_mutex_;
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_ANIMATOR_H_

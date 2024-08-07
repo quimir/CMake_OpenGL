@@ -36,7 +36,8 @@ class OpenGLMainWindow : public OpenGLWindow {
   void ProcessInput(GLFWwindow* window) override;
 
  private:
-  static void MouseCallback(GLFWwindow* window, GLdouble x_pos, GLdouble y_pos);
+  static void MouseCallback(GLFWwindow* window, double x_pos_in,
+                            double y_pos_in);
 
   static void ScrollCallback(GLFWwindow* glfw_window, GLdouble x_offset,
                              GLdouble y_offset);

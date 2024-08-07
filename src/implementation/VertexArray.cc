@@ -16,13 +16,15 @@
 
 #include "include/VertexArray.h"
 #include "include/LoggerSystem.h"
-VertexArray::VertexArray() : vao_id_(0), binding_state_(false) {
-  if (glGetString(GL_VERSION) == nullptr) {
+#include "include/OpenGLStateManager.h"
+
+VertexArray::VertexArray() : vao_id_(0) {
+  if (!OpenGLStateManager::GetInstance().IsEnableOpenGL()) {
     LoggerSystem::GetInstance().Log(
-        LoggerSystem::Level::kWarning,
-        "OpenGL was not initialized while building the VertexArray.");
-    std::runtime_error(
-        "OpenGL was not initialized while building the VertexArray.");
+        LoggerSystem::Level::kError,
+        "Serious error! Initialize OpenGL before building shaders!");
+    throw std::runtime_error(
+        "Serious error! Initialize OpenGL before building shaders!");
   }
   glGenVertexArrays(1, &vao_id_);
 }
@@ -33,16 +35,10 @@ VertexArray::~VertexArray() {
   glDeleteVertexArrays(1, &vao_id_);
 }
 void VertexArray::Bind() {
-  if (!binding_state_) {
     glBindVertexArray(vao_id_);
-    binding_state_ = true;
-  }
 }
 void VertexArray::UnBind() {
-  if (binding_state_) {
     glBindVertexArray(0);
-    binding_state_ = false;
-  }
 }
 void VertexArray::AddBuffer(GLuint index, GLint size, GLenum type,
                             GLboolean normalized, GLsizei stride,
@@ -61,16 +57,12 @@ void VertexArray::ReGenVertexArrays() {
     glDeleteVertexArrays(1, &vao_id_);
   }
   glGenVertexArrays(1, &vao_id_);
-  binding_state_ = false;
 }
-const GLuint VertexArray::GetVaoId() const {
+GLuint VertexArray::GetVaoId() const {
   return vao_id_;
 }
 void VertexArray::AddLongBuffer(GLuint index, GLint size, GLenum type,
                                 GLsizei stride, const void* pointer) const {
   glVertexAttribLPointer(index, size, type, stride, pointer);
   glEnableVertexAttribArray(index);
-}
-bool VertexArray::IsBindingState() const {
-  return binding_state_;
 }

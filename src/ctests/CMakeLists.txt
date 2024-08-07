@@ -11,16 +11,16 @@ else ()
   FetchContent_MakeAvailable(googletest)
   # Ensure googletest is correctly set up
   FetchContent_GetProperties(googletest)
-  if(NOT googletest_POPULATED)
+  if (NOT googletest_POPULATED)
 	FetchContent_Populate(googletest)
 	add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
-  endif()
+  endif ()
 endif ()
 
 # Get all .cpp files in the current directory
 file(GLOB TEST_SOURCES "*.cpp")
 
-foreach(TEST_SOURCE ${TEST_SOURCES})
+foreach (TEST_SOURCE ${TEST_SOURCES})
   # Get the name of the test without the directory and extension
   get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)
 
@@ -33,11 +33,11 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
 
   # Add the test executable
   add_executable(${TEST_NAME} ${TEST_SOURCE} ${SOURCE_FILES})
-  target_link_libraries(${TEST_NAME} gtest gtest_main ${LIBS})
+  target_link_libraries(${TEST_NAME} gtest gtest_main gmock gmock_main ${LIBS})
 
   # Add the test
   add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
 
   # Set the working directory for the test
   set_tests_properties(${TEST_NAME} PROPERTIES WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test_data")
-endforeach()
+endforeach ()

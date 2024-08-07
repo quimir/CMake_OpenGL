@@ -37,13 +37,19 @@
  */
 class Animation {
  public:
-  // Structure to hold data about an Assimp node used in the animation
-  // hierarchy.
+  /**
+   * Structure to hold data about an Assimp node used in the animation 
+   * hierarchy.
+   */
   struct AssimpNodeData {
-    glm::mat4 transformation;    // The transformation matrix of the node.
-    std::string name;            // The name of the node.
-    glm::uint32 children_count;  // The number of children the node has.
-    std::vector<AssimpNodeData> children;  // A vector of child node data.
+    // The transformation matrix of the node.
+    glm::mat4 transformation;
+    // The name of the node.
+    std::string name;
+    // The number of children the node has.
+    glm::uint32 children_count;
+    // A vector of child node data.
+    std::vector<AssimpNodeData> children;
   };
 
   /**
@@ -149,11 +155,16 @@ class Animation {
   void ReadHierarchyData(AssimpNodeData& dest, const aiNode* src);
 
  private:
-  glm::float64 duration_{};  // The duration of the animation in seconds.
-  glm::float64 ticks_per_second_{};  //The ticks per second of the animation.
-  std::vector<Bone> bones_;          // The bones in the animation.
-  AssimpNodeData root_node_;  // The root node data of the animation hierarchy.
-  std::map<std::string, BoneInfo> bone_info_map_;  // The bone information map.
+  // The duration of the animation in seconds.
+  glm::float64 duration_ = 0.0;
+  //The ticks per second of the animation.
+  glm::float64 ticks_per_second_=0.0;
+  // The bones in the animation.
+  std::vector<Bone> bones_;
+  // The root node data of the animation hierarchy.
+  AssimpNodeData root_node_;
+  // The bone information map.
+  std::map<std::string, BoneInfo> bone_info_map_;
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_ANIMATION_H_

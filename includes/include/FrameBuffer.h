@@ -27,44 +27,66 @@
  * memory is reclaimed via destructors.
  * 
  * Use reference:
+ * @code
  * FrameBuffer frame_buffer(800,600);
- * frame_buffer.Bind();
+ * frame_buffer.BindFrameBuffer();
  * 
  * //Build your frame buffer operations here.
  * 
  * frame_buffer.UnBind();
+ * @endcode
  */
 class FrameBuffer {
  public:
-  FrameBuffer(GLint width, GLint height);
-  
+  FrameBuffer(GLint width, GLint height,
+              GLenum frame_buffer_type = GL_FRAMEBUFFER,
+              GLenum texture_color_buffer_type = GL_TEXTURE_2D,
+              GLenum rbo_depth_stencil_type = GL_RENDERBUFFER);
+
   ~FrameBuffer();
-  
-  FrameBuffer(const FrameBuffer& frame_buffer)=delete;
-  
-  FrameBuffer& operator=(const FrameBuffer& frame_buffer)=delete;
-  
+
+  FrameBuffer(const FrameBuffer& frame_buffer) = delete;
+
+  FrameBuffer& operator=(const FrameBuffer& frame_buffer) = delete;
+
   /**
-   * Bind the frame buffer object so that subsequent operations can be 
+   * BindFrameBuffer the frame buffer object so that subsequent operations can be 
    * performed against it.
    */
-  void Bind()const;
-  
+  void BindFrameBuffer() const;
+
   /**
    * Unbind the currently bound frame buffer object.
    */
-  void UnBind()const;
-  
-  GLuint GetTextureColorBuffer() const;
-  
-  GLuint GetFrameBuffer() const;
-  
+  void UnBindFrameBuffer() const;
+
+  void BindTextureColor() const;
+
+  void UnBindTextureColor() const;
+
+  void ClearColorAndDepthBit() const;
+
+  void Resize(GLint width, GLint height);
+
+  GLenum GetFrameBufferType() const;
+
+  void Reset(GLint width, GLint height, GLenum frame_buffer_type,
+             GLenum texture_color_buffer_type, GLenum depth_stencil_type);
+
   /**
-   * Resize the frame buffer object and reinitialize it.
-   * @param width New frame buffer width.
-   * @param height New frame buffer height.
+   * Reset the Framebuffer target type.
+   * @param frame_buffer_type must be either GL_DRAW_FRAMEBUFFER, 
+   * GL_READ_FRAMEBUFFER or GL_FRAMEBUFFER.
    */
-  void Resize(GLint width,GLint height);
+  void SetFrameBufferType(GLenum frame_buffer_type);
+
+  GLenum GetTextureColorBufferType() const;
+
+  void SetTextureColorBufferType(GLenum texture_color_buffer_type);
+
+  GLenum GetRboDepthStencilType() const;
+
+  void SetRboDepthStencilType(GLenum rbo_depth_stencil_type);
 
  private:
   /**
@@ -74,13 +96,17 @@ class FrameBuffer {
    * @param height Height of the frame buffer.
    */
   void Initialize(GLint width, GLint height);
-  
+
   void Cleanup();
-  
+
  private:
-  GLuint frame_buffer_; // Frame buffer object ID.
-  GLuint texture_color_buffer_;// Color texture buffer ID.
-  GLuint rbo_depth_stencil_;// Depth templates render buffer ids.
+  GLint window_width_, window_height_;
+  GLuint frame_buffer_;          // Frame buffer object ID.
+  GLenum frame_buffer_type_;     // Framebuffer target type.
+  GLuint texture_color_buffer_;  // Color texture buffer ID.
+  GLenum texture_color_buffer_type_;
+  GLuint rbo_depth_stencil_;  // Depth templates render buffer ids.
+  GLenum rbo_depth_stencil_type_;
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_FRAMEBUFFER_H_

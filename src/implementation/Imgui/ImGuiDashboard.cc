@@ -15,6 +15,7 @@
  ******************************************************************************/
 
 #include "include/Imgui/ImGuiDashboard.h"
+#include <unordered_map>
 #include "glm/glm.hpp"
 #include "include/Time/RenderTimer.h"
 
@@ -90,15 +91,19 @@ void ImGuiDashboard::SetRenderTimer(const RenderTimer& render_timer) {
   render_timer_ = render_timer;
 }
 void ImGuiDashboard::ShowToolsPanel(bool& show_dashboard, glm::vec4& clear_col,
-                                    Camera& camera) {
+                                    Camera& camera, GLenum& current_depth_func,
+                                    bool& shader_far) {
   ImGui::Begin("OpenGL Control Panel");
   if (ImGui::CollapsingHeader("Informations")) {
     ImGui::Text("IsAnyItemActive : %s",
                 ImGui::IsAnyItemActive() ? "true" : "false");
     ImGui::Checkbox("ShowDashBoard", &show_dashboard);
   }
+
   if (ImGui::CollapsingHeader("Draw State")) {
     ImGui::ColorEdit4("ClearColor", &clear_col.x, ImGuiColorEditFlags_None);
+    current_depth_func = ShowDepthTextMode(current_depth_func);
+    ImGui::Checkbox("Shader far", &shader_far);
   }
   if (ImGui::CollapsingHeader("Camera")) {
     if (ImGui::Button("Reset")) {
@@ -143,4 +148,34 @@ void ImGuiDashboard::ShowToolsPanel(bool& show_dashboard, glm::vec4& clear_col,
   if (show_dashboard) {
     ShowDashboardWin(&show_dashboard);
   }
+}
+GLenum ImGuiDashboard::ShowDepthTextMode(GLenum current_depth_func) {
+  static std::unordered_map<GLenum, int> depth_func_map = {
+      {GL_NEVER, 0},   {GL_LESS, 1},     {GL_EQUAL, 2},  {GL_LEQUAL, 3},
+      {GL_GREATER, 4}, {GL_NOTEQUAL, 5}, {GL_GEQUAL, 6}, {GL_ALWAYS, 7}};
+
+  static GLenum depth_funcs[] = {GL_NEVER,   GL_LESS,     GL_EQUAL,  GL_LEQUAL,
+                                 GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS};
+
+  static const char* depth_func_items[] = {
+      "GL_NEVER",   "GL_LESS",     "GL_EQUAL",  "GL_LEQUAL",
+      "GL_GREATER", "GL_NOTEQUAL", "GL_GEQUAL", "GL_ALWAYS"};
+
+  int current_item = depth_func_map[current_depth_func];
+
+  if (ImGui::BeginCombo("Depth Func", depth_func_items[current_item])) {
+    for (int i = 0; i < IM_ARRAYSIZE(depth_func_items); i++) {
+      bool is_selected = (current_item == i);
+      if (ImGui::Selectable(depth_func_items[i], is_selected)) {
+        current_item = i;
+        current_depth_func = depth_funcs[i];
+      }
+      if (is_selected) {
+        ImGui::SetItemDefaultFocus();
+      }
+    }
+    ImGui::EndCombo();
+  }
+
+  return current_depth_func;
 }

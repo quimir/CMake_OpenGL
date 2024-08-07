@@ -223,18 +223,6 @@ class Camera {
                    glm::float32 pitch, glm::float32 near_plane,
                    glm::float32 far_plane);
 
-  /**
-   * Convert glm::vec3 to a string.
-   * This method returns a formatted string containing the values of the X, Y, 
-   * and Z components of the glm::vec3 object. Returns a string of the format: 
-   * "X: [x-value] Y: [y-value] Z: [z-value]", where [x-value], [y-value], 
-   * and [z-value] Comma-separated values for the X, Y, and Z components of 
-   * the glm::vec3 object.
-   * @param other glm::vec3 object to transform.
-   * @return Transformed string representation.
-   */
-  std::string GlmVec3ToString(glm::vec3 other) const;
-
  private:
   // Camera attributes
   glm::vec3 position_;

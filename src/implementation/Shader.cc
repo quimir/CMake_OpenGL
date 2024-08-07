@@ -16,10 +16,9 @@
 
 #include "include/Shader.h"
 #include "include/LoggerSystem.h"
+#include "include/OpenGLStateManager.h"
 
 using namespace std;
-
-constexpr GLuint kInfoLogLength = 1024;
 
 std::mutex Shader::gl_mutex_;
 
@@ -29,30 +28,33 @@ void Shader::CheckCompileErrors(GLuint shader,
                                 Shader::ShaderErrorType error_type) {
   std::lock_guard<std::mutex> lock(gl_mutex_);
   GLint success;
-  char* info_log = nullptr;
+
   if (error_type != ShaderErrorType::kProgram) {
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
-      info_log = new char[kInfoLogLength];
-      glGetShaderInfoLog(shader, kInfoLogLength, nullptr, info_log);
+      // Create a buffer of appropriate size
+      GLint log_length = 0;
+      glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_length);
+      std::vector<char> info_log(log_length);
+      glGetShaderInfoLog(shader, log_length, nullptr, info_log.data());
       LoggerSystem::GetInstance().Log(
           LoggerSystem::Level::kError,
-          string("ERROR::SHADER_COMPILATION_ERROR of type: ") +
+          "ERROR::SHADER_COMPILATION_ERROR of type: " +
               ShaderErrorTypeToString(error_type) +
-              string(" cause of error: ") + info_log);
-      delete info_log;
+              " cause of error: " + std::string(info_log.data()));
     }
   } else {
     glGetProgramiv(shader, GL_LINK_STATUS, &success);
     if (!success) {
-      info_log = new char[kInfoLogLength];
-      glGetProgramInfoLog(shader, 1024, nullptr, info_log);
+      GLint log_length = 0;
+      glGetProgramiv(shader, GL_INFO_LOG_LENGTH, &log_length);
+      std::vector<char> info_log(log_length);
+      glGetProgramInfoLog(shader, log_length, nullptr, info_log.data());
       LoggerSystem::GetInstance().Log(
           LoggerSystem::Level::kError,
-          string("ERROR::PROGRAM_LINKING_ERROR of type: ") +
+          "ERROR::PROGRAM_LINKING_ERROR of type: " +
               ShaderErrorTypeToString(error_type) +
-              string(" cause of error: ") + info_log);
-      delete info_log;
+              " cause of error: " + std::string(info_log.data()));
     }
   }
 }
@@ -64,7 +66,7 @@ GLuint Shader::GetID() const {
 Shader::Shader(const char* vertex_path, const char* fragment_path,
                const char* geometry_path, const char* tess_control_path,
                const char* tess_evaluation_path, const char* compute_path)
-    : id_(0), use_state_(false) {
+    : id_(0) {
   string vertex_path_string(vertex_path);
   string fragment_path_string(fragment_path);
   string geometry_path_string;
@@ -93,17 +95,14 @@ Shader::Shader(const std::string& vertex_path, const std::string& fragment_path,
                const std::string& tess_control_path,
                const std::string& tess_evaluation_path,
                const std::string& compute_path)
-    : id_(0), use_state_(false) {
+    : id_(0) {
   Initialized(vertex_path, fragment_path, geometry_path, tess_control_path,
               tess_evaluation_path, compute_path);
 }
 
-void Shader::Use() {
-  if (!this->use_state_) {
-    std::lock_guard<std::mutex> lock(gl_mutex_);
-    glUseProgram(this->id_);
-    use_state_ = true;
-  }
+void Shader::Use() const {
+  std::lock_guard<std::mutex> lock(gl_mutex_);
+  glUseProgram(this->id_);
 }
 
 void Shader::SetBool(const string& name, bool value) {
@@ -141,9 +140,7 @@ std::string Shader::ShaderErrorTypeToString(Shader::ShaderErrorType type) {
 
 GLint Shader::CheckUniformExists(const std::string& uniform_name) {
   if (use_check_) {
-    if (!this->use_state_) {
-      Use();
-    }
+    Use();
   }
   if (uniform_warnings_.find(uniform_name) != uniform_warnings_.end()) {
     return -1;
@@ -162,9 +159,7 @@ GLint Shader::CheckUniformExists(const std::string& uniform_name) {
 }
 GLuint Shader::CheckUniformBlockExists(const string& block_name) {
   if (use_check_) {
-    if (!this->use_state_) {
-      Use();
-    }
+    Use();
   }
   if (uniform_block_warnings_.find(block_name) !=
       uniform_block_warnings_.end()) {
@@ -211,16 +206,10 @@ void Shader::SetMat4(const string& name, const glm::mat4& mat4) {
   glUniformMatrix4fv(CheckUniformExists(name), 1, GL_FALSE, &mat4[0][0]);
 }
 void Shader::UnUse() {
-  if (this->use_state_) {
-    glUseProgram(0);
-    this->use_state_ = false;
-  }
+  glUseProgram(0);
 }
 Shader::~Shader() {
-  if (this->use_state_) {
-    UnUse();
-  }
-  glDeleteShader(this->id_);
+  Cleanup();
 }
 void Shader::CheckOpenGLVersion(int major_number, int minor_number) const {
   int major, minor;
@@ -282,7 +271,7 @@ void Shader::Initialized(const string& vertex_path, const string& fragment_path,
                          const string& tess_control_path,
                          const string& tess_evaluation_path,
                          const string& compute_path) {
-  if (glGetString(GL_VERSION) == nullptr) {
+  if (!OpenGLStateManager::GetInstance().IsEnableOpenGL()) {
     LoggerSystem::GetInstance().Log(
         LoggerSystem::Level::kError,
         "Serious error! Initialize OpenGL before building shaders!");
@@ -484,26 +473,10 @@ void Shader::ResetShader(const string& vertex_path, const string& fragment_path,
                          const string& tess_control_path,
                          const string& tess_evaluation_path,
                          const string& compute_path) {
-  if (glGetString(GL_VERSION) == nullptr) {
-    LoggerSystem::GetInstance().Log(
-        LoggerSystem::Level::kError,
-        "Serious error! Initialize OpenGL before reset shaders!");
-    throw std::runtime_error(
-        "Serious error! Initialize OpenGL before reset shaders!");
-  }
-
-  if (id_ != 0) {
-    glDeleteShader(this->id_);
-    this->id_ = 0;
-  }
+  Cleanup();
 
   Initialized(vertex_path, fragment_path, geometry_path, tess_control_path,
               tess_evaluation_path, compute_path);
-  this->use_state_ = false;
-}
-
-bool Shader::IsUseState() const {
-  return use_state_;
 }
 
 void Shader::EnableUseCheck() {
@@ -514,4 +487,10 @@ void Shader::EnableUseCheck() {
 void Shader::DisEnableUseCheck() {
   if (use_check_)
     use_check_ = false;
+}
+void Shader::Cleanup() {
+  if (id_ != 0) {
+    glDeleteShader(this->id_);
+    this->id_ = 0;
+  }
 }

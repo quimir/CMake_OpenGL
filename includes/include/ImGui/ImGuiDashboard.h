@@ -33,7 +33,10 @@ class ImGuiDashboard : public ImGuiWidget {
   void SetRenderTimer(const RenderTimer& render_timer);
 
   void ShowToolsPanel(bool& show_dashboard, glm::vec4& clear_col,
-                      Camera& camera);
+                      Camera& camera, GLenum& current_depth_func,
+                      bool& shader_far);
+
+  GLenum ShowDepthTextMode(GLenum current_depth_func);
 
  private:
   RenderTimer render_timer_;

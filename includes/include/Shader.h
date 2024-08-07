@@ -63,7 +63,7 @@ class Shader {
    * Start the shader. Note that any function that wants to use a shader must
    * use it first, otherwise no other function will work.
    */
-  void Use();
+  void Use() const;
 
   /**
    * Remove shaders from use by using Use() first.
@@ -396,6 +396,20 @@ class Shader {
 
   Shader& operator=(const Shader& other) = delete;
 
+  /**
+   * Reset an OpenGL shader.
+   * @param vertex_path Path to vertex shader path. Required because each shader 
+   * must have a gl_Position.
+   * @param fragment_path Fragment shader path, required.
+   * @param geometry_path Geometry shader path, where fillable items are 
+   * integrated into the shader if filled in.
+   * @param tess_control_path Tess control shader path, where fillable items are 
+   * integrated into the shader if filled in.
+   * @param tess_evaluation_path Tess evaluation shader path, where fillable 
+   * items are integrated into the shader if filled in.
+   * @param compute_path Compute shader path, where fillable items are 
+   * integrated into the shader if filled in.
+   */
   void ResetShader(const std::string& vertex_path,
                    const std::string& fragment_path,
                    const std::string& geometry_path = std::string(),
@@ -403,11 +417,20 @@ class Shader {
                    const std::string& tess_evaluation_path = std::string(),
                    const std::string& compute_path = std::string());
 
-  bool IsUseState() const;
-  
+  /**
+   * Option to detect if this shader is already active in OpenGL, if so, 
+   * it will not be reactivated when used, otherwise the shader will be 
+   * reactivated.
+   */
   static void EnableUseCheck();
-  
+
+  /**
+   * Turns off the option to check whether this shader is already active in 
+   * OpenGL.
+   */
   static void DisEnableUseCheck();
+  
+  void Cleanup();
 
  private:
   /**
@@ -483,11 +506,9 @@ class Shader {
   // Record the wrong name for the Uniform block.
   std::unordered_set<std::string> uniform_block_warnings_;
 
-  bool use_state_;
-
   // Asynchronous lock
   static std::mutex gl_mutex_;
-  
+
   static bool use_check_;
 };
 

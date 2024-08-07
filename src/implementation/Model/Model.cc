@@ -22,7 +22,7 @@
 
 using namespace std;
 
-Model::Model(std::string path, bool gamma)
+Model::Model(const std::string& path, bool gamma)
     : gamma_correction_(gamma), bone_counter_(0) {
   LoadModel(path);
 }
@@ -46,7 +46,8 @@ void Model::LoadModel(const std::string& path) {
     LoggerSystem::GetInstance().Log(
         LoggerSystem::Level::kWarning,
         std::string("ERROR::ASSIMP:: ") + importer.GetErrorString());
-    return;
+    throw std::runtime_error(std::string("ERROR::ASSIMP:: ") +
+                             importer.GetErrorString());
   }
 
   directory_ = path.substr(0, path.find_last_of('/'));
@@ -65,8 +66,10 @@ void Model::ProcessNode(aiNode* node, const aiScene* scene) {
     aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
     meshes_.push_back(ProcessMesh(mesh, scene));
   }
-  // After we've processed all the meshes (if any) we then recursively process each of
-  // the children nodes
+  /**
+   * After we've processed all the meshes (if any) we then recursively process 
+   * each of the children nodes
+   */
   for (unsigned int i = 0; i < node->mNumChildren; ++i) {
     ProcessNode(node->mChildren[i], scene);
   }
@@ -83,42 +86,41 @@ Mesh* Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
   // Walk through each of the mesh's vertices
   for (unsigned int i = 0; i < mesh->mNumVertices; ++i) {
     meshdata::Vertex vertex{};
-    // We declare a placeholder vector since assimp uses its own vector
-    // class that doesn't directly convert to glm's vec3 class, so we transfer the data
-    // to this placeholder glm::vec3 first.
+    /**
+     * We declare a placeholder vector since assimp uses its own vector class 
+     * that doesn't directly convert to glm's vec3 class, so we transfer the 
+     * data to this placeholder glm::vec3 first.
+     */
 
-    /*
-	   * Positions 
-	   */
+    // Positions
     vertex.position =
         AssimpGLMHelpers::GetInstance().Assimp3DToGLMVec3(mesh->mVertices[i]);
-    /*
-	   * Normals
-	   */
+
+    // Normals
     if (mesh->HasNormals()) {
       vertex.normal =
           AssimpGLMHelpers::GetInstance().Assimp3DToGLMVec3(mesh->mNormals[i]);
     } else {
       vertex.normal = glm::vec3(0.0f, 0.0f, 0.0f);
     }
-    /*
-	 * Texture coordinates 
-	 */
+
+    // Texture coordinates
     if (mesh->mTextureCoords[0])  // Does the mesh contain texture coordinates?
     {
-      // A vertex can contain up to 8 different texture coordinates. We thus make the
-      // assumption that we won't.use models where a vertex can have multiple texture
-      // coordinates, so we always take the first set (0).
+      /**
+       * A vertex can contain up to 8 different texture coordinates. We thus 
+       * make the assumption that we won't.use models where a vertex can have
+       * multiple texture coordinates, so we always take the first set (0).
+       */
+
       vertex.tex_coords =
           glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
-      /**
-       * Tangent
-       */
+
+      // Tangent
       vertex.tangent =
           AssimpGLMHelpers::GetInstance().Assimp3DToGLMVec3(mesh->mTangents[i]);
-      /*
-          * Bitangent
-          */
+
+      // Bitangent
       vertex.bitangent = AssimpGLMHelpers::GetInstance().Assimp3DToGLMVec3(
           mesh->mBitangents[i]);
     } else {
@@ -132,8 +134,11 @@ Mesh* Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
     }
     vertices.push_back(vertex);
   }
-  // Now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve
-  // the corresponding vertex indices.
+
+  /**
+   * Now wak through each of the mesh's faces (a face is a mesh its triangle) 
+   * and retrieve the corresponding vertex indices.
+   */
   for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
     aiFace face = mesh->mFaces[i];
     // Retrieve all indices of the face and store them in the indices vector
@@ -144,13 +149,14 @@ Mesh* Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
   // Process materials
   aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
   /*
-   * we assume a convention for sampler names in the shaders. Each diffuse texture should 
-   * be named as 'texture_diffuseN' where N is a sequential number ranging from 1 to 
-   * MAX_SAMPLER_NUMBER.Same applies to other texture as the following list summarizes:
+   * we assume a convention for sampler names in the shaders. Each diffuse 
+   * texture should be named as 'texture_diffuseN' where N is a sequential 
+   * number ranging from 1 to MAX_SAMPLER_NUMBER.Same applies to other texture 
+   * as the following list summarizes:
    * diffuse: texture_diffuseN,
    * specular: texture_specularN,
-   * normal: texture_normalN 
-   * height: texture_height
+   * normal: texture_normalN,
+   * height: texture_heightN
    */
 
   // Diffuse maps
@@ -200,7 +206,6 @@ std::vector<meshdata::Texture> Model::LoadMaterialTexture(
 	   * If texture hasn't been loaded already, load it
 	   */
       meshdata::Texture texture;
-      //      auto file_path = std::string(directory_ + "/" + str.C_Str());
       auto file_path = FilePathSystem::GetInstance().SplicePath(
           "%s/%s", directory_.c_str(), str.C_Str());
 
@@ -217,9 +222,11 @@ std::vector<meshdata::Texture> Model::LoadMaterialTexture(
       texture.type = type_name;
       texture.path = str.C_Str();
       textures.push_back(texture);
-      texture_loaded_.push_back(
-          texture);  // Store it as texture loaded for entire model,
-      // to ensure we won't unnecessarily load duplicate textures.
+      /**
+       * Store it as texture loaded for entire model,to ensure we won't 
+       * unnecessarily load duplicate textures.
+       */
+      texture_loaded_.push_back(texture);
     }
   }
 
@@ -266,7 +273,8 @@ void Model::ExtractBoneWeightForVertices(vector<meshdata::Vertex>& vertices,
       LoggerSystem::GetInstance().Log(
           LoggerSystem::Level::kWarning,
           "Error, the skeleton is not present in the skeleton.");
-      return;
+      throw std::runtime_error(
+          "Error, the skeleton is not present in the skeleton.");
     }
 
     auto weights = mesh->mBones[bone_index]->mWeights;
@@ -278,10 +286,13 @@ void Model::ExtractBoneWeightForVertices(vector<meshdata::Vertex>& vertices,
       if (vertex_id > vertices.size()) {
         LoggerSystem::GetInstance().Log(
             LoggerSystem::Level::kWarning,
-            "Error, the ID of the skeleton weight does not exist, please check "
-            "the "
-            "original file before loading the skeleton animation.");
-        return;
+            "Error, the ID of the skeleton weight does not exist, "
+            "please check the original file before loading the skeleton "
+            "animation.");
+        throw std::runtime_error(
+            "Error, the ID of the skeleton weight does not exist, "
+            "please check the original file before loading the skeleton "
+            "animation.");
       }
       SetVertexBoneData(vertices[vertex_id], bone_id, weight);
     }
@@ -323,7 +334,7 @@ void Model::SetTextureLoaded(
   texture_loaded_ = texture_loaded;
 }
 
-const vector<Mesh*> Model::GetMeshes() const {
+vector<Mesh*> Model::GetMeshes() const {
   return meshes_;
 }
 

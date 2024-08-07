@@ -17,13 +17,16 @@
 #include "include/Buffers.h"
 #include "include/LoggerSystem.h"
 #include "include/Model/MeshData.h"
+#include "include/OpenGLStateManager.h"
 
 Buffers::Buffers(GLenum type)
-    : type_(type), buffer_id_(0), binding_state_(false) {
-  if (glGetString(GL_VERSION) == nullptr) {
-    LoggerSystem::GetInstance().Log(LoggerSystem::Level::kWarning,
-                                    "OpenGL is not initialized");
-    return;
+    : type_(type), buffer_id_(0) {
+  if (!OpenGLStateManager::GetInstance().IsEnableOpenGL()) {
+    LoggerSystem::GetInstance().Log(
+        LoggerSystem::Level::kError,
+        "Serious error! Initialize OpenGL before building shaders!");
+    throw std::runtime_error(
+        "Serious error! Initialize OpenGL before building shaders!");
   }
   glGenBuffers(1, &buffer_id_);
 }
@@ -31,16 +34,10 @@ Buffers::~Buffers() {
   glDeleteBuffers(1, &buffer_id_);
 }
 void Buffers::Bind() {
-  if (!binding_state_) {
     glBindBuffer(this->type_, buffer_id_);
-    binding_state_ = true;
-  }
 }
 void Buffers::UnBind() {
-  if (binding_state_) {
     glBindBuffer(type_, 0);
-    binding_state_ = false;
-  }
 }
 void Buffers::SetData(const void* data, GLsizeiptr size, GLenum usage) const {
   glBufferData(type_, size, data, usage);
@@ -48,12 +45,8 @@ void Buffers::SetData(const void* data, GLsizeiptr size, GLenum usage) const {
 GLenum Buffers::GetType() const {
   return type_;
 }
-void Buffers::SetType(GLenum type) {
+void Buffers::ReSetType(GLenum type) {
   type_ = type;
-  this->binding_state_ = false;
-}
-bool Buffers::IsBindingState() const {
-  return binding_state_;
 }
 void Buffers::ReGenBuffers(GLenum type) {
   if (type != UINT_MAX) {
@@ -63,7 +56,6 @@ void Buffers::ReGenBuffers(GLenum type) {
     glDeleteBuffers(1, &buffer_id_);
   }
   glGenBuffers(1, &buffer_id_);
-  this->binding_state_ = false;
 }
 template <typename T>
 void Buffers::SetData(const std::vector<T>& data, GLenum usage) const {

@@ -14,41 +14,31 @@
  * limitations under the License.
  ******************************************************************************/
 
-//
-// Created by Acer on 2024/7/3.
-//
-
-#ifndef CMAKE_OPEN_SRC_STARTED_OPENGL_TEXTURE_OPENGLMAINWINDOW_H_
-#define CMAKE_OPEN_SRC_STARTED_OPENGL_TEXTURE_OPENGLMAINWINDOW_H_
+#ifndef CMAKE_OPEN_SRC_FRAME_BUFFERS_FRAMEBUFFERWINDOW_H_
+#define CMAKE_OPEN_SRC_FRAME_BUFFERS_FRAMEBUFFERWINDOW_H_
 
 #include "include/Buffers.h"
-#include "include/FilePathSystem.h"
-#include "include/OpenGLWindow.h"
+#include "include/Experimental/OpenGLCameraWindow.h"
 #include "include/Shader.h"
 #include "include/VertexArray.h"
+#include "include/TextureLoader.h"
 
-class OpenGLMainWindow : public OpenGLWindow {
+class FrameBufferWindow : public OpenGLCameraWindow {
  public:
-  OpenGLMainWindow(int width, int height, const char* title);
+  FrameBufferWindow(int width, int height, const char* title,
+                    GLFWmonitor* monitor, GLFWwindow* share);
 
  protected:
   void InitializeGL() override;
-  void ResizeGL(int width, int height) override;
   void PaintGL() override;
+  void ResizeGL(int width, int height) override;
 
  private:
-  glm::float64 delta_time_;
-  glm::float64 last_frame_;
-
-  Shader shader_;
-
-  VertexArray vao_;
-
-  Buffers vbo_, ebo_;
-
-  GLuint VAO_, VBO_, EBO_;
-
-  GLuint texture_1, texture_2;
+  Shader *cube_shader_, *screen_shader_;
+  VertexArray cube_vao_, screen_vao_, quad_vao_;
+  Buffers cube_vbo_, screen_vbo_, quad_vbo_;
+  
+  TextureLoader* cube_texture_loader_,*floor_texture_loader_;
 };
 
-#endif  //CMAKE_OPEN_SRC_STARTED_OPENGL_TEXTURE_OPENGLMAINWINDOW_H_
+#endif  //CMAKE_OPEN_SRC_FRAME_BUFFERS_FRAMEBUFFERWINDOW_H_

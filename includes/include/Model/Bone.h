@@ -35,28 +35,28 @@
  */
 class Bone {
  public:
-  /**
-   * Represents a key position in the animation.
-   */
+  // Represents a key position in the animation.
   struct KeyPosition {
-    glm::vec3 position;       // The 3D position vector of the bone.
-    glm::float64 time_stamp;  // The time stamp of this key position.
+    // The 3D position vector of the bone.
+    glm::vec3 position;
+    // The time stamp of this key position.
+    glm::float64 time_stamp;
   };
 
-  /**
-   * Represents a key rotation in the animation.
-   */
+  // Represents a key rotation in the animation.
   struct KeyRotation {
-    glm::quat orientation;    // The orientation quaternion of the bone.
-    glm::float64 time_stamp;  // The time stamp of this key rotation.
+    // The orientation quaternion of the bone.
+    glm::quat orientation;
+    // The time stamp of this key rotation.
+    glm::float64 time_stamp;
   };
-
-  /**
-   * Represents a key scale in the animation.
-   */
+  
+  // Represents a key scale in the animation.
   struct KeyScale {
-    glm::vec3 scale;          // The scale vector of the bone.
-    glm::float64 time_stamp;  // The time stamp of this key scale.
+    // The scale vector of the bone.
+    glm::vec3 scale;       
+    // The time stamp of this key scale.
+    glm::float64 time_stamp;  
   };
 
  public:
@@ -103,7 +103,7 @@ class Bone {
    * @param id The new ID of the bone.
    */
   void SetId(glm::int32 id);
-  
+
   /**
    * Gets the index of the key position at a specific animation time.
    * @param animation_time The current time of the animation.

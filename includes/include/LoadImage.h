@@ -42,6 +42,15 @@
  */
 class LoadImage {
  public:
+  GLuint LoadTexture1D(const std::string& path, GLint wrap_mode = GL_REPEAT,
+                       GLint mag_filter_mode = GL_LINEAR_MIPMAP_LINEAR,
+                       GLint min_filter_mode = GL_LINEAR,
+                       GLboolean gamma_correction = false);
+
+  GLuint LoadTexture1DArray(const std::vector<std::string>& paths,
+                            GLint wrapMode, GLint magFilterMode,
+                            GLint minFilterMode, GLboolean gammaCorrection);
+
   /**
    * Register 2D textures into OpenGL. The OpenGL index of the texture is 
    * returned on success; otherwise, a runtime_error exception is thrown.
@@ -53,6 +62,24 @@ class LoadImage {
   GLuint LoadTexture2D(const std::string& path, GLint wrap_mode = GL_REPEAT,
                        GLint mag_filter_mode = GL_LINEAR_MIPMAP_LINEAR,
                        GLint min_filter_mode = GL_LINEAR,
+                       GLboolean gamma_correction = false);
+
+  GLuint LoadTextureAuto2D(const std::string& path, GLint wrap_mode = GL_REPEAT,
+                           GLint mag_filter_mode = GL_LINEAR_MIPMAP_LINEAR,
+                           GLint min_filter_mode = GL_LINEAR,
+                           GLboolean gamma_correction = false);
+
+  GLuint LoadTexture2DFromAssimp(const aiTexture* ai_texture, GLint wrap_mode,
+                                 GLint mag_filter_mode, GLint min_filter_mode,
+                                 GLboolean gamma_correction = false);
+
+  GLuint LoadTexture2DArray(const std::vector<std::string>& paths,
+                            GLint wrapMode, GLint magFilterMode,
+                            GLint minFilterMode,
+                            GLboolean gammaCorrection = false);
+
+  GLuint LoadTexture3D(const std::vector<std::string>& paths, GLint wrapMode,
+                       GLint magFilterMode, GLint minFilterMode,
                        GLboolean gamma_correction = false);
 
   /**
@@ -69,10 +96,6 @@ class LoadImage {
                      GLint mag_filter_mode = GL_LINEAR,
                      GLint min_filter_mode = GL_LINEAR,
                      GLboolean gamma_correction = false);
-
-  GLuint LoadTexture2DFromAssimp(const aiTexture* ai_texture, GLint wrap_mode,
-                                 GLint mag_filter_mode, GLint min_filter_mode,
-                                 GLboolean gamma_correction = false);
 
   /**
    * Tell stb_image.h to flip loaded texture's on the y-axis.
@@ -131,10 +154,42 @@ class LoadImage {
    * @param gamma_correction Whether to enable gamma correction
    * @return Returns true on success
    */
-  bool LoadTexture2DSetting(GLenum target, int index, GLint level,
-                            GLint internal_format, int width, int height,
-                            int nr_components, GLint border, GLenum type,
-                            unsigned char* data, GLboolean gamma_correction);
+  bool ConfigureTexture2D(GLenum target, GLint level, GLint internal_format,
+                          int width, int height, int nr_components,
+                          GLint border, GLenum type, unsigned char* data,
+                          GLboolean gamma_correction);
+
+  bool ConfigureTexture2DWithAutoParams(GLenum target, GLint level, int width,
+                                        int height, int nr_components,
+                                        GLint border, GLenum type,
+                                        unsigned char* data,
+                                        GLboolean gamma_correction);
+
+  bool ConfigureTexture1D(GLenum target, GLint level, GLint internal_format,
+                          int width, int nr_components, GLint border,
+                          GLenum type, unsigned char* data,
+                          GLboolean gamma_correction);
+
+  bool ConfigureTexture1DWithAutoParams(GLenum target, GLint level, int width,
+                                        int nr_components, GLint border,
+                                        GLenum type, unsigned char* data,
+                                        GLboolean gamma_correction);
+
+  template <typename T>
+  bool ConfigureTexture3D(GLenum target, GLint level, GLint internal_format,
+                          int width, int height, int nr_components,
+                          const std::vector<T>& depth, GLint border,
+                          GLenum type, GLboolean gamma_correction);
+
+  template <typename T>
+  void GammaCorrect(T* data, int width, int height, int depth,
+                    int nr_components, float gamma);
+
+  GLenum DetermineFormat(int nr_channels);
+
+  stbi_uc* LoadImageData(const std::string& path, int* width, int* height,
+                         int* nr_channels, int desired_channels = 0);
+
   LoadImage() = default;
 
  private:
