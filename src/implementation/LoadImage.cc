@@ -15,7 +15,9 @@
  ******************************************************************************/
 
 #include "include/LoadImage.h"
+#include "include/Exception.h"
 #include "include/LoggerSystem.h"
+#include "include/OpenGLStateManager.h"
 
 using namespace std;
 
@@ -25,6 +27,9 @@ LoadImage* LoadImage::instance_ = nullptr;
 GLuint LoadImage::LoadTexture2D(const std::string& path, GLint wrap_mode,
                                 GLint mag_filter_mode, GLint min_filter_mode,
                                 GLboolean gamma_correction) {
+  if (!OpenGLStateManager::GetInstance().IsEnableOpenGL()) {
+    return 0;
+  }
   GLuint texture;
   glGenTextures(1, &texture);
 
@@ -49,15 +54,11 @@ GLuint LoadImage::LoadTexture2D(const std::string& path, GLint wrap_mode,
     glGenerateMipmap(GL_TEXTURE_2D);
     return texture;
   } else {
-    LoggerSystem::GetInstance().Log(
+    throw Exception(
         LoggerSystem::Level::kWarning,
         "The resource file also failed to load and is about to clean up the "
         "storage space for the image.file name: " +
             path);
-    throw std::runtime_error(
-        "The resource file also failed to load and is about to clean up the "
-        "storage space for the image.file name: " +
-        path);
   }
 }
 
@@ -84,9 +85,8 @@ GLuint LoadImage::LoadCubeMap(std::vector<std::string> faces, GLint wrap_mode,
     if (!ConfigureTexture2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB,
                             width, height, nr_channels, 0, GL_UNSIGNED_BYTE,
                             data, gamma_correction)) {
-      LoggerSystem::GetInstance().Log(
-          LoggerSystem::Level::kWarning,
-          "Cube map texture failed to load at path: " + faces[i]);
+      throw Exception(LoggerSystem::Level::kWarning,
+                      "Cube map texture failed to load at path: " + faces[i]);
     }
   }
 
@@ -339,8 +339,7 @@ GLuint LoadImage::LoadTexture1DArray(const vector<std::string>& paths,
   int width, height, nr_channels;
   std::vector<unsigned char*> layers;
   for (const auto& path : paths) {
-    unsigned char* data =
-        LoadImageData(path,&width,&height,&nr_channels);
+    unsigned char* data = LoadImageData(path, &width, &height, &nr_channels);
     if (data) {
       layers.push_back(data);
     } else {
@@ -353,7 +352,7 @@ GLuint LoadImage::LoadTexture1DArray(const vector<std::string>& paths,
   }
 
   if (!layers.empty()) {
-    GLenum format= DetermineFormat(nr_channels);
+    GLenum format = DetermineFormat(nr_channels);
 
     GLuint texture_id;
     glGenTextures(1, &texture_id);
@@ -363,7 +362,8 @@ GLuint LoadImage::LoadTexture1DArray(const vector<std::string>& paths,
 
     for (size_t i = 0; i < layers.size(); ++i) {
       if (gammaCorrection) {
-        GammaCorrect(layers[i], width, height, layers.size(), nr_channels, 2.2f);
+        GammaCorrect(layers[i], width, height, layers.size(), nr_channels,
+                     2.2f);
       }
       glTexSubImage3D(GL_TEXTURE_1D_ARRAY, 0, 0, i, 0, width, height, 1, format,
                       GL_UNSIGNED_BYTE, layers[i]);
@@ -403,16 +403,15 @@ GLuint LoadImage::LoadTexture2DArray(const vector<std::string>& paths,
   int width, height, nr_channels;
   std::vector<unsigned char*> layers;
   for (const auto& path : paths) {
-    unsigned char* data =
-        LoadImageData(path,&width,&height,&nr_channels);
+    unsigned char* data = LoadImageData(path, &width, &height, &nr_channels);
     if (data) {
       layers.push_back(data);
     } else {
       for (auto& layer : layers) {
         stbi_image_free(layer);
       }
-      throw std::runtime_error("Failed to load 2D array texture from path: " +
-                               path);
+      throw Exception(LoggerSystem::Level::kWarning,
+                      "Failed to load 2D array texture from path: " + path);
     }
   }
 
@@ -433,15 +432,11 @@ GLuint LoadImage::LoadTexture2DArray(const vector<std::string>& paths,
     for (const auto& path : paths) {
       dir_log.append("; " + path);
     }
-    LoggerSystem::GetInstance().Log(
+    throw Exception(
         LoggerSystem::Level::kWarning,
         "The resource file also failed to load and is about to clean up the "
         "storage space for the image.file name: " +
             dir_log);
-    throw std::runtime_error(
-        "The resource file also failed to load and is about to clean up the "
-        "storage space for the image.file name: " +
-        dir_log);
   }
 }
 GLuint LoadImage::LoadTextureAuto2D(const string& path, GLint wrap_mode,
@@ -470,17 +465,14 @@ GLuint LoadImage::LoadTextureAuto2D(const string& path, GLint wrap_mode,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_mode);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter_mode);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter_mode);
+    stbi_image_free(data);
   } else {
-    LoggerSystem::GetInstance().Log(
+    stbi_image_free(data);
+    throw Exception(
         LoggerSystem::Level::kWarning,
         "The resource file also failed to load and is about to clean up the "
         "storage space for the image.file name: " +
             path);
-    throw std::runtime_error(
-        "The resource file also failed to load and is about to clean up the "
-        "storage space for the image.file name: " +
-        path);
-    stbi_image_free(data);
   }
   return texture_id;
 }
@@ -498,7 +490,7 @@ GLenum LoadImage::DetermineFormat(int nr_channels) {
 }
 stbi_uc* LoadImage::LoadImageData(const string& path, int* width, int* height,
                                   int* nr_channels, int desired_channels) {
-  return stbi_load(path.c_str(), width, height, nr_channels, 0);
+  return stbi_load(path.c_str(), width, height, nr_channels, desired_channels);
 }
 
 bool LoadImage::ConfigureTexture2DWithAutoParams(GLenum target, GLint level,

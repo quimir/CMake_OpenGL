@@ -43,6 +43,14 @@ class FrameBuffer {
               GLenum texture_color_buffer_type = GL_TEXTURE_2D,
               GLenum rbo_depth_stencil_type = GL_RENDERBUFFER);
 
+  FrameBuffer(GLint width, GLint height, GLenum frame_buffer_type,
+              GLenum texture_color_buffer_type,
+              GLint texture_color_buffer_level,
+              GLint texture_color_buffer_internalformat,
+              GLboolean texture_color_buffer_fixed_samplelocations,
+              GLenum rbo_depth_stencil_type,
+              GLenum rbo_depth_stencil_type_internalformat);
+
   ~FrameBuffer();
 
   FrameBuffer(const FrameBuffer& frame_buffer) = delete;
@@ -96,6 +104,14 @@ class FrameBuffer {
    * @param height Height of the frame buffer.
    */
   void Initialize(GLint width, GLint height);
+
+  void Initialize(GLint width, GLint height, GLenum frame_buffer_type,
+                  GLenum texture_color_buffer_type,
+                  GLint texture_color_buffer_level,
+                  GLint texture_color_buffer_internalformat,
+                  GLboolean texture_color_buffer_fixed_samplelocations,
+                  GLenum rbo_depth_stencil_type,
+                  GLenum rbo_depth_stencil_type_internalformat);
 
   void Cleanup();
 

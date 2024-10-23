@@ -25,6 +25,7 @@
 #include <iostream>
 #include <mutex>
 #include <string>
+#include <cmath>
 
 /**
  * Logger System It is used to collect and store a portion of the information generated 

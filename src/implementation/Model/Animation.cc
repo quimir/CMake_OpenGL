@@ -14,9 +14,12 @@
  * limitations under the License.
  ******************************************************************************/
 
+#include "include/Model/Animation.h"
 #include <stdexcept>
 #include "include/LoggerSystem.h"
-#include "include/Model/Animation.h"
+#include "include/Model/ModelException.h"
+
+using namespace model;
 
 glm::float64 Animation::GetDuration() const {
   return this->duration_;
@@ -73,10 +76,9 @@ void Animation::ReadMissingBones(const aiAnimation* animation, Model* model) {
 void Animation::ReadHierarchyData(Animation::AssimpNodeData& dest,
                                   const aiNode* src) {
   if (nullptr == src) {
-    LoggerSystem::GetInstance().Log(
+    throw ModelException(
         LoggerSystem::Level::kWarning,
         "A node skeleton error occurred while loading a node. ");
-    return;
   }
 
   dest.name = src->mName.data;
@@ -92,23 +94,28 @@ void Animation::ReadHierarchyData(Animation::AssimpNodeData& dest,
   }
 }
 Animation::Animation(const std::string& animation_path, Model* model) {
-  Assimp::Importer importer;
-  auto scene = importer.ReadFile(animation_path, aiProcess_Triangulate);
-  if (!scene || !scene->mRootNode) {
-    LoggerSystem::GetInstance().Log(
-        LoggerSystem::Level::kWarning,
-        "Error: Failed to load animation from " + animation_path);
-    throw std::runtime_error("Error: Failed to load animation from " +
-                             animation_path);
-  }
+  try {
+    Assimp::Importer importer;
+    auto scene = importer.ReadFile(animation_path, aiProcess_Triangulate);
+    if (!scene || !scene->mRootNode) {
+      throw ModelException(
+          LoggerSystem::Level::kWarning,
+          "Error: Failed to load animation from " + animation_path);
+    }
 
-  auto animation = scene->mAnimations[0];
-  this->duration_ = animation->mDuration;
-  this->ticks_per_second_ = animation->mTicksPerSecond;
-  auto global_transformation = scene->mRootNode->mTransformation;
-  global_transformation = global_transformation.Inverse();
-  ReadHierarchyData(this->root_node_, scene->mRootNode);
-  ReadMissingBones(animation, model);
+    auto animation = scene->mAnimations[0];
+    this->duration_ = animation->mDuration;
+    this->ticks_per_second_ = animation->mTicksPerSecond;
+    auto global_transformation = scene->mRootNode->mTransformation;
+    global_transformation = global_transformation.Inverse();
+    ReadHierarchyData(this->root_node_, scene->mRootNode);
+    ReadMissingBones(animation, model);
+  } catch (ModelException& e) {
+    std::cerr
+        << "There was an error initializing the animation class. Because: "
+        << e.what() << std::endl;
+    exit(0);
+  }
 }
 Bone* Animation::FindBone(const std::string& name) {
   auto iter = std::find_if(

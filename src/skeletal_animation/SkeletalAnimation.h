@@ -47,9 +47,9 @@ class SkeletalAnimation : public OpenGLWindow {
  private:
   static Camera camera_;
   Shader *shader_, *cube_map_shader_;
-  Model* model_;
-  Animator* animator_;
-  Animation* animation_;
+  model::Model* model_;
+  model::Animator* animator_;
+  model::Animation* animation_;
   GLuint cube_map_texture_, sky_box_texture_;
   VertexArray sky_box_vao_, cube_map_vao_;
   Buffers sky_box_vbo_, cube_map_vbo_;

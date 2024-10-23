@@ -38,5 +38,11 @@ template<typename Func, typename... Args>
 void OpenGLMessage::GetOpenGLCheckError(Func func, Args...args) {
   CheckedCall(__FILE__, __LINE__, func, std::forward<Args>(args)...);
 }
+template <typename Func, typename... Args>
+void OpenGLMessage::GetOpenGLCheckError(const char* file, int line, Func func,
+                                        Args... args) {
+  CheckedCall(file,line,func,std::forward<Args>(args)...);
+}
+
 
 #endif

@@ -25,6 +25,7 @@
 
 #include "Animation.h"
 
+namespace model {
 /**
  * The Animator class is responsible for updating and resetting the animation 
  * state of an Animation object. It calculates bone transformations based on 
@@ -107,5 +108,6 @@ class Animator {
    */
   std::recursive_mutex bone_matrices_mutex_;
 };
+}  // namespace model
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_ANIMATOR_H_

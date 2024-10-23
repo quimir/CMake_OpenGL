@@ -19,6 +19,7 @@
 
 #include "ImGuiWidget.h"
 #include "include/Camera.h"
+#include "include/OpenGLWindow.h"
 #include "include/Time/RenderTimer.h"
 
 class ImGuiDashboard : public ImGuiWidget {
@@ -28,7 +29,12 @@ class ImGuiDashboard : public ImGuiWidget {
 
   void Render() override;
 
-  void ShowDashboardWin(bool* open);
+  void Begin(const char* name, bool* p_open = nullptr,
+             ImGuiWindowFlags flags = 0);
+
+  void End();
+
+  void ShowDashboardWin(bool& open, const RenderTimer& render_time);
 
   void SetRenderTimer(const RenderTimer& render_timer);
 
@@ -37,6 +43,23 @@ class ImGuiDashboard : public ImGuiWidget {
                       bool& shader_far);
 
   GLenum ShowDepthTextMode(GLenum current_depth_func);
+
+  void ShowOpenGLSetting(glm::vec4& opengl_color, GLenum& current_depth_func,
+                         bool& shader_far, GLenum& stencil_mode,
+                         glm::vec4& stencil_test_frag_color_value);
+
+  void ShowDepthTextMode(GLenum& current_depth_func, bool& shader_far);
+
+  void ShowStencilTest(GLenum& stencil_mode,
+                       glm::vec4& stencil_test_frag_color_value);
+
+  void ShowCameraSetting(Camera& camera);
+
+  void ShowWindowSetting(OpenGLWindow::OpenGLVersion opengl_version,
+                         GLFWmonitor* monitor);
+
+ private:
+  void SetDashboardWin(bool* open, const RenderTimer& render_time);
 
  private:
   RenderTimer render_timer_;

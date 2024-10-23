@@ -18,7 +18,7 @@
 #include "root_directory.h"
 
 std::once_flag FilePathSystem::initialized_;
-FilePathSystem* FilePathSystem::instance_= nullptr;
+FilePathSystem* FilePathSystem::instance_ = nullptr;
 
 std::string FilePathSystem::GetPath(const std::string& path) {
   if (!this->root_.empty())
@@ -60,4 +60,7 @@ std::string FilePathSystem::GetResourcesPath(
 }
 FilePathSystem::~FilePathSystem() {
   delete instance_;
+}
+std::string FilePathSystem::GetGLSLPath(const std::string& path) {
+  return GetResourcesPath("glsl/" + path);
 }

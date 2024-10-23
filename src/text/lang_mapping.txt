@@ -1,0 +1,4 @@
+Information's=屏幕信息
+ShowDashBoard=关闭屏幕信息窗口
+OpenGL Dashboard=OpenGL仪表盘
+ --- Dashboard --- = ——仪表盘——

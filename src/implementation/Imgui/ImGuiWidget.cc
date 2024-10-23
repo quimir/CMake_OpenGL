@@ -16,20 +16,33 @@
 
 #include "include/Imgui/ImGuiWidget.h"
 #include <sstream>
+#include "imgui/imgui_internal.h"
+#include "include/Exception.h"
 #include "include/LoggerSystem.h"
+#include "include/OpenGLStateManager.h"
+#include "include/ImGui/Fonts/Language.h"
+#include "include/FilePathSystem.h"
+
 ImGuiWidget::ImGuiWidget(GLFWwindow* window, int window_width,
                          int window_height)
-    : Widget(window_width, window_height) {
-  if (glGetString(GL_VERSION) == nullptr) {
-    LoggerSystem::GetInstance().Log(
-        LoggerSystem::Level::kError,
-        "Serious error! Imgui Windows are not allowed to be built without "
-        "initializing OpenGL. Please initialize OpenGL before building ImGui "
-        "Window");
-    throw std::runtime_error(
-        "Serious error! Imgui Windows are not allowed to be built without "
-        "initializing OpenGL. Please initialize OpenGL before building ImGui "
-        "Window");
+    : Widget(0, 0, window_width, window_height), window_(window) {
+  try {
+    if (!OpenGLStateManager::GetInstance().IsEnableOpenGL()) {
+      throw Exception(
+          LoggerSystem::Level::kError,
+          "Serious error! Imgui Windows are not allowed to be built without "
+          "initializing OpenGL. Please initialize OpenGL before building ImGui "
+          "Window");
+    }
+    if (nullptr == window_) {
+      throw Exception(
+          LoggerSystem::Level::kError,
+          "Error! GLFW window pointer has not been initialized, please "
+          "initialize it before setting ImGui.");
+    }
+  } catch (Exception& e) {
+    std::cerr << e.what() << std::endl;
+    exit(0);
   }
   Initialized(window);
 }
@@ -42,10 +55,17 @@ void ImGuiWidget::Initialized(GLFWwindow* window) {
   ImGui::StyleColorsDark();
 
   ImGui_ImplGlfw_InitForOpenGL(window, true);
-  //glfwGetCurrentContext();
   const char* version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
   auto major_version = ExtractMajorVersion(version);
   ImGui_ImplOpenGL3_Init(std::string("#version " + major_version).c_str());
+
+//  if (Language::GetInstance().CurrentLanguage() == Language::Type::kChinese) {
+//    io_->Fonts->AddFontFromFileTTF(
+//        FilePathSystem::GetInstance()
+//            .GetPath("src/fontlib/ZhanKuWenYiTi-2.ttf")
+//            .c_str(),
+//        13.0f, nullptr, io_->Fonts->GetGlyphRangesChineseSimplifiedCommon());
+//  }
 }
 std::string ImGuiWidget::ExtractMajorVersion(
     const std::string& opengl_version_string) {
@@ -87,4 +107,7 @@ void ImGuiWidget::Render() {
 }
 ImGuiIO* ImGuiWidget::GetIo() const {
   return io_;
+}
+GLFWwindow* ImGuiWidget::GetOpenGLWindow() {
+  return window_;
 }

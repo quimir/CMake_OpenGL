@@ -25,6 +25,7 @@
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
 
+namespace model {
 /**
  * The Model class represents a 3D model loaded from an external file. It 
  * contains meshes, textures, and bone information. The class provides methods
@@ -187,6 +188,8 @@ class Model {
    */
   std::map<std::string, BoneInfo> bone_info_map_;
   glm::int32 bone_counter_;
+  
 };
+}  // namespace model
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_MODEL_H_

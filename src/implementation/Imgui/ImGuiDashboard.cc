@@ -16,19 +16,29 @@
 
 #include "include/Imgui/ImGuiDashboard.h"
 #include <unordered_map>
-#include "glm/glm.hpp"
 #include "include/Time/RenderTimer.h"
 
 constexpr float kDistance = 10.0f;
+
+std::unordered_map<GLenum, int> depth_func_map = {
+    {GL_NEVER, 0},   {GL_LESS, 1},     {GL_EQUAL, 2},  {GL_LEQUAL, 3},
+    {GL_GREATER, 4}, {GL_NOTEQUAL, 5}, {GL_GEQUAL, 6}, {GL_ALWAYS, 7}};
+
+GLenum depth_funcs[] = {GL_NEVER,   GL_LESS,     GL_EQUAL,  GL_LEQUAL,
+                        GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS};
+
+const char* depth_func_items[] = {"GL_NEVER",  "GL_LESS",    "GL_EQUAL",
+                                  "GL_LEQUAL", "GL_GREATER", "GL_NOTEQUAL",
+                                  "GL_GEQUAL", "GL_ALWAYS"};
 
 ImGuiDashboard::ImGuiDashboard(GLFWwindow* window, int window_width,
                                int window_height)
     : ImGuiWidget(window, window_width, window_height), render_timer_() {}
 void ImGuiDashboard::Render() {
   static bool dash_board_window = true;
-  ShowDashboardWin(&dash_board_window);
 }
-void ImGuiDashboard::ShowDashboardWin(bool* open) {
+void ImGuiDashboard::SetDashboardWin(bool* open,
+                                     const RenderTimer& render_time) {
   if (!open || !(*open)) {
     return;  // If the open pointer is null or the value it points to is false, return early
   }
@@ -61,14 +71,14 @@ void ImGuiDashboard::ShowDashboardWin(bool* open) {
     ImGui::Text(" --- Dashboard --- ");
     ImGui::Separator();
     ImGui::Text(
-        "Demo : 09_Add_GUI_System_Dear_ImGui\n"
+        "ImGUi Window Setting\n"
         "Window Size : %d x %d\n"
         "(right-click to change position)",
         this->GetWidth(), this->GetHeight());
     ImGui::Separator();
 
-    ImGui::Text("FPS : %.1f (ds : %.3f ms/frame)", render_timer_.GetFPS(),
-                render_timer_.GetRenderDelay());
+    ImGui::Text("FPS : %.1f (ds : %.3f ms/frame)", render_time.GetFPS(),
+                render_time.GetRenderDelay());
     if (ImGui::BeginPopupContextWindow()) {
       if (ImGui::MenuItem("Custom", nullptr, corner == -1))
         corner = -1;
@@ -146,7 +156,7 @@ void ImGuiDashboard::ShowToolsPanel(bool& show_dashboard, glm::vec4& clear_col,
 
   ImGui::End();
   if (show_dashboard) {
-    ShowDashboardWin(&show_dashboard);
+    SetDashboardWin(&show_dashboard, render_timer_);
   }
 }
 GLenum ImGuiDashboard::ShowDepthTextMode(GLenum current_depth_func) {
@@ -178,4 +188,187 @@ GLenum ImGuiDashboard::ShowDepthTextMode(GLenum current_depth_func) {
   }
 
   return current_depth_func;
+}
+void ImGuiDashboard::ShowOpenGLSetting(
+    glm::vec4& opengl_color, GLenum& current_depth_func, bool& shader_far,
+    GLenum& stencil_mode, glm::vec4& stencil_test_frag_color_value) {
+  if (ImGui::CollapsingHeader("Draw State")) {
+    ImGui::ColorEdit4("ClearColor", &opengl_color.x, ImGuiColorEditFlags_None);
+    ShowDepthTextMode(current_depth_func, shader_far);
+    ShowStencilTest(stencil_mode, stencil_test_frag_color_value);
+  }
+}
+void ImGuiDashboard::ShowDepthTextMode(GLenum& current_depth_func,
+                                       bool& shader_far) {
+  int current_item = depth_func_map[current_depth_func];
+
+  if (ImGui::BeginCombo("Depth Func", depth_func_items[current_item])) {
+    for (int i = 0; i < IM_ARRAYSIZE(depth_func_items); i++) {
+      bool is_selected = (current_item == i);
+      if (ImGui::Selectable(depth_func_items[i], is_selected)) {
+        current_item = i;
+        current_depth_func = depth_funcs[i];
+      }
+      if (is_selected) {
+        ImGui::SetItemDefaultFocus();
+      }
+    }
+    ImGui::EndCombo();
+  }
+  ImGui::Checkbox("Shader far", &shader_far);
+}
+void ImGuiDashboard::ShowStencilTest(GLenum& stencil_mode,
+                                     glm::vec4& stencil_test_frag_color_value) {
+  int current_item = depth_func_map[stencil_mode];
+
+  if (ImGui::BeginCombo("Depth Func", depth_func_items[current_item])) {
+    for (int i = 0; i < IM_ARRAYSIZE(depth_func_items); i++) {
+      bool is_selected = (current_item == i);
+      if (ImGui::Selectable(depth_func_items[i], is_selected)) {
+        current_item = i;
+        stencil_mode = depth_funcs[i];
+      }
+      if (is_selected) {
+        ImGui::SetItemDefaultFocus();
+      }
+    }
+    ImGui::EndCombo();
+  }
+  ImGui::DragFloat4("Stencil test color value",
+                    &stencil_test_frag_color_value.x, 0.1f);
+}
+
+void ImGuiDashboard::ShowCameraSetting(Camera& camera) {
+  if (ImGui::CollapsingHeader("Camera")) {
+    if (ImGui::Button("Reset")) {
+      camera.ResetCamera();
+    }
+    bool enable_camera = camera.IsEnabled();
+    ImGui::Checkbox("Enabled Camera Control(C)", &enable_camera);
+    if (enable_camera)
+      camera.Enable();
+    else
+      camera.DisEnable();
+    ImGui::Separator();
+    ImGui::Text("Transform: ");
+    ImGui::Separator();
+    ImGui::Indent();
+    glm::vec3 camera_setting = camera.GetPosition();
+    ImGui::DragFloat3("Pos: ", &camera_setting.x, 0.01f, -100.0f, 100.0f);
+    camera.SetPosition(camera_setting);
+    ImGui::Separator();
+    auto camera_view_setting = camera.GetZoom();
+    ImGui::DragFloat("Fov: ", &camera_view_setting, 0.1f, 1.0f, 60.0f);
+    camera.SetZoom(camera_view_setting);
+    camera_view_setting = camera.GetNearPlane();
+    ImGui::DragFloat("Near: ", &camera_view_setting, 0.1f, 0.1f, 1000.0f);
+    camera.SetNearPlane(camera_view_setting);
+    camera_view_setting = camera.GetFarPlane();
+    ImGui::DragFloat("Far: ", &camera_view_setting, 0.1f, 0.1f, 1000.0f);
+    camera.SetFarPlane(camera_view_setting);
+    camera_view_setting = camera.GetYaw();
+    ImGui::DragFloat("Yaw: ", &camera_view_setting, 0.1f);
+    camera.SetYaw(camera_view_setting);
+    camera_view_setting = camera.GetPitch();
+    ImGui::DragFloat("Pitch: ", &camera_view_setting, 0.01f);
+    camera.SetPitch(camera_view_setting);
+    camera_view_setting = camera.GetMovementSpeed();
+    ImGui::DragFloat("Movement Speed: ", &camera_view_setting, 0.1f);
+    camera.SetMovementSpeed(camera_view_setting);
+    ImGui::Unindent();
+  }
+}
+void ImGuiDashboard::Begin(const char* name, bool* p_open,
+                           ImGuiWindowFlags flags) {
+  ImGui::Begin(name, p_open, flags);
+}
+void ImGuiDashboard::End() {
+  ImGui::End();
+}
+void ImGuiDashboard::ShowDashboardWin(bool& open,
+                                      const RenderTimer& render_time) {
+  if (ImGui::CollapsingHeader("Informations")) {
+    ImGui::Text("IsAnyItemActive : %s",
+                ImGui::IsAnyItemActive() ? "true" : "false");
+    ImGui::Checkbox("ShowDashBoard", &open);
+  }
+  if (open) {
+    SetDashboardWin(&open, render_time);
+  }
+}
+void ImGuiDashboard::ShowWindowSetting(
+    OpenGLWindow::OpenGLVersion opengl_version, GLFWmonitor* monitor) {
+  if (ImGui::CollapsingHeader("Window Settings")) {
+    ImGui::Text("OpenGL version: %d.%d", opengl_version.major,
+                opengl_version.minor);
+    ImGui::Text(
+        "OpenGL Type: %s",
+        OpenGLWindow::OpenGLVersionToString(opengl_version.type).c_str());
+    ImGui::Text("OpenGL Render: %s", opengl_version.renderer.c_str());
+
+    int count;
+    const GLFWvidmode* modes = glfwGetVideoModes(monitor, &count);
+    std::vector<std::string> resolutions;
+    resolutions.reserve(count);
+    for (int i = 0; i < count; ++i) {
+      resolutions.push_back(std::to_string(modes[i].width) + "x" +
+                            std::to_string(modes[i].height) + " @ " +
+                            std::to_string(modes[i].refreshRate) + "Hz");
+    }
+
+    static int current_resolution = 0;
+    if (current_resolution >= resolutions.size()) {
+      current_resolution = 0;
+    }
+
+    static int current_mode = 0;
+    const char* window_modes[] = {"Windowed", "Fullscreen"};
+
+    if (ImGui::BeginCombo("Window Mode", window_modes[current_mode])) {
+      for (int i = 0; i < IM_ARRAYSIZE(window_modes); ++i) {
+        bool is_selected = (current_mode == i);
+        if (ImGui::Selectable(window_modes[i], is_selected)) {
+          current_mode = i;
+
+          if (current_mode == 0) {  // Windowed mode
+            glfwSetWindowMonitor(glfwGetCurrentContext(), nullptr, 100, 100,
+                                 modes[current_resolution].width,
+                                 modes[current_resolution].height, 0);
+          } else {  // Fullscreen mode
+            glfwSetWindowMonitor(glfwGetCurrentContext(), monitor, 0, 0,
+                                 modes[current_resolution].width,
+                                 modes[current_resolution].height,
+                                 modes[current_resolution].refreshRate);
+          }
+        }
+        if (is_selected) {
+          ImGui::SetItemDefaultFocus();
+        }
+      }
+      ImGui::EndCombo();
+    }
+
+    if (ImGui::BeginCombo("Resolution",
+                          resolutions[current_resolution].c_str())) {
+      for (int i = 0; i < resolutions.size(); ++i) {
+        bool is_selected = (current_resolution == i);
+        if (ImGui::Selectable(resolutions[i].c_str(), is_selected)) {
+          current_resolution = i;
+
+          if (current_mode == 0) {  // Windowed mode
+            glfwSetWindowMonitor(glfwGetCurrentContext(), nullptr, 100, 100,
+                                 modes[i].width, modes[i].height, 0);
+          } else {  // Fullscreen mode
+            glfwSetWindowMonitor(glfwGetCurrentContext(), monitor, 0, 0,
+                                 modes[i].width, modes[i].height,
+                                 modes[i].refreshRate);
+          }
+        }
+        if (is_selected) {
+          ImGui::SetItemDefaultFocus();
+        }
+      }
+      ImGui::EndCombo();
+    }
+  }
 }

@@ -18,6 +18,9 @@
 
 #include "include/LoggerSystem.h"
 #include "include/Model/Bone.h"
+#include "include/Model/ModelException.h"
+
+using namespace model;
 
 const glm::mat4& Bone::GetLocalTransform() const {
   return local_transform_;
@@ -38,7 +41,9 @@ void Bone::SetId(glm::int32 id) {
   bone_id_ = id;
 }
 Bone::Bone(std::string bone_name, int bone_id, const aiNodeAnim* channel)
-    : bone_name_(std::move(bone_name)), bone_id_(bone_id), local_transform_(1.0f) {
+    : bone_name_(std::move(bone_name)),
+      bone_id_(bone_id),
+      local_transform_(1.0f) {
 
   for (int position_index = 0; position_index < channel->mNumPositionKeys;
        ++position_index) {
@@ -68,10 +73,15 @@ Bone::Bone(std::string bone_name, int bone_id, const aiNodeAnim* channel)
   }
 }
 void Bone::Update(glm::float64 animation_time) {
-  glm::mat4 translation = InterpolatePosition(animation_time);
-  glm::mat4 rotation = InterpolateRotation(animation_time);
-  glm::mat4 scale = InterpolateScale(animation_time);
-  this->local_transform_ = translation * rotation * scale;
+  try {
+    glm::mat4 translation = InterpolatePosition(animation_time);
+    glm::mat4 rotation = InterpolateRotation(animation_time);
+    glm::mat4 scale = InterpolateScale(animation_time);
+    this->local_transform_ = translation * rotation * scale;
+  } catch (ModelException& e) {
+    std::cerr << "Bones load incorrectly because of the following: " << e.what()
+              << std::endl;
+  }
 }
 glm::int32 Bone::GetPositionsIndex(glm::float64 animation_time) {
   for (int index = 0; index < this->positions_.size() - 1; ++index) {
@@ -79,14 +89,10 @@ glm::int32 Bone::GetPositionsIndex(glm::float64 animation_time) {
       return index;
   }
 
-  LoggerSystem::GetInstance().Log(LoggerSystem::Level::kWarning,
-                                  "The position index of the animation point "
-                                  "is not stored, the file is from: " +
-                                      bone_name_);
-  throw std::runtime_error(
-      "The position index of the animation point "
-      "is not stored, the file is from: " +
-      bone_name_);
+  throw ModelException(LoggerSystem::Level::kWarning,
+                       "The position index of the animation point "
+                       "is not stored, the file is from: " +
+                           bone_name_);
 }
 glm::int32 Bone::GetRotationIndex(glm::float64 animation_time) {
   for (int index = 0; index < this->rotations_.size() - 1; ++index) {
@@ -94,14 +100,10 @@ glm::int32 Bone::GetRotationIndex(glm::float64 animation_time) {
       return index;
   }
 
-  LoggerSystem::GetInstance().Log(LoggerSystem::Level::kWarning,
-                                  "The rotation index of the animation point "
-                                  "is not stored, the file is from: " +
-                                      bone_name_);
-  throw std::runtime_error(
-      "The rotation index of the animation point "
-      "is not stored, the file is from: " +
-      bone_name_);
+  throw ModelException(LoggerSystem::Level::kWarning,
+                       "The rotation index of the animation point "
+                       "is not stored, the file is from: " +
+                           bone_name_);
 }
 glm::int32 Bone::GetScaleIndex(glm::float64 animation_time) {
   for (int index = 0; index < this->scales_.size() - 1; ++index) {
@@ -109,14 +111,10 @@ glm::int32 Bone::GetScaleIndex(glm::float64 animation_time) {
       return index;
   }
 
-  LoggerSystem::GetInstance().Log(LoggerSystem::Level::kWarning,
-                                  "The scale index of the animation point is "
-                                  "not stored, the file is from: " +
-                                      bone_name_);
-  throw std::runtime_error(
-      "The scale index of the animation point is "
-      "not stored, the file is from: " +
-      bone_name_);
+  throw ModelException(LoggerSystem::Level::kWarning,
+                       "The scale index of the animation point is "
+                       "not stored, the file is from: " +
+                           bone_name_);
 }
 glm::float64 Bone::GetScaleFactor(glm::float64 last_time_stamp,
                                   glm::float64 next_time_stamp,

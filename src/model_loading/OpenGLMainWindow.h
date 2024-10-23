@@ -58,7 +58,7 @@ class OpenGLMainWindow : public OpenGLWindow {
   static GLdouble last_y_;
 
   Shader* shader_;
-  Model* model_;
+  model::Model* model_;
 };
 
 #endif  //CMAKE_OPEN_SRC_MODEL_LOADING_OPENGLMAINWINDOW_H_

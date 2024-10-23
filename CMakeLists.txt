@@ -36,6 +36,11 @@ if (ENABLE_IMGUI)
   find_package(IMGUI REQUIRED)
 endif ()
 
+option(ENABLE_SQLite "SQLite is used as the platform for storing data." ON)
+if (ENABLE_SQLite)
+  find_package(SQLite REQUIRED)
+endif ()
+
 # Obtain the installation directory of the application
 configure_file(configuration/root_directory.h.in ${CMAKE_BINARY_DIR}/configuration/root_directory.h)
 include_directories(${CMAKE_BINARY_DIR}/configuration)
@@ -44,6 +49,11 @@ if (WIN32)
   set(LIBS glfw3 opengl32 assimp MODEL)
   if (ENABLE_IMGUI)
 	set(LIBS ${LIBS} IMGUI)
+  endif ()
+
+  if (ENABLE_SQLite)
+	set_source_files_properties(includes/sqlite/shell.c PROPERTIES COMPILE_FLAGS "/utf-8")
+	set(LIBS ${LIBS} SQLite)
   endif ()
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 elseif (APPLE)
@@ -60,17 +70,23 @@ endif (WIN32)
 
 set(HEADER_FILES_DIR "${CMAKE_SOURCE_DIR}/includes/include")
 set(SOURCE_FILES_DIR "${CMAKE_SOURCE_DIR}/src/implementation")
+set(CORE_HEADER_FILES_DIR "${HEADER_FILES_DIR}/Core")
+set(CORE_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/Core")
 set(TIME_HEADER_FILES_DIR "${HEADER_FILES_DIR}/Time")
 set(TIME_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/Time")
 # Initialize ALL_HEADER_FILES_DIR and ALL_SOURCE_FILES_DIR
-set(ALL_HEADER_FILES_DIR "${HEADER_FILES_DIR};${TIME_HEADER_FILES_DIR}")
-set(ALL_SOURCE_FILES_DIR "${SOURCE_FILES_DIR};${TIME_SOURCE_FILES_DIR}")
+set(ALL_HEADER_FILES_DIR "${HEADER_FILES_DIR};${TIME_HEADER_FILES_DIR};${CORE_HEADER_FILES_DIR}")
+set(ALL_SOURCE_FILES_DIR "${SOURCE_FILES_DIR};${TIME_SOURCE_FILES_DIR};${CORE_SOURCE_FILES_DIR}")
 
 if (ENABLE_IMGUI)
   set(IMGUI_HEADER_FILES_DIR "${HEADER_FILES_DIR}/ImGui")
   set(IMGUI_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/ImGui")
+  set(IMGUI_FRONTS_HEADER_FILES_DIR "${IMGUI_HEADER_FILES_DIR}/Fonts")
+  set(IMGUI_FRONTS_SOURCES_FILES_DIR "${SOURCE_FILES_DIR}/ImGui/Fonts")
   list(APPEND ALL_HEADER_FILES_DIR "${IMGUI_HEADER_FILES_DIR}")
   list(APPEND ALL_SOURCE_FILES_DIR "${IMGUI_SOURCE_FILES_DIR}")
+  list(APPEND ALL_HEADER_FILES_DIR "${IMGUI_FRONTS_HEADER_FILES_DIR}")
+  list(APPEND ALL_SOURCE_FILES_DIR "${IMGUI_FRONTS_SOURCES_FILES_DIR}")
 endif ()
 
 option(ENABLE_EXPERIMENTAL "A quick extension. It could be experimental (unsafe), or it could be a defragment of 
@@ -100,7 +116,8 @@ set(CHAPTERS
 	started_opengl_texture
 	skeletal_animation
 	frame_buffers
-	advanced_OpenGL)
+	advanced_OpenGL
+	advanced_Lighting)
 
 function(create_project_from_sources chapter)
   # Please do not delete this paragraph, because this is adding the files in the project folder to the project.

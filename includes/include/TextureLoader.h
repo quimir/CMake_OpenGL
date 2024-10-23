@@ -17,7 +17,6 @@
 #ifndef CMAKE_OPEN_INCLUDES_INCLUDE_TEXTURELOADER_H_
 #define CMAKE_OPEN_INCLUDES_INCLUDE_TEXTURELOADER_H_
 
-#include <experimental/string>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -202,8 +201,12 @@ class TextureLoader {
    * @return GLuint The OpenGL texture ID.
    */
   GLuint GetTextureId() const;
+  
+  bool IsEmpty()const;
 
  private:
+  
+  void Cleanup();
   /**
    * Converts TextureLoader::Type to GLenum for OpenGL.
    * @param texture_type The texture type.

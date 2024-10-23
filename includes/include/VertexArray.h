@@ -48,14 +48,11 @@
  */
 class VertexArray {
  public:
-  VertexArray();
+  explicit VertexArray(GLsizei n = 1);
 
   ~VertexArray();
 
-  /**
-   * Re-register the class with OpenGL.
-   */
-  void ReGenVertexArrays();
+  void ResetVertexArrays(GLsizei n = 1);
 
   /**
    * bind a vertex array object.when this function is called, a unique 
@@ -101,6 +98,37 @@ class VertexArray {
                  GLsizei stride, const void* pointer) const;
 
   /**
+   * Define an array of generic vertex attribute data. please note that this 
+   * function is called when will call together 
+   * glEnableVertexAttribArray (index).
+   * @param index Specifies the index of the generic vertex attribute to be 
+   * modified.
+   * @param size Specifies the number of components per generic vertex 
+   * attribute. Must be 1, 2, 3, 4. Additionally, the symbolic constant 
+   * GL_BGRA is accepted by glVertexAttribPointer. The initial value is 4.
+   * @param type Specifies the data type of each component in the array. 
+   * The symbolic constants GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT, 
+   * GL_UNSIGNED_SHORT, GL_INT, and GL_UNSIGNED_INT are accepted by 
+   * glVertexAttribPointer and glVertexAttribIPointer. Additionally 
+   * GL_HALF_FLOAT, GL_FLOAT, GL_DOUBLE, GL_FIXED, GL_INT_2_10_10_10_REV, 
+   * GL_UNSIGNED_INT_2_10_10_10_REV and GL_UNSIGNED_INT_10F_11F_11F_REV are 
+   * accepted by glVertexAttribPointer. GL_DOUBLE is also accepted by 
+   * glVertexAttribLPointer and is the only token accepted by the type 
+   * parameter for that function. The initial value is GL_FLOAT.
+   * @param normalized For glVertexAttribPointer, specifies whether 
+   * fixed-point data values should be normalized (GL_TRUE) or converted 
+   * directly as fixed-point values (GL_FALSE) when they are accessed.
+   * @param stride Specifies the byte offset between consecutive generic vertex 
+   * attributes. If stride is 0, the generic vertex attributes are understood 
+   * to be tightly packed in the array. The initial value is 0.
+   * @param pointer Specifies a offset of the first component of the first 
+   * generic vertex attribute in the array in the data store of the buffer 
+   * currently bound to the GL_ARRAY_BUFFER target. The initial value is 0.
+   */
+  void AddBuffer(GLuint index, GLint size, GLenum type, GLboolean normalized,
+                 GLsizei stride, const void* pointer);
+
+  /**
    * Define an array of Int vertex attribute data.
    * @param index Specifies the index of the generic vertex attribute to be 
    * modified.
@@ -125,6 +153,32 @@ class VertexArray {
    */
   void AddIntBuffer(GLuint index, GLint size, GLenum type, GLsizei stride,
                     const void* pointer) const;
+
+  /**
+   * Define an array of Int vertex attribute data.
+   * @param index Specifies the index of the generic vertex attribute to be 
+   * modified.
+   * @param size Specifies the number of components per generic vertex 
+   * attribute. Must be 1, 2, 3, 4. Additionally, the symbolic constant 
+   * GL_BGRA is accepted by glVertexAttribPointer. The initial value is 4.
+   * @param type Specifies the data type of each component in the array. 
+   * The symbolic constants GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT, 
+   * GL_UNSIGNED_SHORT, GL_INT, and GL_UNSIGNED_INT are accepted by 
+   * glVertexAttribPointer and glVertexAttribIPointer. Additionally 
+   * GL_HALF_FLOAT, GL_FLOAT, GL_DOUBLE, GL_FIXED, GL_INT_2_10_10_10_REV, 
+   * GL_UNSIGNED_INT_2_10_10_10_REV and GL_UNSIGNED_INT_10F_11F_11F_REV are 
+   * accepted by glVertexAttribPointer. GL_DOUBLE is also accepted by 
+   * glVertexAttribLPointer and is the only token accepted by the type 
+   * parameter for that function. The initial value is GL_FLOAT.
+   * @param stride Specifies the byte offset between consecutive generic vertex 
+   * attributes. If stride is 0, the generic vertex attributes are understood 
+   * to be tightly packed in the array. The initial value is 0.
+   * @param pointer Specifies a offset of the first component of the first 
+   * generic vertex attribute in the array in the data store of the buffer 
+   * currently bound to the GL_ARRAY_BUFFER target. The initial value is 0.
+   */
+  void AddIntBuffer(GLuint index, GLint size, GLenum type, GLsizei stride,
+                    const void* pointer);
 
   /**
    * Define an array of Long vertex attribute data.
@@ -152,14 +206,59 @@ class VertexArray {
   void AddLongBuffer(GLuint index, GLint size, GLenum type, GLsizei stride,
                      const void* pointer) const;
 
+  /**
+   * Define an array of Long vertex attribute data.
+   * @param index Specifies the index of the generic vertex attribute to be 
+   * modified.
+   * @param size Specifies the number of components per generic vertex 
+   * attribute. Must be 1, 2, 3, 4. Additionally, the symbolic constant 
+   * GL_BGRA is accepted by glVertexAttribPointer. The initial value is 4.
+   * @param type Specifies the data type of each component in the array. 
+   * The symbolic constants GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT, 
+   * GL_UNSIGNED_SHORT, GL_INT, and GL_UNSIGNED_INT are accepted by 
+   * glVertexAttribPointer and glVertexAttribIPointer. Additionally 
+   * GL_HALF_FLOAT, GL_FLOAT, GL_DOUBLE, GL_FIXED, GL_INT_2_10_10_10_REV, 
+   * GL_UNSIGNED_INT_2_10_10_10_REV and GL_UNSIGNED_INT_10F_11F_11F_REV are 
+   * accepted by glVertexAttribPointer. GL_DOUBLE is also accepted by 
+   * glVertexAttribLPointer and is the only token accepted by the type 
+   * parameter for that function. The initial value is GL_FLOAT.
+   * @param stride Specifies the byte offset between consecutive generic 
+   * vertex attributes. If stride is 0, the generic vertex attributes are 
+   * understood to be tightly packed in the array. The initial value is 0.
+   * @param pointer Specifies a offset of the first component of the first 
+   * generic vertex attribute in the array in the data store of the buffer 
+   * currently bound to the GL_ARRAY_BUFFER target. The initial value is 0.
+   */
+  void AddLongBuffer(GLuint index, GLint size, GLenum type, GLsizei stride,
+                     const void* pointer);
+
   GLuint GetVaoId() const;
 
+  GLsizei GetN() const;
+
+  /**
+   * Determine if the vertex data is registered with OpenGL and is already 
+   * populated with data.
+   * 
+   * Note that if you use the const function to fill in the data, it will 
+   * cause IsEmpty() to be incorrect.
+   * @return Returns true if present.
+   */
+  bool IsEmpty() const;
+
  private:
+  void Cleanup();
+
+ private:
+  // Specifies the number of vertex array object names to generate.
+  GLsizei n_;
   /**
    * Bind this ID to the OpenGL vertex array. This ID is also unique to the 
    * class in OpenGL.
    */
   GLuint vao_id_;
+
+  bool has_data_;
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_VERTEXARRAY_H_

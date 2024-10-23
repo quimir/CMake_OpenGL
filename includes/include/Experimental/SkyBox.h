@@ -22,15 +22,19 @@
 #include "include/Shader.h"
 #include "include/VertexArray.h"
 #include "include/Buffers.h"
+#include "include/TextureLoader.h"
 
 class SkyBox {
  public:
-  explicit SkyBox(const std::vector<std::string>& faces_path);
+  explicit SkyBox(const std::vector<std::string>& faces_path,
+                  bool gamma_correction, float gamma_value);
 
   void Bind(glm::mat4 projection, glm::mat4 view);
+  
+  ~SkyBox();
  private:
   Shader* sky_box_shader_;
-  GLuint sky_box_texture_;
+  TextureLoader* sky_box_texture_;
   VertexArray sky_box_vao_;
   Buffers sky_box_vbo_;
 };

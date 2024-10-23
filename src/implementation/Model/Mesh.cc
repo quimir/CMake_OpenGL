@@ -17,6 +17,8 @@
 #include "include/Model/Mesh.h"
 #include <utility>
 #include "include/LoggerSystem.h"
+
+using namespace model;
 const std::vector<meshdata::Vertex>& Mesh::GetVertices() const {
   std::lock_guard<std::mutex> lock(mesh_mutex_);
   return vertices_;
@@ -49,7 +51,8 @@ Mesh::Mesh(const std::vector<meshdata::Vertex>& vertices,
     : vertices_(vertices),
       indices_(indices),
       textures_(texture),
-      ebo_(GL_ELEMENT_ARRAY_BUFFER) {
+      ebo_(1, GL_ELEMENT_ARRAY_BUFFER),
+      vbo_(1) {
   // Now that we have all the required data, set the vertex buffers and its
   // attribute pointers.
   SetupMesh();
@@ -148,13 +151,13 @@ Mesh::Mesh(Mesh&& other) noexcept
     : vertices_(std::move(other.vertices_)),
       indices_(std::move(other.indices_)),
       textures_(std::move(other.textures_)),
-      vao_(other.vao_),
+      vao_(),
       vbo_(other.vbo_),
       ebo_(other.ebo_) {
   other.vertices_.clear();
   other.textures_.clear();
   other.indices_.clear();
-  other.vao_.ReGenVertexArrays();
-  other.vbo_.ReGenBuffers();
-  other.ebo_.ReGenBuffers();
+  other.vao_.ResetVertexArrays();
+  other.vbo_.ResetBuffers(other.vbo_.GetN(), other.vbo_.GetType());
+  other.ebo_.ResetBuffers(other.ebo_.GetN(), other.ebo_.GetType());
 }

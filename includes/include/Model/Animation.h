@@ -29,6 +29,7 @@
 #include "BoneInfo.h"
 #include "Model.h"
 
+namespace model {
 /**
  * The Animation class represents an animation loaded from an external file. 
  * It contains information about bones, their transformations, and the duration 
@@ -158,7 +159,7 @@ class Animation {
   // The duration of the animation in seconds.
   glm::float64 duration_ = 0.0;
   //The ticks per second of the animation.
-  glm::float64 ticks_per_second_=0.0;
+  glm::float64 ticks_per_second_ = 0.0;
   // The bones in the animation.
   std::vector<Bone> bones_;
   // The root node data of the animation hierarchy.
@@ -166,5 +167,6 @@ class Animation {
   // The bone information map.
   std::map<std::string, BoneInfo> bone_info_map_;
 };
+}  // namespace model
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_ANIMATION_H_

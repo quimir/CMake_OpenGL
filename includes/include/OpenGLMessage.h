@@ -49,24 +49,54 @@ class OpenGLMessage {
    * [Error message]|[name of the file where the error occurred] 
    * ([line number where the error occurred]). The principle is that by 
    * attaching to a function, each time the function is scheduled, 
-   * it will first run an additional function and then perform glGetError detection, 
-   * and if there is an error, it will output to the log file in the above format. 
+   * it will first run an additional function and then perform glGetError 
+   * detection, and if there is an error, it will output to the log file in the 
+   * above format. 
    * 
    * Please see details: auto CheckedCall(const char *file, int line, Func func, 
    * 									  Args... args) -> decltype(func( args...));
    * @tparam Func Additional function types that are derived by the compiler 
    * without manual input.
-   * @tparam Args The parameter part of an additional function is a type that is derived 
-   * by the compiler without manual input.
-   * @param func The name attached to the function. Static functions are recommended.
+   * @tparam Args The parameter part of an additional function is a type that 
+   * is derived by the compiler without manual input.
+   * @param func The name attached to the function. Static functions are 
+   * recommended.
    * @param args Parameter of an additional function.
    */
-  template<typename Func, typename... Args>
-  void GetOpenGLCheckError(Func func, Args...args);
+  template <typename Func, typename... Args>
+  void GetOpenGLCheckError(Func func, Args... args);
 
-  static OpenGLMessage &GetInstance();
+  /**
+   * Output OpenGL error information to a log file in the following format: 
+   * [Error message]|[name of the file where the error occurred] 
+   * ([line number where the error occurred]). The principle is that by 
+   * attaching to a function, each time the function is scheduled, 
+   * it will first run an additional function and then perform glGetError 
+   * detection, and if there is an error, it will output to the log file in the 
+   * above format. 
+   * 
+   * Please see details: auto CheckedCall(const char *file, int line, Func func, 
+   * Args... args) -> decltype(func( args...));
+   * @tparam Func Additional function types that are derived by the compiler 
+   * without manual input.
+   * @tparam Args The parameter part of an additional function is a type that 
+   * is derived by the compiler without manual input.
+   * @param file The name of the file to call the function, which defaults to 
+   * __FILE__.
+   * @param line The line number on which the function is called, which defaults
+   * to __LINE__.
+   * @param func The name attached to the function. Static functions are 
+   * recommended.
+   * @param args Parameter of an additional function.
+   */
+  template <typename Func, typename... Args>
+  void GetOpenGLCheckError(const char* file, int line, Func func, Args... args);
 
-  OpenGLMessage &operator=(const OpenGLMessage &) = delete;
+  void GetOpenGLCheckError(const char* file, int line);
+
+  static OpenGLMessage& GetInstance();
+
+  OpenGLMessage& operator=(const OpenGLMessage&) = delete;
 
  private:
   /**
@@ -79,7 +109,7 @@ class OpenGLMessage {
    * Generally provided by __LINE__.
    * @return OpenGL error code.
    */
-  GLenum OpenGLCheckError_(const char *file, int line);
+  GLenum OpenGLCheckError_(const char* file, int line);
 
   /**
    * Additional OpenGL error detection for the currently typed function. 
@@ -105,9 +135,9 @@ class OpenGLMessage {
    * @return Derived from the called function, returns void if the called function is 
    * of type void.
    */
-  template<typename Func, typename... Args>
-  auto CheckedCall(const char *file, int line, Func func, Args... args) -> decltype(func(
-	  args...));
+  template <typename Func, typename... Args>
+  auto CheckedCall(const char* file, int line, Func func, Args... args)
+      -> decltype(func(args...));
 
   /**
    * Callback function for OpenGLDebugMessage to handle a series of OpenGL messages. 
@@ -127,18 +157,16 @@ class OpenGLMessage {
    * @param userParam The userParam will be set to the value passed in the userParam 
    * parameter to the most recent call to
    */
-  static void APIENTRY OpenGlDebugMessageCallback(GLenum source,
-												  GLenum type,
-												  GLuint id,
-												  GLenum severity,
-												  GLsizei length,
-												  const GLchar *message,
-												  const void *userParam);
+  static void APIENTRY OpenGlDebugMessageCallback(GLenum source, GLenum type,
+                                                  GLuint id, GLenum severity,
+                                                  GLsizei length,
+                                                  const GLchar* message,
+                                                  const void* userParam);
 
   OpenGLMessage() = default;
-  OpenGLMessage(const OpenGLMessage &) = default;
+  OpenGLMessage(const OpenGLMessage&) = default;
 };
 
 #include "OpenGLMessage.inl"
 
-#endif //CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLMESSAGE_H_
+#endif  //CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLMESSAGE_H_

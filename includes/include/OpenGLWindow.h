@@ -17,11 +17,17 @@
 #ifndef CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLWINDOW_H_
 #define CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLWINDOW_H_
 
+#include <condition_variable>
+#include <functional>
+#include <mutex>
+#include <queue>
+#include <thread>
+
 #include "FrameBuffer.h"
-#include "GLFW/glfw3.h"
 #include "glad/glad.h"
+#include "GLFW/glfw3.h"
 #include "include/Time/RenderTimer.h"
-#include "include/Widget.h"
+#include "include/Core/Widget.h"
 
 /**
  * OpenGL window, which encapsulates some of the most basic methods of 
@@ -51,13 +57,19 @@ class OpenGLWindow : public Widget {
  public:
   enum class OpenGLType { kCore, kES, kCompatibility, kUnknown };
 
- protected:
   struct OpenGLVersion {
     int major;             // Major version number
     int minor;             // Divided version number
     OpenGLType type;       // OpenGL types
     std::string renderer;  // Display card information.
     std::string vendor;    // Display card manufacturers.
+  };
+
+  struct OpenGLWindowMode {
+    const char* name;
+    int physical_size_x;
+    int physical_size_y;
+    std::vector<GLFWvidmode> opengl_vide_mode;
   };
 
  public:
@@ -171,6 +183,10 @@ class OpenGLWindow : public Widget {
                          int width, int height, const char* title,
                          GLFWmonitor* monitor, GLFWwindow* share);
 
+  const OpenGLWindowMode& GetOpenglWindowMode() const;
+
+  static std::string OpenGLVersionToString(OpenGLType opengl_type) ;
+
  protected:
   /**
    * This virtual function is called for the first time after the first call 
@@ -263,12 +279,15 @@ class OpenGLWindow : public Widget {
   GLFWwindow* window_;
   GLFWcursor* cursor_;
   bool mouse_state_;
+  GLFWmonitor* primary_monitor_;
 
  private:
   // Render timer, which keeps track of the time until the render ends.
   RenderTimer render_timer_;
 
   static OpenGLVersion opengl_version_;
+
+  OpenGLWindowMode opengl_window_mode_;
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLWINDOW_H_

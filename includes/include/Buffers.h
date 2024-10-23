@@ -19,6 +19,7 @@
 
 #include <glad/glad.h>
 #include <vector>
+#include <climits>
 
 /**
  * The Buffer class encapsulates the basic operations of OpenGL buffer objects.
@@ -42,7 +43,7 @@ class Buffers {
    * Please check the details.
    * https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBindBuffer.xhtml
    */
-  explicit Buffers(GLenum type = GL_ARRAY_BUFFER);
+  explicit Buffers(GLsizei n = 1, GLenum type = GL_ARRAY_BUFFER);
 
   /**
    * Destructor for the Buffers class. Cleans up the allocated OpenGL buffer.
@@ -65,13 +66,13 @@ class Buffers {
    * Bind the buffer to the OpenGL context. This method must be called before 
    * the buffer data can be set or used.
    */
-  void Bind();
+  void Bind() const;
 
   /**
    * Unbind the currently bound buffer. After calling this method, the buffer 
    * is no longer used by the OpenGL context.
    */
-  void UnBind();
+  void UnBind() const;
 
   /**
    * Sets the buffer's data.
@@ -81,6 +82,12 @@ class Buffers {
    * GL_DYNAMIC_DRAW, etc.
    */
   void SetData(const void* data, GLsizeiptr size, GLenum usage) const;
+
+  void SetData(const void* data, GLsizeiptr size, GLenum usage);
+
+  void SetSubDate(GLintptr offset, GLsizeiptr size, const void* data) const;
+
+  void SetSubDate(GLintptr offset, GLsizeiptr size, const void* data);
 
   /**
    * Set the buffer data, and use the template method to handle std::vector.
@@ -92,17 +99,21 @@ class Buffers {
   template <typename T>
   void SetData(const std::vector<T>& data, GLenum usage) const;
 
-  /**
-   * Regenerates the buffer with the specified type or the current type if 
-   * UINT_MAX is passed.
-   * @param type The GLenum type for the new buffer, or UINT_MAX to use the 
-   * current type.
-   */
-  void ReGenBuffers(GLenum type = UINT_MAX);
+  template <typename T>
+  void SetData(const std::vector<T>& data, GLenum usage);
+
+  void ResetBuffers(GLsizei n = 1, GLenum type = UINT_MAX);
+
+  GLsizei GetN() const;
+
+  bool IsEmpty() const;
 
  private:
+  GLsizei n_;
   GLuint buffer_id_;  // Buffer object id.
   GLenum type_;       // Buffer types.
+
+  bool has_data_;
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_VERTEXBUFFER_H_

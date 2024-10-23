@@ -17,6 +17,8 @@
 
 #include "include/Model/AssimpGLMHelpers.h"
 
+using namespace model;
+
 std::once_flag AssimpGLMHelpers::initialized_;
 AssimpGLMHelpers* AssimpGLMHelpers::instance_ = nullptr;
 AssimpGLMHelpers& AssimpGLMHelpers::GetInstance() {

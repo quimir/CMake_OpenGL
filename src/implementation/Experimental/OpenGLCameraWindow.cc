@@ -63,5 +63,12 @@ void OpenGLCameraWindow::ProcessInput(GLFWwindow* window) {
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     camera_.ProcessKeyboard(Camera::CameraMovement::kRight,
                             this->GetRenderTimer().ElapsedSeconds() * 10.0f);
+
+  if (glfwGetKey(window,GLFW_KEY_Q)==GLFW_PRESS)
+    camera_.RotateYaw(0.1f);
+
+  if (glfwGetKey(window,GLFW_KEY_E)==GLFW_PRESS)
+    camera_.RotateYaw(-0.1f);
+  
   OpenGLWindow::ProcessInput(window);
 }

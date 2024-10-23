@@ -16,11 +16,20 @@
 
 #include "include/Model/Animator.h"
 #include "include/LoggerSystem.h"
+#include "include/Model/ModelException.h"
+
+using namespace model;
 const std::vector<glm::mat4>& Animator::GetFinalBoneMatrices() const {
   return final_bone_matrices_;
 }
 Animator::Animator(Animation* animation) {
-  SetupAnimator(animation);
+  try {
+    SetupAnimator(animation);
+  } catch (ModelException& e) {
+    std::cerr << "There was an error initializing the Animator class because: "
+              << e.what() << std::endl;
+    exit(0);
+  }
 }
 void Animator::UpdateAnimation(glm::float64 delete_time) {
   this->delta_time_ = delete_time;
@@ -62,15 +71,12 @@ void Animator::CalculateBoneTransform(
 }
 void Animator::SetupAnimator(Animation* animation) {
   if (nullptr == animation) {
-    LoggerSystem::GetInstance().Log(LoggerSystem::Level::kWarning,
-                                    "The animation class is not initialized, "
-                                    "so please initialize it and try again.");
-    throw std::runtime_error(
-        "The animation class is not initialized, "
-        "so please initialize it and try again.");
+    throw ModelException(LoggerSystem::Level::kWarning,
+                         "The animation class is not initialized, "
+                         "so please initialize it and try again.");
   }
   this->current_animation_ = animation;
-  int bone_count = this->current_animation_->GetBones().size();
+  auto bone_count = this->current_animation_->GetBones().size();
   this->final_bone_matrices_ = std::vector<glm::mat4>(bone_count);
   this->current_time_ = 0.0f;
   this->delta_time_ = 0.0f;

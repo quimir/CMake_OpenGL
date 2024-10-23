@@ -29,6 +29,7 @@
 #include "include/Shader.h"
 #include "include/VertexArray.h"
 
+namespace model {
 /**
  * The Mesh class handles the storage and rendering of mesh data, including 
  * vertices, indices, and textures.
@@ -77,7 +78,7 @@ class Mesh {
   /**
    * Destructor for the Mesh class.Cleans up the allocated resources.
    */
-  ~Mesh();
+  ~Mesh() = default;
 
   /**
    * Gets the vertices of the mesh.
@@ -143,5 +144,6 @@ class Mesh {
 
   mutable std::mutex mesh_mutex_;
 };
+}  // namespace model
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_MESH_H_

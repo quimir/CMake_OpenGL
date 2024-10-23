@@ -15,16 +15,25 @@
  ******************************************************************************/
 
 #include "include/Model/Model.h"
+#include "future"
 #include "include/FilePathSystem.h"
 #include "include/LoadImage.h"
 #include "include/LoggerSystem.h"
 #include "include/Model/AssimpGLMHelpers.h"
+#include "include/Model/ModelException.h"
 
 using namespace std;
+using namespace model;
 
 Model::Model(const std::string& path, bool gamma)
     : gamma_correction_(gamma), bone_counter_(0) {
-  LoadModel(path);
+  try {
+    LoadModel(path);
+  } catch (ModelException& e) {
+    std::cerr << "The model is incorrectly loaded for the following reasons: "
+              << e.what() << std::endl;
+    exit(0);
+  }
 }
 
 void Model::Draw(Shader& shader) {
@@ -43,11 +52,9 @@ void Model::LoadModel(const std::string& path) {
   if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||
       !scene->mRootNode)  // If is Not Zero
   {
-    LoggerSystem::GetInstance().Log(
+    throw ModelException(
         LoggerSystem::Level::kWarning,
         std::string("ERROR::ASSIMP:: ") + importer.GetErrorString());
-    throw std::runtime_error(std::string("ERROR::ASSIMP:: ") +
-                             importer.GetErrorString());
   }
 
   directory_ = path.substr(0, path.find_last_of('/'));
@@ -223,9 +230,9 @@ std::vector<meshdata::Texture> Model::LoadMaterialTexture(
       texture.path = str.C_Str();
       textures.push_back(texture);
       /**
-       * Store it as texture loaded for entire model,to ensure we won't 
-       * unnecessarily load duplicate textures.
-       */
+     * Store it as texture loaded for entire model,to ensure we won't 
+     * unnecessarily load duplicate textures.
+     */
       texture_loaded_.push_back(texture);
     }
   }
@@ -270,26 +277,20 @@ void Model::ExtractBoneWeightForVertices(vector<meshdata::Vertex>& vertices,
     }
 
     if (bone_id == -1) {
-      LoggerSystem::GetInstance().Log(
+      throw ModelException(
           LoggerSystem::Level::kWarning,
-          "Error, the skeleton is not present in the skeleton.");
-      throw std::runtime_error(
           "Error, the skeleton is not present in the skeleton.");
     }
 
     auto weights = mesh->mBones[bone_index]->mWeights;
-    unsigned int num_weights = mesh->mBones[bone_index]->mNumWeights;
 
-    for (int weight_index = 0; weight_index < num_weights; ++weight_index) {
+    for (int weight_index = 0;
+         weight_index < mesh->mBones[bone_index]->mNumWeights; ++weight_index) {
       unsigned int vertex_id = weights[weight_index].mVertexId;
       float weight = weights[weight_index].mWeight;
       if (vertex_id > vertices.size()) {
-        LoggerSystem::GetInstance().Log(
+        throw ModelException(
             LoggerSystem::Level::kWarning,
-            "Error, the ID of the skeleton weight does not exist, "
-            "please check the original file before loading the skeleton "
-            "animation.");
-        throw std::runtime_error(
             "Error, the ID of the skeleton weight does not exist, "
             "please check the original file before loading the skeleton "
             "animation.");

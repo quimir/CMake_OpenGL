@@ -22,6 +22,7 @@
 #include "include/VertexArray.h"
 #include "include/Buffers.h"
 #include "include/ImGui/ImGuiDashboard.h"
+#include "include/TextureLoader.h"
 
 class OpenGLMainWindow : public OpenGLCameraWindow {
  protected:
@@ -35,12 +36,14 @@ class OpenGLMainWindow : public OpenGLCameraWindow {
   void PaintGL() override;
   
  private:
-  Shader* shader_;
+  Shader* shader_,*stencil_testing_shader_,*blending_shader_;
   
-  VertexArray cube_vao_,plane_vao_;
-  Buffers cube_vbo_,plane_vbo_;
+  VertexArray cube_vao_,plane_vao_,blending_vao_;
+  Buffers cube_vbo_,plane_vbo_,blending_vbo_;
   
   GLuint cube_texture_,floor_texture_;
+  
+  TextureLoader* blending_texture_loader_;
   
   ImGuiDashboard* imgui_dashboard_;
 };

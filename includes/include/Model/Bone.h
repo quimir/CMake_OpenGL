@@ -27,6 +27,7 @@
 
 #include "AssimpGLMHelpers.h"
 
+namespace model {
 /**
  * This class handles the skeletal information within a model and computes the 
  * motion of each bone over time.This class is usually used in conjunction with 
@@ -50,13 +51,13 @@ class Bone {
     // The time stamp of this key rotation.
     glm::float64 time_stamp;
   };
-  
+
   // Represents a key scale in the animation.
   struct KeyScale {
     // The scale vector of the bone.
-    glm::vec3 scale;       
+    glm::vec3 scale;
     // The time stamp of this key scale.
-    glm::float64 time_stamp;  
+    glm::float64 time_stamp;
   };
 
  public:
@@ -167,5 +168,6 @@ class Bone {
   std::string bone_name_;
   glm::int32 bone_id_;
 };
+}  // namespace model
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_BONE_H_

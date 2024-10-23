@@ -34,7 +34,7 @@ void OpenGLMainWindow::InitializeGL() {
   // Tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
   //LoadImage::GetInstance().EnableStbImageFlipYAxis();
   this->shader_ = new Shader("model.vert", "model.frag");
-  this->model_ = new Model(FilePathSystem::GetInstance().GetPath(
+  this->model_ = new model::Model(FilePathSystem::GetInstance().GetPath(
       "resources/objects/cyborg/cyborg.obj"));
 }
 void OpenGLMainWindow::ResizeGL(int width, int height) {

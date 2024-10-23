@@ -13,7 +13,6 @@ find_path(MODEL_INCLUDE_DIRS "model.h"
 	/usr/local/include
 	/opt/local/include
 	"${CMAKE_CURRENT_SOURCE_DIR}/includes/include/Model"
-	"${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui"
 )
 
 # Find library

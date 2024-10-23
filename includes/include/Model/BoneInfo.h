@@ -19,6 +19,7 @@
 
 #include "glm/glm.hpp"
 
+namespace model {
 struct BoneInfo {
   // Id is index in final bone matrices
   int id;
@@ -26,5 +27,6 @@ struct BoneInfo {
   // offset matrix transforms vertex from model space to bone space
   glm::mat4 offset;
 };
+}  // namespace model
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_BONEINFO_H_

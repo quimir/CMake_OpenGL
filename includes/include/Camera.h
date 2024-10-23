@@ -189,6 +189,8 @@ class Camera {
   void DisEnable();
 
   bool IsEnabled() const;
+  
+  void RotateYaw(glm::float32 angle);
 
   /**
    * The method of obtaining the camera projection matrix.

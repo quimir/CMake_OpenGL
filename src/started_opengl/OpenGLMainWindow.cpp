@@ -96,7 +96,7 @@ void OpenGLMainWindow::ResizeGL(int width, int height) {
                        (float)width / (float)height, 0.1f, 100.0f);
   shader_.Use();
   shader_.SetMat4("projection", projection);
-  this->imgui_dashboard_->ResizeWidget(width, height);
+  this->imgui_dashboard_->ReSizeWidget(width,height);
   glViewport(0, 0, width, height);
 }
 void OpenGLMainWindow::PaintGL() {
@@ -135,9 +135,10 @@ void OpenGLMainWindow::PaintGL() {
   imgui_dashboard_->SetRenderTimer(this->GetRenderTimer());
   imgui_dashboard_->BeginFrame();
   static bool show_dashboard = false;
-  static GLenum depth_mode=GL_ALWAYS;
+  static GLenum depth_mode = GL_ALWAYS;
+  static bool depth_mode_bool = false;
   imgui_dashboard_->ShowToolsPanel(show_dashboard, clear_color, camera_,
-                                   depth_mode, <#initializer #>);
+                                   depth_mode, depth_mode_bool);
   //imgui_dashboard_->Render();
   imgui_dashboard_->EndFrame();
 }

@@ -17,9 +17,9 @@
 #include "SkeletalAnimation.h"
 #include "include/FilePathSystem.h"
 #include "include/LoadImage.h"
-#include "include/LoggerSystem.h"
 
 using namespace std;
+using namespace model;
 
 float last_x;
 float last_y;
@@ -94,7 +94,7 @@ void SkeletalAnimation::InitializeGL() {
   cube_map_shader_->SetInt("texture1", 0);
   cube_map_shader_->UnUse();
 
-  sky_box_shader_ = new SkyBox(faces);
+  sky_box_shader_ = new SkyBox(faces, false, 2.2f);
 }
 void SkeletalAnimation::ResizeGL(int width, int height) {
   glViewport(0, 0, width, height);
@@ -166,7 +166,6 @@ SkeletalAnimation::SkeletalAnimation(int width, int height, const char* title,
   glfwSetCursorPosCallback(window_, mouse_callback);
   glfwSetScrollCallback(window_, scroll_callback);
   HideMouse();
-  camera_.IsEnabled();
 }
 void SkeletalAnimation::mouse_callback(GLFWwindow* window, double x_pos,
                                        double y_pos) {

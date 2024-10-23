@@ -14,26 +14,24 @@
  * limitations under the License.
  ******************************************************************************/
 
-#ifndef CMAKE_OPEN_INCLUDES_INCLUDE_WIDGET_H_
-#define CMAKE_OPEN_INCLUDES_INCLUDE_WIDGET_H_
+#ifndef CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLEXCEPTION_H_
+#define CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLEXCEPTION_H_
 
-class Widget {
+#include <glad/glad.h>
+#include <exception>
+#include <string>
+
+#include "include/Exception.h"
+
+class OpenGLException : public Exception {
  public:
-  Widget(int width, int height);
+  OpenGLException(LoggerSystem::Level level, const std::string& message,
+                  GLenum error_code = UINT_MAX);
 
-  int GetWidth() const;
-  
-  void SetWidth(int width);
-
-  int GetHeight() const;
-
-  void SetHeight(int height);
-  
-  void ResizeWidget(int width,int height);
+  GLenum GetErrorCode() const;
 
  private:
-  int width_;
-  int height_;
+  GLenum error_code_;
 };
 
-#endif  //CMAKE_OPEN_INCLUDES_INCLUDE_WIDGET_H_
+#endif  //CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLEXCEPTION_H_

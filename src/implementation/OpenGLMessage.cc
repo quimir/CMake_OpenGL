@@ -17,6 +17,7 @@
 #include "include/OpenGLMessage.h"
 #include "include/LoggerSystem.h"
 #include <string>
+#include "include/OpenGLException.h"
 
 using namespace std;
 
@@ -164,4 +165,7 @@ GLenum OpenGLMessage::OpenGLCheckError_(const char *file, int line) {
 OpenGLMessage &OpenGLMessage::GetInstance() {
   static OpenGLMessage instance;
   return instance;
+}
+void OpenGLMessage::GetOpenGLCheckError(const char* file, int line) {
+  OpenGLCheckError_(file,line);
 }

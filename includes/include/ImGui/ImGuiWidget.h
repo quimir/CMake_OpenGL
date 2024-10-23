@@ -19,12 +19,13 @@
 
 #include <string>
 
-#include "GLFW/glfw3.h"
 #include "ImGuiconfig.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
-#include "include/Widget.h"
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
+#include "include/Core/Widget.h"
 
 /**
  * Create a simple ImGui window, implemented with OpenGL3 and GLFW. You can use 
@@ -57,7 +58,7 @@ class ImGuiWidget : public Widget {
   ImGuiWidget& operator=(const ImGuiWidget& other) = delete;
 
   virtual ~ImGuiWidget();
-  
+
   /**
    * Start a new ImGui frame, must be called at the beginning of each render 
    * frame.
@@ -66,7 +67,7 @@ class ImGuiWidget : public Widget {
    * ImGui for drawing new frames.
    */
   virtual void BeginFrame();
-  
+
   /**
    * To end the current ImGui frame, must be called at the end of each render 
    * frame. 
@@ -92,6 +93,8 @@ class ImGuiWidget : public Widget {
   virtual void Render();
 
   ImGuiIO* GetIo() const;
+  
+  GLFWwindow * GetOpenGLWindow();
 
  private:
   /**
@@ -100,7 +103,7 @@ class ImGuiWidget : public Widget {
    */
   void Initialized(GLFWwindow* window);
 
-  void Cleanup();
+  virtual void Cleanup();
 
   /**
    * Get the version of OpenGL. The version of OpenGL is queried as GL_VERSION, 
@@ -114,6 +117,8 @@ class ImGuiWidget : public Widget {
   std::string ExtractMajorVersion(const std::string& opengl_version_string);
 
  private:
+  GLFWwindow* window_;
+  
   ImGuiIO* io_;
 };
 

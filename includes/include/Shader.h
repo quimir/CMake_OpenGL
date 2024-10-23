@@ -86,7 +86,25 @@ class Shader {
    * @param value For the scalar commands, specifies the new values to be used
    * for the specified uniform variable.
    */
+  void SetBool(const std::string& name, bool value) const;
+
+  /**
+   * Specify the value of a uniform variable for the current program object.If 
+   * it fails or can't find uniform then it emits a message in the log file.
+   * @param name Specifies the name of the uniform variable to be modified.
+   * @param value For the scalar commands, specifies the new values to be used
+   * for the specified uniform variable.
+   */
   void SetInt(const std::string& name, int value);
+
+  /**
+   * Specify the value of a uniform variable for the current program object.If 
+   * it fails or can't find uniform then it emits a message in the log file.
+   * @param name Specifies the name of the uniform variable to be modified.
+   * @param value For the scalar commands, specifies the new values to be used
+   * for the specified uniform variable.
+   */
+  void SetInt(const std::string& name, int value) const;
 
   /**
    * Specify the value of a uniform variable for the current program object.If 
@@ -101,10 +119,28 @@ class Shader {
    * Specify the value of a uniform variable for the current program object.If 
    * it fails or can't find uniform then it emits a message in the log file.
    * @param name Specifies the name of the uniform variable to be modified.
+   * @param value For the scalar commands, specifies the new values to be used
+   * for the specified uniform variable.
+   */
+  void SetFloat(const std::string& name, float value) const;
+
+  /**
+   * Specify the value of a uniform variable for the current program object.If 
+   * it fails or can't find uniform then it emits a message in the log file.
+   * @param name Specifies the name of the uniform variable to be modified.
    * @param x new x value.
    * @param y new y value.
    */
   void SetVec2(const std::string& name, float x, float y);
+
+  /**
+   * Specify the value of a uniform variable for the current program object.If 
+   * it fails or can't find uniform then it emits a message in the log file.
+   * @param name Specifies the name of the uniform variable to be modified.
+   * @param x new x value.
+   * @param y new y value.
+   */
+  void SetVec2(const std::string& name, float x, float y) const;
 
   /**
    * Specify the value of a uniform variable for the current program object
@@ -126,7 +162,31 @@ class Shader {
    * @param value  specifies a pointer to an array of count values that will 
    * be used to update the specified uniform variable.
    */
+  void SetVec2(const std::string& name, GLsizei count,
+               const GLfloat* value) const;
+
+  /**
+   * Specify the value of a uniform variable for the current program object
+   * @param name Specifies the name of the uniform variable to be modified.
+   * @param count specifies the number of elements that are to be modified. 
+   * This should be 1 if the targeted uniform variable is not an array, 
+   * and 1 or more if it is an array.
+   * @param value  specifies a pointer to an array of count values that will 
+   * be used to update the specified uniform variable.
+   */
   void SetVec2(const std::string& name, GLsizei count, const glm::vec2& value);
+
+  /**
+   * Specify the value of a uniform variable for the current program object
+   * @param name Specifies the name of the uniform variable to be modified.
+   * @param count specifies the number of elements that are to be modified. 
+   * This should be 1 if the targeted uniform variable is not an array, 
+   * and 1 or more if it is an array.
+   * @param value  specifies a pointer to an array of count values that will 
+   * be used to update the specified uniform variable.
+   */
+  void SetVec2(const std::string& name, GLsizei count,
+               const glm::vec2& value) const;
 
   /**
    * Specify the value of a uniform variable for the current program object.If 
@@ -136,6 +196,15 @@ class Shader {
    * used to update the specified uniform variable.
    */
   void SetVec2(const std::string& name, const glm::vec2& value);
+
+  /**
+   * Specify the value of a uniform variable for the current program object.If 
+   * it fails or can't find uniform then it emits a message in the log file.
+   * @param name Specifies the name of the uniform variable to be modified.
+   * @param value specifies a pointer to an array of count values that will be 
+   * used to update the specified uniform variable.
+   */
+  void SetVec2(const std::string& name, const glm::vec2& value) const;
 
   /**
    * Specify the value of a uniform variable for the current program object.If 
@@ -151,10 +220,54 @@ class Shader {
    * Specify the value of a uniform variable for the current program object.If 
    * it fails or can't find uniform then it emits a message in the log file.
    * @param name Specifies the name of the uniform variable to be modified.
+   * @param x new x value.
+   * @param y new y value.
+   * @param z new z value.
+   */
+  void SetVec3(const std::string& name, float x, float y, float z) const;
+
+  /**
+   * Specify the value of a uniform variable for the current program object.If 
+   * it fails or can't find uniform then it emits a message in the log file.
+   * @param name Specifies the name of the uniform variable to be modified.
    * @param value specifies a pointer to an array of count values that will be 
    * used to update the specified uniform variable.
    */
   void SetVec3(const std::string& name, const glm::vec3& value);
+
+  /**
+   * Specify the value of a uniform variable for the current program object.If 
+   * it fails or can't find uniform then it emits a message in the log file.
+   * @param name Specifies the name of the uniform variable to be modified.
+   * @param value specifies a pointer to an array of count values that will be 
+   * used to update the specified uniform variable.
+   */
+  void SetVec3(const std::string& name, const glm::vec3& value) const;
+
+  /**
+   * Specify the value of a uniform variable for the current program object.If 
+   * it fails or can't find uniform then it emits a message in the log file.
+   * @param name Specifies the name of the uniform variable to be modified.
+   * @param count Specifies the number of vectors to modify. 1 if the target 
+   * uniform variable is not a vector array. 1 or more if the target uniform 
+   * variable is an array of vectors.
+   * @param value specifies a pointer to an array of count values that will be 
+   * used to update the specified uniform variable.
+   */
+  void SetVec3(const std::string& name, GLsizei count, const GLfloat* value);
+
+  /**
+   * Specify the value of a uniform variable for the current program object.If 
+   * it fails or can't find uniform then it emits a message in the log file.
+   * @param name Specifies the name of the uniform variable to be modified.
+   * @param count Specifies the number of vectors to modify. 1 if the target 
+   * uniform variable is not a vector array. 1 or more if the target uniform 
+   * variable is an array of vectors.
+   * @param value specifies a pointer to an array of count values that will be 
+   * used to update the specified uniform variable.
+   */
+  void SetVec3(const std::string& name, GLsizei count,
+               const GLfloat* value) const;
 
   /**
    * Specify the value of a uniform variable for the current program object.If 
@@ -275,6 +388,20 @@ class Shader {
   void SetMat4(const std::string& name, const glm::mat4& mat4);
 
   /**
+   * Specify the value of a uniform variable for the current program object.The 
+   * default population is glUniformMatrix4fv(glGetUniformLocation(
+   * this->id,name.c_str),1,GL_FALSE,&mat4[0][0]). Note that using this
+   * function is just a convenience; for more detailed manipulation use:
+   * void SetMat4(const std::string& name, GLsizei count, GLboolean transpose,
+   * const GLfloat* value);or void SetMat4(const std::string& name, 
+   * GLsizei count, GLboolean transpose,const glm::mat4& mat4);
+   * @param name Specifies the name of the uniform variable to be modified.
+   * @param mat4 specifies a pointer to an array of count values that will 
+   * be used to update the specified uniform variable.
+   */
+  void SetMat4(const std::string& name, const glm::mat4& mat4) const;
+
+  /**
    * Specifies the location of the uniform variable to be modified.
    * @param name Specifies the name of the uniform variable to be modified.
    * @param count specifies the number of matrices that are to be modified. 
@@ -287,6 +414,20 @@ class Shader {
    */
   void SetMat4(const std::string& name, GLsizei count, GLboolean transpose,
                const GLfloat* value);
+
+  /**
+   * Specifies the location of the uniform variable to be modified.
+   * @param name Specifies the name of the uniform variable to be modified.
+   * @param count specifies the number of matrices that are to be modified. 
+   * This should be 1 if the targeted uniform variable is not an array of 
+   * matrices, and 1 or more if it is an array of matrices.
+   * @param transpose For the matrix commands, specifies whether to transpose 
+   * the matrix as the values are loaded into the uniform variable.
+   * @param value specifies a pointer to an array of count values that will 
+   * be used to update the specified uniform variable.
+   */
+  void SetMat4(const std::string& name, GLsizei count, GLboolean transpose,
+               const GLfloat* value) const;
 
   /**
    * Specifies the location of the uniform variable to be modified.
@@ -321,7 +462,7 @@ class Shader {
    * dimension.
    */
   void SetDispatchCompute(GLuint num_groups_x, GLuint num_groups_y,
-                          GLuint num_groups_z);
+                          GLuint num_groups_z) const;
 
   /**
    * defines a barrier ordering the memory transactions issued prior to the 
@@ -342,7 +483,7 @@ class Shader {
    * Function details please check: 
    * https://registry.khronos.org/OpenGL-Refpages/gl4/html/glMemoryBarrier.xhtml
    */
-  void SetMemoryBarrier(GLbitfield barriers);
+  void SetMemoryBarrier(GLbitfield barriers) const;
 
   /**
    * Build an OpenGL shader. It must have a path for a vertex shader and a path 
@@ -429,8 +570,12 @@ class Shader {
    * OpenGL.
    */
   static void DisEnableUseCheck();
-  
-  void Cleanup();
+
+  /**
+   * Determine if the shader is registered with OpenGL.
+   * @return No registration returns true.
+   */
+  bool IsEmpty() const;
 
  private:
   /**
@@ -449,6 +594,8 @@ class Shader {
    */
   std::string ShaderErrorTypeToString(ShaderErrorType type);
 
+  ShaderErrorType ShaderTypeToShaderErrorType(GLuint shader_type) const;
+
   /**
    * Find the position of the uniform in the shader. If an error is found it is 
    * logged and reported to the log file, otherwise the location of the uniform 
@@ -458,6 +605,16 @@ class Shader {
    * or -1 otherwise.
    */
   GLint CheckUniformExists(const std::string& uniform_name);
+
+  /**
+   * Find the position of the uniform in the shader. If an error is found it is 
+   * logged and reported to the log file, otherwise the location of the uniform 
+   * in the shader is returned.
+   * @param uniform_name Uniform name
+   * @return Returns the position of uniform in the shader on success,
+   * or -1 otherwise.
+   */
+  GLint CheckUniformExists(const std::string& uniform_name) const;
 
   /**
    * Find the position of the uniform block in the shader. If an error is found 
@@ -470,10 +627,18 @@ class Shader {
   GLuint CheckUniformBlockExists(const std::string& block_name);
 
   /**
-   * Determine the OpenGL version.When using subdivide shaders and compute 
-   * shaders, you need to specify that the OpenGL version allows the use of 
-   * these shaders if the OpenGL version is passed, or throw an exception if 
-   * it is not.
+   * Find the position of the uniform block in the shader. If an error is found 
+   * it is logged and reported to the log file, otherwise the location of the 
+   * uniform block in the shader is returned.
+   * @param block_name Uniform block name
+   * @return Returns the position of uniform block in the shader on success,
+   * or -1 otherwise.
+   */
+  GLuint CheckUniformBlockExists(const std::string& block_name) const;
+
+  /**
+   * Query the native OpenGL version number. If the native OpenGL version 
+   * number is less than the entered version number, an exception is thrown.
    * @param major_number The large version takes x of x.y as the input target.
    * @param minor_number The minor version takes y of x.y as the input target.
    */
@@ -497,6 +662,25 @@ class Shader {
                    const std::string& tess_control_path,
                    const std::string& tess_evaluation_path,
                    const std::string& compute_path);
+
+  void Cleanup();
+
+  /**
+   * Checks if OpenGL is already enabled and throws an exception if it is not.
+   */
+  void CheckActivatedOpenGL();
+
+  /**
+   * 
+   * @param uniform_name 
+   */
+  void CheckActiveUniform(const std::string& uniform_name) const;
+
+  void CheckActiveUniformBlock(const std::string& uniform_block_name) const;
+
+  std::string ReadShaderFile(const std::string& path) const;
+
+  GLuint CompileShader(const std::string& source_code, GLenum shader_type);
 
  private:
   // Record the ID of the shader registered with OpenGL.

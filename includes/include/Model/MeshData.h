@@ -21,6 +21,7 @@
 
 #include "glm/glm.hpp"
 
+namespace model {
 namespace meshdata {
 constexpr glm::int32 kMaxBoneInfluence = 4;
 
@@ -50,5 +51,6 @@ struct Texture {
   std::string path;
 };
 }  // namespace meshdata
+}  // namespace model
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_MESHDATA_H_

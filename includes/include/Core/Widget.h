@@ -14,21 +14,39 @@
  * limitations under the License.
  ******************************************************************************/
 
-#include "include/Widget.h"
-Widget::Widget(int width, int height) : width_(width), height_(height) {}
-int Widget::GetWidth() const {
-  return width_;
-}
-void Widget::SetWidth(int width) {
-  Widget::width_ = width;
-}
-int Widget::GetHeight() const {
-  return height_;
-}
-void Widget::SetHeight(int height) {
-  Widget::height_ = height;
-}
-void Widget::ResizeWidget(int width, int height) {
-  this->width_ = width;
-  this->height_ = height;
-}
+#ifndef CMAKE_OPEN_INCLUDES_INCLUDE_CORE_WIDGET_H_
+#define CMAKE_OPEN_INCLUDES_INCLUDE_CORE_WIDGET_H_
+
+#include "Rect.h"
+
+class Widget {
+ public:
+  explicit Widget(const Rect& rect);
+
+  explicit Widget(int x, int y, int width, int height);
+
+  void ResetWidget(int x, int y, int width, int height);
+
+  void ResetWidget(const Rect& rect_angle);
+
+  const Rect& GetRect() const;
+
+  Rect& RGetRect();
+
+  void SetRect(const Rect& rect);
+
+  int GetWidth() const;
+
+  int GetHeight() const;
+
+  void SetWidth(int width);
+
+  void SetHeight(int height);
+  
+  void ReSizeWidget(int width,int height);
+
+ private:
+  Rect rect_;
+};
+
+#endif  //CMAKE_OPEN_INCLUDES_INCLUDE_CORE_WIDGET_H_

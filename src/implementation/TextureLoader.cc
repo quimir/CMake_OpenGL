@@ -17,6 +17,7 @@
 #include "include/TextureLoader.h"
 #include <stdexcept>
 #include "include/LoggerSystem.h"
+#include "include/OpenGLException.h"
 #include "include/OpenGLStateManager.h"
 
 void TextureLoader::EnableStbImageFlipYAxis() {
@@ -50,7 +51,8 @@ GLenum TextureLoader::GetGLTextureType(TextureLoader::Type texture_type) const {
     case Type::kTexture2DMultisampleArray:
       return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
     default:
-      throw std::invalid_argument("Invalid texture type");
+      throw OpenGLException(LoggerSystem::Level::kWarning,
+                            "Invalid texture type");
   }
 }
 GLenum TextureLoader::DetermineDataFormat(int nr_channels) {
@@ -62,7 +64,8 @@ GLenum TextureLoader::DetermineDataFormat(int nr_channels) {
     case 4:
       return GL_RGBA;
     default:
-      throw std::runtime_error("Unknown number of channels");
+      throw OpenGLException(LoggerSystem::Level::kWarning,
+                            "Unknown number of channels");
   }
 }
 void* TextureLoader::LoadImageData(bool is_hdr, const std::string& path,
@@ -80,18 +83,14 @@ GLuint TextureLoader::ConfigureTextureAutoParams(const std::string& path,
                                                  GLenum texture_type,
                                                  TextureConfig texture_config) {
   if (path.empty()) {
-    LoggerSystem::GetInstance().Log(
+    throw OpenGLException(
         LoggerSystem::Level::kWarning,
-        "No texture loading, please recheck if texture path exists.");
-    throw std::runtime_error(
         "No texture loading, please recheck if texture path exists.");
   }
 
   if (!OpenGLStateManager::GetInstance().IsEnableOpenGL()) {
-    LoggerSystem::GetInstance().Log(
+    throw OpenGLException(
         LoggerSystem::Level::kError,
-        "Serious error! Initialize OpenGL before building shaders!");
-    throw std::runtime_error(
         "Serious error! Initialize OpenGL before building shaders!");
   }
 
@@ -132,14 +131,10 @@ GLuint TextureLoader::ConfigureTextureAutoParams(const std::string& path,
       glTexBuffer(texture_type, internalformat, buffer);
       glBindBuffer(texture_type, 0);
     } else {
-      LoggerSystem::GetInstance().Log(LoggerSystem::Level::kWarning,
-                                      "The type is not defined and cannot be "
-                                      "registered with OpenGL. Type name: " +
-                                          std::to_string(texture_type));
-      throw std::runtime_error(
-          "The type is not defined and cannot be registered with OpenGL. Type "
-          "name: " +
-          std::to_string(texture_type));
+      throw OpenGLException(LoggerSystem::Level::kWarning,
+                            "The type is not defined and cannot be "
+                            "registered with OpenGL. Type name: " +
+                                std::to_string(texture_type));
     }
 
     glTexParameteri(texture_type, GL_TEXTURE_WRAP_S,
@@ -159,10 +154,8 @@ GLuint TextureLoader::ConfigureTextureAutoParams(const std::string& path,
     stbi_image_free(data);
   } else {
     stbi_image_free(data);
-    LoggerSystem::GetInstance().Log(
-        LoggerSystem::Level::kWarning,
-        "Failed to load texture from path: " + path);
-    throw std::runtime_error("Failed to load texture from path: " + path);
+    throw OpenGLException(LoggerSystem::Level::kWarning,
+                          "Failed to load texture from path: " + path);
   }
 
   return texture;
@@ -172,18 +165,14 @@ GLuint TextureLoader::ConfigureTextureAutoParams(
     const std::vector<std::string>& paths, GLenum texture_type,
     TextureConfig texture_config) {
   if (paths.empty()) {
-    LoggerSystem::GetInstance().Log(
+    throw OpenGLException(
         LoggerSystem::Level::kWarning,
-        "No texture loading, please recheck if texture path exists.");
-    throw std::runtime_error(
         "No texture loading, please recheck if texture path exists.");
   }
 
   if (!OpenGLStateManager::GetInstance().IsEnableOpenGL()) {
-    LoggerSystem::GetInstance().Log(
+    throw OpenGLException(
         LoggerSystem::Level::kError,
-        "Serious error! Initialize OpenGL before building shaders!");
-    throw std::runtime_error(
         "Serious error! Initialize OpenGL before building shaders!");
   }
 
@@ -203,10 +192,8 @@ GLuint TextureLoader::ConfigureTextureAutoParams(
       for (auto& layer : layers) {
         stbi_image_free(layer);
       }
-      LoggerSystem::GetInstance().Log(
-          LoggerSystem::Level::kWarning,
-          "Failed to load texture from path: " + path);
-      throw std::runtime_error("Failed to load texture from path: " + path);
+      throw OpenGLException(LoggerSystem::Level::kWarning,
+                            "Failed to load texture from path: " + path);
     }
   }
 
@@ -245,14 +232,10 @@ GLuint TextureLoader::ConfigureTextureAutoParams(
                    width, height, 0, format, type, layers[i]);
     }
   } else {
-    LoggerSystem::GetInstance().Log(LoggerSystem::Level::kWarning,
-                                    "The type is not defined and cannot be "
-                                    "registered with OpenGL. Type name: " +
-                                        std::to_string(texture_type));
-    throw std::runtime_error(
-        "The type is not defined and cannot be registered with OpenGL. Type "
-        "name: " +
-        std::to_string(texture_type));
+    throw OpenGLException(LoggerSystem::Level::kWarning,
+                          "The type is not defined and cannot be "
+                          "registered with OpenGL. Type name: " +
+                              std::to_string(texture_type));
   }
 
   glTexParameteri(texture_type, GL_TEXTURE_WRAP_S, texture_config.wrap_s_mode);
@@ -278,18 +261,14 @@ GLuint TextureLoader::ConfigureTextureAutoParams(
     const std::vector<std::vector<std::string>>& paths, GLenum texture_type,
     TextureConfig texture_config) {
   if (paths.empty()) {
-    LoggerSystem::GetInstance().Log(
+    throw OpenGLException(
         LoggerSystem::Level::kWarning,
-        "No texture loading, please recheck if texture path exists.");
-    throw std::runtime_error(
         "No texture loading, please recheck if texture path exists.");
   };
 
   if (!OpenGLStateManager::GetInstance().IsEnableOpenGL()) {
-    LoggerSystem::GetInstance().Log(
+    throw OpenGLException(
         LoggerSystem::Level::kError,
-        "Serious error! Initialize OpenGL before building shaders!");
-    throw std::runtime_error(
         "Serious error! Initialize OpenGL before building shaders!");
   }
 
@@ -314,10 +293,8 @@ GLuint TextureLoader::ConfigureTextureAutoParams(
         for (auto& layer : layer_data) {
           stbi_image_free(layer);
         }
-        LoggerSystem::GetInstance().Log(
-            LoggerSystem::Level::kWarning,
-            "Failed to load texture from path: " + i[j]);
-        throw std::runtime_error("Failed to load texture from path: " + i[j]);
+        throw OpenGLException(LoggerSystem::Level::kWarning,
+                              "Failed to load texture from path: " + i[j]);
       }
     }
   }
@@ -366,10 +343,8 @@ GLuint TextureLoader::ConfigureTextureMultisample(
     GLsizei height, GLsizei depth, GLboolean fixed_sample_locations,
     GLint mag_filter_mode, GLint min_filter_mode) {
   if (!OpenGLStateManager::GetInstance().IsEnableOpenGL()) {
-    LoggerSystem::GetInstance().Log(
+    throw OpenGLException(
         LoggerSystem::Level::kError,
-        "Serious error! Initialize OpenGL before building shaders!");
-    throw std::runtime_error(
         "Serious error! Initialize OpenGL before building shaders!");
   }
   GLuint texture;
@@ -394,11 +369,16 @@ TextureLoader::TextureLoader(TextureLoader::Type texture_type,
                              GLint wrap_t_mode, GLint mag_filter_mode,
                              GLint min_filter_mode, GLboolean gamma_correction,
                              float gamma_value) {
-  texture_type_ = GetGLTextureType(texture_type);
-  texture_id_ = ConfigureTextureAutoParams(
-      path, texture_type_,
-      {wrap_s_mode, wrap_t_mode, 0, mag_filter_mode, min_filter_mode,
-       gamma_correction, gamma_value});
+  try {
+    texture_type_ = GetGLTextureType(texture_type);
+    texture_id_ = ConfigureTextureAutoParams(
+        path, texture_type_,
+        {wrap_s_mode, wrap_t_mode, 0, mag_filter_mode, min_filter_mode,
+         gamma_correction, gamma_value});
+  } catch (OpenGLException& e) {
+    std::cerr << "Texture creation failed because: " << e.what() << std::endl;
+    exit(0);
+  }
 }
 TextureLoader::TextureLoader(Type texture_type,
                              const std::vector<std::string>& paths,
@@ -406,21 +386,31 @@ TextureLoader::TextureLoader(Type texture_type,
                              GLint wrap_r_mode, GLint mag_filter_mode,
                              GLint min_filter_mode, GLboolean gamma_correction,
                              float gamma_value) {
-  texture_type_ = GetGLTextureType(texture_type);
-  texture_id_ = ConfigureTextureAutoParams(
-      paths, texture_type_,
-      {wrap_s_mode, wrap_t_mode, wrap_r_mode, mag_filter_mode, min_filter_mode,
-       gamma_correction, gamma_value});
+  try {
+    texture_type_ = GetGLTextureType(texture_type);
+    texture_id_ = ConfigureTextureAutoParams(
+        paths, texture_type_,
+        {wrap_s_mode, wrap_t_mode, wrap_r_mode, mag_filter_mode,
+         min_filter_mode, gamma_correction, gamma_value});
+  } catch (OpenGLException& e) {
+    std::cerr << "Texture creation failed because: " << e.what() << std::endl;
+    exit(0);
+  }
 }
 TextureLoader::TextureLoader(TextureLoader::Type texture_type, GLsizei samples,
                              GLenum internalformat, GLsizei width,
                              GLsizei height, GLsizei depth,
                              GLboolean fixed_sample_locations,
                              GLint mag_filter_mode, GLint min_filter_mode) {
-  texture_type_ = GetGLTextureType(texture_type);
-  ConfigureTextureMultisample(texture_type_, samples, internalformat, width,
-                              height, depth, fixed_sample_locations,
-                              mag_filter_mode, min_filter_mode);
+  try {
+    texture_type_ = GetGLTextureType(texture_type);
+    ConfigureTextureMultisample(texture_type_, samples, internalformat, width,
+                                height, depth, fixed_sample_locations,
+                                mag_filter_mode, min_filter_mode);
+  } catch (OpenGLException& e) {
+    std::cerr << "Texture creation failed because: " << e.what() << std::endl;
+    exit(0);
+  }
 }
 TextureLoader::TextureLoader(Type texture_type,
                              const std::vector<std::vector<std::string>>& paths,
@@ -428,27 +418,29 @@ TextureLoader::TextureLoader(Type texture_type,
                              GLint wrap_r_mode, GLint mag_filter_mode,
                              GLint min_filter_mode, GLboolean gamma_correction,
                              float gamma_value) {
-  texture_type_ = GetGLTextureType(texture_type);
-  texture_id_ = ConfigureTextureAutoParams(
-      paths, texture_type_,
-      {wrap_s_mode, wrap_t_mode, wrap_r_mode, mag_filter_mode, min_filter_mode,
-       gamma_correction, gamma_value});
+  try {
+    texture_type_ = GetGLTextureType(texture_type);
+    texture_id_ = ConfigureTextureAutoParams(
+        paths, texture_type_,
+        {wrap_s_mode, wrap_t_mode, wrap_r_mode, mag_filter_mode,
+         min_filter_mode, gamma_correction, gamma_value});
+  } catch (OpenGLException& e) {
+    std::cerr << "Texture creation failed type: " << texture_type_
+              << " because:" << e.what() << std::endl;
+    exit(0);
+  }
 }
 GLuint TextureLoader::ConfigureAssimpTextureAutoParams(
     const aiTexture* ai_texture, GLenum texture_type,
     TextureConfig texture_config) {
   if (nullptr == ai_texture) {
-    LoggerSystem::GetInstance().Log(
-        LoggerSystem::Level::kWarning,
-        "Error! The texture target does not exist.");
-    return 0;
+    throw OpenGLException(LoggerSystem::Level::kWarning,
+                          "Error! The texture target does not exist.");
   }
 
   if (!OpenGLStateManager::GetInstance().IsEnableOpenGL()) {
-    LoggerSystem::GetInstance().Log(
+    throw OpenGLException(
         LoggerSystem::Level::kError,
-        "Serious error! Initialize OpenGL before building shaders!");
-    throw std::runtime_error(
         "Serious error! Initialize OpenGL before building shaders!");
   }
 
@@ -511,10 +503,9 @@ GLuint TextureLoader::ConfigureAssimpTextureAutoParams(
 
     stbi_image_free(image_data);
   } else {
-    LoggerSystem::GetInstance().Log(
-        LoggerSystem::Level::kWarning,
-        "Texture failed to load at path: " +
-            std::string(ai_texture->mFilename.C_Str()));
+    throw OpenGLException(LoggerSystem::Level::kWarning,
+                          "Texture failed to load at path: " +
+                              std::string(ai_texture->mFilename.C_Str()));
   }
 
   stbi_image_free(image_data);
@@ -538,7 +529,8 @@ GLint TextureLoader::DetermineInternalFormat(int nr_channels,
       internal_format = gamma_correction ? GL_SRGB_ALPHA : GL_RGBA;
       break;
     default:
-      throw std::runtime_error("Unknown number of channels");
+      throw OpenGLException(LoggerSystem::Level::kWarning,
+                            "Unknown number of channels");
   }
 
   return internal_format;
@@ -555,7 +547,8 @@ GLint TextureLoader::DetermineHDRInternalFormat(int nr_channels) {
     case 4:
       internal_format = GL_RGBA32F;
     default:
-      throw std::runtime_error("Unknown number of channels");
+      throw OpenGLException(LoggerSystem::Level::kWarning,
+                            "Unknown number of channels");
   }
 
   return internal_format;
@@ -570,9 +563,7 @@ void TextureLoader::UnBind() {
   glBindTexture(texture_type_, 0);
 }
 TextureLoader::~TextureLoader() {
-  if (texture_id_ != 0) {
-    glDeleteTextures(1, &texture_id_);
-  }
+  Cleanup();
 }
 void TextureLoader::ConfigureTextureMipMap(GLint min_filter_mode,
                                            GLenum texture_type) {
@@ -594,9 +585,22 @@ void TextureLoader::ResetActiveTexture() {
 TextureLoader::TextureLoader(TextureLoader::Type texture_type,
                              const aiTexture* ai_texture,
                              TextureLoader::TextureConfig texture_config) {
-  texture_type_ = GetGLTextureType(texture_type);
-  texture_type_ = ConfigureAssimpTextureAutoParams(ai_texture, texture_type_,
-                                                   texture_config);
+  try {
+    texture_type_ = GetGLTextureType(texture_type);
+    texture_type_ = ConfigureAssimpTextureAutoParams(ai_texture, texture_type_,
+                                                     texture_config);
+  } catch (OpenGLException& e) {
+    std::cerr << "Texture creation failed because: " << e.what() << std::endl;
+  }
+}
+void TextureLoader::Cleanup() {
+  if (texture_id_ != 0) {
+    glDeleteTextures(1, &texture_id_);
+    texture_id_ = 0;
+  }
+}
+bool TextureLoader::IsEmpty() const {
+  return texture_id_ == 0;
 }
 
 template <typename T>

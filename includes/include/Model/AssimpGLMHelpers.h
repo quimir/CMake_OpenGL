@@ -22,6 +22,7 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/quaternion.hpp"
 
+namespace model {
 /**
  * The AssimpGLMHelpers class provides utility functions for converting 
  * Assimp's matrix and vector types to GLM's matrix and vector types. It is 
@@ -104,5 +105,6 @@ class AssimpGLMHelpers {
    */
   static AssimpGLMHelpers* instance_;
 };
+}  // namespace model
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_ASSIMPGLMHELPERS_H_

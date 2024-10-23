@@ -67,6 +67,8 @@ class FilePathSystem {
   std::string GetResourcesPath(
       const std::string& path,
       const std::string& resources_path = std::string("resources/"));
+  
+  std::string GetGLSLPath(const std::string& path);
 
   static FilePathSystem& GetInstance();
 
