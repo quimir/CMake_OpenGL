@@ -30,13 +30,15 @@ class ImGuiMainWindow : public ImGuiWidget {
 
   void ShowComputerSettingWindow(
       const OpenGLWindow::OpenGLVersion& opengl_version, GLFWmonitor* monitor);
-  
-  void ShowCameraSettingWindow(Camera& camera);
+
+  void ShowCameraSettingWindow(Camera& camera, bool& open_mouse);
   
   void ShowLightWindow(int& light_value,float& k_ambient);
 
-  void ShowShadow(float& bias_value, float& max_light_distance,
+  void ShowMappingShadow(float& bias_value, float& max_light_distance,
                   float& min_radius, float& max_radius);
+  
+  void ShowShadow(bool& open_shadow,bool& shadow_mode);
 };
 
 #endif  //CMAKE_OPEN_SRC_ADVANCED_LIGHTING_IMGUIMAINWINDOW_H_

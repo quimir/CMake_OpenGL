@@ -17,44 +17,140 @@
 #ifndef CMAKE_OPEN_INCLUDES_INCLUDE_CORE_SIZE_H_
 #define CMAKE_OPEN_INCLUDES_INCLUDE_CORE_SIZE_H_
 
+/**
+ * @class The Size class defines the size of a two-dimensional object using 
+ * integer point precision.
+ * 
+ * A size is specified by a Width() and a Height(). It can be set in the 
+ * constructor and changed using the SetWidth(), SetHeight(), or Scale() 
+ * functions, or using arithmetic operators.\n\n
+ * 
+ * A size can also be manipulated directly by retrieving references to the width
+ * and height using the RWidth() and RHeight() functions.\n\n
+ * 
+ * Finally, the width and height can be swapped using the Transpose() function.
+ * The IsValid() function determines if a size is valid (a valid size has both 
+ * width and height greater than or equal to zero). The IsEmpty() function 
+ * returns true if either of the width and height is less than, or equal to, 
+ * zero, while the IsNull() function returns true only if both the width and 
+ * the height is zero.                                                                                                                                                                                                                      Use the expandedTo() function to retrieve a size which holds the maximum height and width of this size and a given size. Similarly, the boundedTo() function returns a size which holds the minimum height and width of this size and a given size.
+ */
 class Size {
  public:
-  Size(int width, int height);
+  /**
+   * This enum type defines what happens to the aspect ratio when scaling an 
+   * rectangle.
+   */
+  enum class AspectRatioMode{
+    // The size is scaled freely. The aspect ratio is not preserved.
+    kIgnoreAspectRatio,
+    // The size is scaled to a rectangle as large as possible inside a given 
+    // rectangle, preserving the aspect ratio.
+    kKeepAspectRatio,
+    // The size is scaled to a rectangle as small as possible outside a given 
+    // rectangle, preserving the aspect ratio.
+    kKeepAspectRatioByExpanding
+  };
+ public:
+  /**
+   * Constructs a size with the given width and height.
+   */
+   Size(int width, int height)noexcept;
 
-  Size();
+  /**
+   * Constructs a size with an invalid width and height (i.e., isValid() 
+   * returns false).
+   */
+  Size()noexcept;
 
-  bool IsEmpty() const;
+  /**
+   * Returns true if either of the width and height is less than or equal to 0; 
+   * otherwise returns false.
+   */
+  bool IsEmpty() const noexcept;
 
-  bool IsNull() const;
+  /**
+   * Returns true if both the width and height is 0; otherwise returns false.
+   */
+  bool IsNull() const noexcept;
 
-  bool IsValid() const;
+  /**
+   * Returns true if both the width and height is equal to or greater than 0; 
+   * otherwise returns false.
+   */
+  bool IsValid() const noexcept;
 
-  Size BoundedTo(const Size& other_size) const;
+  /**
+   * Returns a size holding the minimum width and height of this size and the 
+   * given otherSize.
+   * @param other_size The Size value to be included.
+   */
+  Size BoundedTo(const Size& other_size) const noexcept;
 
-  Size ExpandedTo(const Size& other_size) const;
+  /**
+   * Returns a size holding the maximum width and height of this size and the 
+   * given otherSize.
+   * @param other_size The Size value to be included.
+   */
+  Size ExpandedTo(const Size& other_size) const noexcept;
 
-  void Scale(int width, int height);
+  /**
+   * Scales the size to a rectangle with the given width and height.
+   * @param width The width of the zoom.
+   * @param height Zoom the height.
+   */
+  void Scale(int width, int height, AspectRatioMode mode) noexcept;
 
-  void Scale(const Size& s);
+  /**
+   * This is an overloaded function.
+   * Scales the size to a rectangle with the given size, 
+   * @param s The given Size.
+   */
+  void Scale(const Size& s, AspectRatioMode mode) noexcept;
 
-  Size Transposed() const;
+  /**
+   * Returns a Size with width and height swapped.
+   */
+  Size Transposed() const noexcept;
 
-  void Transpose();
+  /**
+   * Swaps the width and height values
+   */
+  void Transpose() noexcept;
 
-  int Width() const;
+  /**
+   * Returns the width.
+   */
+  int Width() const noexcept;
   
-  void SetWidth(int width);
+  /**
+   * Sets the width to the given width.
+   */
+  void SetWidth(int width)noexcept;
   
-  int Height() const;
+  /**
+   * Returns the height.
+   */
+  int Height() const noexcept;
   
-  void SetHeight(int height);
+  /**
+   * Sets the height to the given height.
+   */
+  void SetHeight(int height) noexcept;
   
+  /**
+   * Returns a reference to the width.
+   */
   int& RWidth();
   
+  /**
+   * Returns a reference to the height.
+   */
   int& RHeight();
 
  private:
   int width_;
+  
   int height_;
 };
 

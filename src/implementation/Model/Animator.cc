@@ -17,6 +17,7 @@
 #include "include/Model/Animator.h"
 #include "include/LoggerSystem.h"
 #include "include/Model/ModelException.h"
+#include "include/ImGui/OpenGLLogMessage.h"
 
 using namespace model;
 const std::vector<glm::mat4>& Animator::GetFinalBoneMatrices() const {
@@ -26,9 +27,10 @@ Animator::Animator(Animation* animation) {
   try {
     SetupAnimator(animation);
   } catch (ModelException& e) {
-    std::cerr << "There was an error initializing the Animator class because: "
-              << e.what() << std::endl;
-    exit(0);
+    OpenGLLogMessage::GetInstance().AddLog(
+        std::string(
+            "There was an error initializing the Animator class because: ") +
+        e.what());
   }
 }
 void Animator::UpdateAnimation(glm::float64 delete_time) {

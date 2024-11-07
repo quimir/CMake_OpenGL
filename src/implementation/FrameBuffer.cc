@@ -18,6 +18,7 @@
 #include "include/LoggerSystem.h"
 #include "include/OpenGLException.h"
 #include "include/OpenGLStateManager.h"
+#include "include/ImGui/OpenGLLogMessage.h"
 
 FrameBuffer::FrameBuffer(GLint width, GLint height, GLenum frame_buffer_type,
                          GLenum texture_color_buffer_type,
@@ -33,10 +34,13 @@ FrameBuffer::FrameBuffer(GLint width, GLint height, GLenum frame_buffer_type,
   try {
     Initialize(this->window_width_, this->window_height_);
   } catch (OpenGLException& e) {
-    std::cerr
-        << "An error occurred while creating the frame buffer. The cause is: "
-        << e.what() << std::endl;
-    exit(0);
+    OpenGLLogMessage::GetInstance().AddLog(
+        std::string("An error occurred while creating the frame buffer. The "
+                    "cause is: ") +
+        e.what());
+#ifdef _DEBUG
+    std::cerr << e.what() << std::endl;
+#endif
   }
 }
 FrameBuffer::~FrameBuffer() {
@@ -75,6 +79,10 @@ void FrameBuffer::Initialize(GLint width, GLint height) {
                GL_UNSIGNED_BYTE, nullptr);
   glTexParameteri(texture_color_buffer_type_, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(texture_color_buffer_type_, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(texture_color_buffer_type_, GL_TEXTURE_WRAP_S,
+                  GL_CLAMP_TO_EDGE);
+  glTexParameteri(texture_color_buffer_type_, GL_TEXTURE_WRAP_T,
+                  GL_CLAMP_TO_EDGE);
   glFramebufferTexture2D(frame_buffer_type_, GL_COLOR_ATTACHMENT0,
                          texture_color_buffer_type_, texture_color_buffer_, 0);
 
@@ -136,16 +144,25 @@ void FrameBuffer::ClearColorAndDepthBit() const {
 void FrameBuffer::Reset(GLint width, GLint height, GLenum frame_buffer_type,
                         GLenum texture_color_buffer_type,
                         GLenum depth_stencil_type) {
-  Cleanup();
-  this->window_width_ = width;
-  this->window_height_ = height;
-  this->frame_buffer_type_ = frame_buffer_type;
-  this->texture_color_buffer_type_ = texture_color_buffer_type;
-  this->rbo_depth_stencil_type_ = depth_stencil_type;
-  this->frame_buffer_ = 0;
-  this->texture_color_buffer_ = 0;
-  this->rbo_depth_stencil_ = 0;
-  Initialize(this->window_width_, this->window_height_);
+  try {
+    Cleanup();
+    this->window_width_ = width;
+    this->window_height_ = height;
+    this->frame_buffer_type_ = frame_buffer_type;
+    this->texture_color_buffer_type_ = texture_color_buffer_type;
+    this->rbo_depth_stencil_type_ = depth_stencil_type;
+    this->frame_buffer_ = 0;
+    this->texture_color_buffer_ = 0;
+    this->rbo_depth_stencil_ = 0;
+    Initialize(this->window_width_, this->window_height_);
+  } catch (OpenGLException& e) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        std::string("An error occurred while resetting the frame buffer. The "
+                    "cause is: ") +
+        e.what());
+
+    exit(0);
+  }
 }
 FrameBuffer::FrameBuffer(GLint width, GLint height, GLenum frame_buffer_type,
                          GLenum texture_color_buffer_type,
@@ -165,8 +182,10 @@ FrameBuffer::FrameBuffer(GLint width, GLint height, GLenum frame_buffer_type,
                texture_color_buffer_fixed_samplelocations,
                rbo_depth_stencil_type, rbo_depth_stencil_type_internalformat);
   } catch (Exception& e) {
-    std::cerr << "Build multisample frame buffer failed" << e.what()
-              << std::endl;
+    OpenGLLogMessage::GetInstance().AddLog(
+        std::string("An error occurred while creating the frame buffer. The "
+                    "cause is: ") +
+        e.what());
     exit(0);
   }
 }

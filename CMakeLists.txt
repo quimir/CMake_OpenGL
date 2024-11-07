@@ -15,6 +15,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
@@ -26,15 +28,7 @@ find_package(GLM REQUIRED)
 find_package(GLFW3 REQUIRED)
 find_package(ASSIMP REQUIRED)
 find_package(MODEL REQUIRED)
-
-# Optional modules can be turned on or off to be omitted.
-# Use imgui as an additional window. imgui can use opengl to create a simple window, better create graphical 
-# interface and debug functions. Details please see: https://github.com/ocornut/imgui
-option(ENABLE_IMGUI "Use imgui as an additional window. imgui can use opengl to create a simple window, 
-better create graphical interface and debug functions. Details please see: https://github.com/ocornut/imgui" ON)
-if (ENABLE_IMGUI)
-  find_package(IMGUI REQUIRED)
-endif ()
+find_package(IMGUI REQUIRED)
 
 option(ENABLE_SQLite "SQLite is used as the platform for storing data." ON)
 if (ENABLE_SQLite)
@@ -46,10 +40,7 @@ configure_file(configuration/root_directory.h.in ${CMAKE_BINARY_DIR}/configurati
 include_directories(${CMAKE_BINARY_DIR}/configuration)
 
 if (WIN32)
-  set(LIBS glfw3 opengl32 assimp MODEL)
-  if (ENABLE_IMGUI)
-	set(LIBS ${LIBS} IMGUI)
-  endif ()
+  set(LIBS glfw3 opengl32 assimp MODEL IMGUI)
 
   if (ENABLE_SQLite)
 	set_source_files_properties(includes/sqlite/shell.c PROPERTIES COMPILE_FLAGS "/utf-8")
@@ -78,16 +69,14 @@ set(TIME_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/Time")
 set(ALL_HEADER_FILES_DIR "${HEADER_FILES_DIR};${TIME_HEADER_FILES_DIR};${CORE_HEADER_FILES_DIR}")
 set(ALL_SOURCE_FILES_DIR "${SOURCE_FILES_DIR};${TIME_SOURCE_FILES_DIR};${CORE_SOURCE_FILES_DIR}")
 
-if (ENABLE_IMGUI)
-  set(IMGUI_HEADER_FILES_DIR "${HEADER_FILES_DIR}/ImGui")
-  set(IMGUI_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/ImGui")
-  set(IMGUI_FRONTS_HEADER_FILES_DIR "${IMGUI_HEADER_FILES_DIR}/Fonts")
-  set(IMGUI_FRONTS_SOURCES_FILES_DIR "${SOURCE_FILES_DIR}/ImGui/Fonts")
-  list(APPEND ALL_HEADER_FILES_DIR "${IMGUI_HEADER_FILES_DIR}")
-  list(APPEND ALL_SOURCE_FILES_DIR "${IMGUI_SOURCE_FILES_DIR}")
-  list(APPEND ALL_HEADER_FILES_DIR "${IMGUI_FRONTS_HEADER_FILES_DIR}")
-  list(APPEND ALL_SOURCE_FILES_DIR "${IMGUI_FRONTS_SOURCES_FILES_DIR}")
-endif ()
+set(IMGUI_HEADER_FILES_DIR "${HEADER_FILES_DIR}/ImGui")
+set(IMGUI_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/ImGui")
+set(IMGUI_FRONTS_HEADER_FILES_DIR "${IMGUI_HEADER_FILES_DIR}/Fonts")
+set(IMGUI_FRONTS_SOURCES_FILES_DIR "${SOURCE_FILES_DIR}/ImGui/Fonts")
+list(APPEND ALL_HEADER_FILES_DIR "${IMGUI_HEADER_FILES_DIR}")
+list(APPEND ALL_SOURCE_FILES_DIR "${IMGUI_SOURCE_FILES_DIR}")
+list(APPEND ALL_HEADER_FILES_DIR "${IMGUI_FRONTS_HEADER_FILES_DIR}")
+list(APPEND ALL_SOURCE_FILES_DIR "${IMGUI_FRONTS_SOURCES_FILES_DIR}")
 
 option(ENABLE_EXPERIMENTAL "A quick extension. It could be experimental (unsafe), or it could be a defragment of 
 OpenGL code that doesn't fit in the main code area and is therefore placed here. s details will be noted at 

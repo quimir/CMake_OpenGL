@@ -78,7 +78,7 @@ void OpenGLMainWindow::InitializeGL() {
       new ImGuiMainWindow(this->window_, GetWidth(), GetHeight());
 }
 void OpenGLMainWindow::ResizeGL(int width, int height) {
-  this->imGui_main_window_->ReSizeWidget(width,height);
+  this->imGui_main_window_->ReSizeWidget(width, height);
   OpenGLWindow::ResizeGL(width, height);
 }
 void OpenGLMainWindow::PaintGL() {
@@ -118,7 +118,7 @@ void OpenGLMainWindow::PaintGL() {
   imGui_main_window_->ShowDashboardWindow(is_open_dash_board, GetRenderTimer());
   imGui_main_window_->ShowComputerSettingWindow(GetOpenglVersion(),
                                                 primary_monitor_);
-  imGui_main_window_->ShowCameraSettingWindow(camera_);
+  imGui_main_window_->ShowCameraSettingWindow(camera_, open_mouse_);
   imGui_main_window_->ShowLightWindow(light_value_, gamma_value);
   imGui_main_window_->EndFrame();
 }

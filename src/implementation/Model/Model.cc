@@ -14,13 +14,15 @@
  * limitations under the License.
  ******************************************************************************/
 
+#include <utility>
+
 #include "include/Model/Model.h"
-#include "future"
 #include "include/FilePathSystem.h"
 #include "include/LoadImage.h"
 #include "include/LoggerSystem.h"
 #include "include/Model/AssimpGLMHelpers.h"
 #include "include/Model/ModelException.h"
+#include "include/ImGui/OpenGLLogMessage.h"
 
 using namespace std;
 using namespace model;
@@ -30,9 +32,10 @@ Model::Model(const std::string& path, bool gamma)
   try {
     LoadModel(path);
   } catch (ModelException& e) {
-    std::cerr << "The model is incorrectly loaded for the following reasons: "
-              << e.what() << std::endl;
-    exit(0);
+    OpenGLLogMessage::GetInstance().AddLog(
+        std::string(
+            "The model is incorrectly loaded for the following reasons: ") +
+        e.what());
   }
 }
 
@@ -53,7 +56,7 @@ void Model::LoadModel(const std::string& path) {
       !scene->mRootNode)  // If is Not Zero
   {
     throw ModelException(
-        LoggerSystem::Level::kWarning,
+        LoggerSystem::Level::kError,
         std::string("ERROR::ASSIMP:: ") + importer.GetErrorString());
   }
 
@@ -303,9 +306,7 @@ void Model::ExtractBoneWeightForVertices(vector<meshdata::Vertex>& vertices,
 Model::~Model() {
   if (!meshes_.empty()) {
     for (auto meshes : meshes_) {
-      if (meshes) {
-        delete meshes;
-      }
+      delete meshes;
     }
   }
 }
@@ -340,7 +341,7 @@ vector<Mesh*> Model::GetMeshes() const {
 }
 
 void Model::SetMeshes(vector<Mesh*> meshes) {
-  meshes_ = meshes;
+  meshes_ = std::move(meshes);
 }
 
 bool Model::IsGammaCorrection() const {

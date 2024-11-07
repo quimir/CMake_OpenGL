@@ -19,6 +19,7 @@
 #include "include/OpenGLException.h"
 #include "include/OpenGLStateManager.h"
 #include <vector>
+#include "include/ImGui/OpenGLLogMessage.h"
 
 using namespace std;
 
@@ -42,7 +43,7 @@ void Shader::CheckCompileErrors(GLuint shader,
       throw OpenGLException(
           LoggerSystem::Level::kError,
           "ERROR::SHADER_COMPILATION_ERROR of type: " +
-              ShaderErrorTypeToString(error_type) +
+              Shader::ShaderErrorTypeToString(error_type) +
               " cause of error: " + std::string(info_log.data()));
     }
   } else {
@@ -55,7 +56,7 @@ void Shader::CheckCompileErrors(GLuint shader,
       throw OpenGLException(
           LoggerSystem::Level::kError,
           "ERROR::PROGRAM_LINKING_ERROR of type: " +
-              ShaderErrorTypeToString(error_type) +
+              Shader::ShaderErrorTypeToString(error_type) +
               " cause of error: " + std::string(info_log.data()));
     }
   }
@@ -215,19 +216,6 @@ void Shader::UnUse() {
 Shader::~Shader() {
   Cleanup();
 }
-void Shader::CheckOpenGLVersion(int major_number, int minor_number) const {
-  int major, minor;
-  // Get the registered version of OpenGL
-  glGetIntegerv(GL_MAJOR_VERSION, &major);
-  glGetIntegerv(GL_MINOR_VERSION, &minor);
-
-  if (major < major_number || (major == major_number && minor < minor_number)) {
-    throw OpenGLException(LoggerSystem::Level::kWarning,
-                          "OpenGl " + std::to_string(major_number) + "." +
-                              std::to_string(minor_number) +
-                              "or higher is required for shaders.");
-  }
-}
 
 void Shader::SetDispatchCompute(GLuint num_groups_x, GLuint num_groups_y,
                                 GLuint num_groups_z) const {
@@ -273,12 +261,21 @@ void Shader::Initialized(const string& vertex_path, const string& fragment_path,
                          const string& tess_evaluation_path,
                          const string& compute_path) {
   try {
-    CheckActivatedOpenGL();
+    Shader::CheckActivatedOpenGL();
     if (!compute_path.empty()) {
-      CheckOpenGLVersion(4, 3);
+      if (!OpenGLStateManager::GetInstance().CheckOpenGLVersion(4, 3)) {
+        throw OpenGLException(
+            LoggerSystem::Level::kError,
+            "The OpenGL version is too early. Upgrade the "
+            "OpenGL version and then use the Compute shader.");
+      }
     }
     if (!tess_control_path.empty() || !tess_evaluation_path.empty()) {
-      CheckOpenGLVersion(4, 0);
+      if (!OpenGLStateManager::GetInstance().CheckOpenGLVersion(4, 0)) {
+        throw OpenGLException(LoggerSystem::Level::kError,
+                              "The OpenGL version is too early. Upgrade the "
+                              "OpenGL version and then use the tess shader.");
+      }
     }
     // 1. retrieve the vertex/fragment source code from filePath
     string vertex_code = ReadShaderFile(vertex_path);
@@ -323,7 +320,7 @@ void Shader::Initialized(const string& vertex_path, const string& fragment_path,
       glAttachShader(this->id_, tess_evaluation);
     }
     glLinkProgram(this->id_);
-    CheckCompileErrors(this->id_, ShaderErrorType::kProgram);
+    Shader::CheckCompileErrors(this->id_, ShaderErrorType::kProgram);
     // delete the shaders as they're linked into our program now and no longer necessary
     glDeleteShader(vertex);
     glDeleteShader(fragment);
@@ -340,8 +337,11 @@ void Shader::Initialized(const string& vertex_path, const string& fragment_path,
       glDeleteShader(tess_evaluation);
     }
   } catch (OpenGLException& e) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        string("Shader creation failed because: ") + e.what());
+#ifdef _DEBUG
     std::cerr << "Shader creation failed because: " << e.what() << std::endl;
-    exit(0);
+#endif
   }
 }
 
@@ -510,7 +510,7 @@ void Shader::CheckActiveUniformBlock(const string& uniform_block_name) const {
                             " Uniform block " + uniform_block_name +
                             " does not exist in the shader program.");
 }
-std::string Shader::ReadShaderFile(const string& path) const {
+std::string Shader::ReadShaderFile(const string& path) {
   if (path.empty())
     return "";
 
@@ -535,16 +535,18 @@ std::string Shader::ReadShaderFile(const string& path) const {
 
   return shader_stream.str();
 }
-GLuint Shader::CompileShader(const std::string& source_code, GLenum shader_type) {
+GLuint Shader::CompileShader(const std::string& source_code,
+                             GLenum shader_type) {
   GLuint shader = glCreateShader(shader_type);
   const char* source = source_code.c_str();
   glShaderSource(shader, 1, &source, nullptr);
   glCompileShader(shader);
-  CheckCompileErrors(shader, ShaderTypeToShaderErrorType(shader_type));
+  Shader::CheckCompileErrors(shader,
+                             Shader::ShaderTypeToShaderErrorType(shader_type));
   return shader;
 }
 Shader::ShaderErrorType Shader::ShaderTypeToShaderErrorType(
-    GLuint shader_type) const {
+    GLuint shader_type) {
   if (shader_type == GL_VERTEX_SHADER) {
     return Shader::ShaderErrorType::kVertex;
   } else if (shader_type == GL_FRAGMENT_SHADER) {

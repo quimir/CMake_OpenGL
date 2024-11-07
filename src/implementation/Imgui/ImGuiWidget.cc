@@ -23,6 +23,8 @@
 #include "include/ImGui/Fonts/Language.h"
 #include "include/FilePathSystem.h"
 
+bool ImGuiWidget::is_create_ = false;
+
 ImGuiWidget::ImGuiWidget(GLFWwindow* window, int window_width,
                          int window_height)
     : Widget(0, 0, window_width, window_height), window_(window) {
@@ -47,25 +49,21 @@ ImGuiWidget::ImGuiWidget(GLFWwindow* window, int window_width,
   Initialized(window);
 }
 void ImGuiWidget::Initialized(GLFWwindow* window) {
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
+  if (!is_create_) {
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
 
-  this->io_ = &ImGui::GetIO();
+    this->io_ = &ImGui::GetIO();
 
-  ImGui::StyleColorsDark();
+    ImGui::StyleColorsDark();
 
-  ImGui_ImplGlfw_InitForOpenGL(window, true);
-  const char* version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-  auto major_version = ExtractMajorVersion(version);
-  ImGui_ImplOpenGL3_Init(std::string("#version " + major_version).c_str());
-
-//  if (Language::GetInstance().CurrentLanguage() == Language::Type::kChinese) {
-//    io_->Fonts->AddFontFromFileTTF(
-//        FilePathSystem::GetInstance()
-//            .GetPath("src/fontlib/ZhanKuWenYiTi-2.ttf")
-//            .c_str(),
-//        13.0f, nullptr, io_->Fonts->GetGlyphRangesChineseSimplifiedCommon());
-//  }
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    const char* version =
+        reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    auto major_version = ExtractMajorVersion(version);
+    ImGui_ImplOpenGL3_Init(std::string("#version " + major_version).c_str());
+    is_create_ = true;
+  }
 }
 std::string ImGuiWidget::ExtractMajorVersion(
     const std::string& opengl_version_string) {
@@ -90,6 +88,7 @@ void ImGuiWidget::Cleanup() {
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
+  is_create_ = false;
 }
 void ImGuiWidget::BeginFrame() {
   ImGui_ImplOpenGL3_NewFrame();

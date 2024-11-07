@@ -24,6 +24,9 @@
 #include "include/Buffers.h"
 #include "include/Shader.h"
 #include "ImGuiMainWindow.h"
+#include "PointShadow.h"
+#include "ShadowMapping.h"
+#include "include/ImGui/ImGuiWindow.h"
 
 class ShadowMappingDepthWindow : public OpenGLCameraWindow {
  protected:
@@ -31,26 +34,16 @@ class ShadowMappingDepthWindow : public OpenGLCameraWindow {
   ShadowMappingDepthWindow(int width, int height, const char* title,
                            GLFWmonitor* monitor, GLFWwindow* share);
 
+  ~ShadowMappingDepthWindow() override;
+
  protected:
   void InitializeGL() override;
   void ResizeGL(int width, int height) override;
   void PaintGL() override;
-
- private:
-  void RenderCube();
-
-  void RenderScene(const Shader& shader);
-
-  void RenderQuad();
-
- private:
-  Shader *simple_depth_shader_, *debug_depth_quad_shader_, *shader_;
-  VertexArray plane_vao_;
-  Buffers plane_vbo_;
-  TextureLoader* wood_texture_;
-  GLuint depth_map_fbo_;
-  GLuint depth_map_;
-  ImGuiMainWindow imgui_main_window_;
+  
+  PointShadow* point_shadow_;
+  ShadowMapping* shadow_mapping_;
+  ImGuiWindow imgui_window_;
 };
 
 #endif  //CMAKE_OPEN_SRC_ADVANCED_LIGHTING_SHADOWMAPPINGDEPTHWINDOW_H_

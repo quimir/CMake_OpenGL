@@ -20,6 +20,7 @@ bool OpenGLCameraWindow::first_mouse = true;
 Camera OpenGLCameraWindow::camera_(glm::vec3(0.0f, 0.0f, 3.0f));
 float OpenGLCameraWindow::last_x_ = 0;
 float OpenGLCameraWindow::last_y_ = 0;
+bool OpenGLCameraWindow::open_mouse_ = true;
 
 OpenGLCameraWindow::OpenGLCameraWindow(int width, int height, const char* title,
                                        GLFWmonitor* monitor, GLFWwindow* share)
@@ -32,6 +33,10 @@ OpenGLCameraWindow::OpenGLCameraWindow(int width, int height, const char* title,
 }
 void OpenGLCameraWindow::MouseCallBack(GLFWwindow* window, double x_pos,
                                        double y_pos) {
+  if (!open_mouse_) {
+    return;
+  }
+
   if (first_mouse) {
     last_x_ = x_pos;
     last_y_ = y_pos;
@@ -48,6 +53,10 @@ void OpenGLCameraWindow::MouseCallBack(GLFWwindow* window, double x_pos,
 }
 void OpenGLCameraWindow::ScrollCallBack(GLFWwindow* window, double x_offset,
                                         double y_offset) {
+  if (!open_mouse_) {
+    return;
+  }
+  
   camera_.ProcessMouseScroll(y_offset);
 }
 void OpenGLCameraWindow::ProcessInput(GLFWwindow* window) {
@@ -64,11 +73,11 @@ void OpenGLCameraWindow::ProcessInput(GLFWwindow* window) {
     camera_.ProcessKeyboard(Camera::CameraMovement::kRight,
                             this->GetRenderTimer().ElapsedSeconds() * 10.0f);
 
-  if (glfwGetKey(window,GLFW_KEY_Q)==GLFW_PRESS)
+  if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     camera_.RotateYaw(0.1f);
 
-  if (glfwGetKey(window,GLFW_KEY_E)==GLFW_PRESS)
+  if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     camera_.RotateYaw(-0.1f);
-  
+
   OpenGLWindow::ProcessInput(window);
 }

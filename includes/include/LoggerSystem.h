@@ -27,6 +27,8 @@
 #include <string>
 #include <cmath>
 
+#include "include/Core/MacroDefinition.h"
+
 /**
  * Logger System It is used to collect and store a portion of the information generated 
  * when the program is running. The information type is under the LoggerSystem::level 
@@ -106,7 +108,8 @@ class LoggerSystem {
   const std::string& GetLogFilePath() const;
 
   /**
-   * Reset the path to the log file. Notethis resets everything in the logfile.
+   * Reset the path to the log file. 
+   * Note: this resets everything in the logfile.
    * @param log_file_path Log file path
    */
   void SetLogFilePath(const std::string& log_file_path);
@@ -127,6 +130,14 @@ class LoggerSystem {
    * Disable the use of log files.
    */
   void Close();
+  
+  /**
+   * Convert the log level to a string format, and convert the format to uppercase 
+   * without the k.
+   * @param level See LoggerSystem::Level for details on the level of log files.
+   * @return Log level string.
+   */
+  std::string LevelToString(Level level);
 
  private:
   explicit LoggerSystem(std::size_t size = std::size_t(1024 * 1024),
@@ -147,14 +158,6 @@ class LoggerSystem {
                    int wrapping_row);
 
   ~LoggerSystem();
-
-  /**
-   * Convert the log level to a string format, and convert the format to uppercase 
-   * without the k.
-   * @param level See LoggerSystem::Level for details on the level of log files.
-   * @return Log level string.
-   */
-  std::string LevelToString(Level level);
 
   /**
    * Determine if the current state has exceeded the set time and set stored 
@@ -212,6 +215,8 @@ class LoggerSystem {
    */
   std::chrono::time_point<std::chrono::system_clock> ParseTimestamp(
       const std::string& time_stamp);
+
+  DISABLE_COPY_MOVE(LoggerSystem)
 
  private:
   std::ofstream log_file_;

@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include "include/LoggerSystem.h"
 #include "include/Model/ModelException.h"
+#include "include/ImGui/OpenGLLogMessage.h"
 
 using namespace model;
 
@@ -111,10 +112,10 @@ Animation::Animation(const std::string& animation_path, Model* model) {
     ReadHierarchyData(this->root_node_, scene->mRootNode);
     ReadMissingBones(animation, model);
   } catch (ModelException& e) {
-    std::cerr
-        << "There was an error initializing the animation class. Because: "
-        << e.what() << std::endl;
-    exit(0);
+    OpenGLLogMessage::GetInstance().AddLog(
+        std::string(
+            "There was an error initializing the animation class. Because: ") +
+        e.what());
   }
 }
 Bone* Animation::FindBone(const std::string& name) {

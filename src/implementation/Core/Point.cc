@@ -14,37 +14,33 @@
  * limitations under the License.
  ******************************************************************************/
 
-//
-// Created by Acer on 2024/8/18.
-//
-
 #include "include/Core/Point.h"
 #include <cmath>
 
-int& Point::Rx() {
+int& Point::Rx() noexcept {
   return xp_;
 }
-int& Point::Ry() {
+int& Point::Ry() noexcept {
   return yp_;
 }
-void Point::SetX(int x) {
+void Point::SetX(int x) noexcept {
   if (xp_ != x)
     xp_ = x;
 }
-void Point::SetY(int y) {
+void Point::SetY(int y) noexcept {
   if (yp_ != y)
     yp_ = y;
 }
-Point Point::Transposed() const {
+Point Point::Transposed() const noexcept {
   return {yp_, xp_};
 }
-int Point::ManhattanLength() const {
+int Point::ManhattanLength() const noexcept {
   return std::abs(xp_) + std::abs(yp_);
 }
-int Point::x() const {
+int Point::x() const noexcept{
   return xp_;
 }
-int Point::y() const {
+int Point::y() const noexcept{
   return yp_;
 }
 Point& Point::operator*=(float factor) {
@@ -92,8 +88,14 @@ Point& Point::operator-(const Point& p) {
   yp_ -= p.yp_;
   return *this;
 }
-bool Point::IsNull() const {
+bool Point::IsNull() const noexcept {
   return (xp_ == 0 && yp_ == 0);
+}
+bool Point::IsEmpty() const noexcept {
+  return (xp_ == 0 && yp_ == 0);
+}
+int Point::DotProduct(const Point& p1, const Point& p2) {
+  return (p1.x() * p2.x() + p1.y() * p2.y());
 }
 template <typename T>
 Point& Point::operator/=(T& p) {

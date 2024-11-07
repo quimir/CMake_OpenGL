@@ -15,11 +15,40 @@
  ******************************************************************************/
 
 #include "include/OpenGLWindow.h"
-#include <regex>
 #include "include/LoggerSystem.h"
 #include "include/OpenGLException.h"
+#include <cstdlib>
+#include "include/ImGui/OpenGLLogMessage.h"
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+// Cancel the glad macro definition and give it to Window first.
+#ifdef APIENTRY
+#undef APIENTRY
+#endif
+
+#include <Windows.h>
+
+// Cancel the Windows macro definition and revert to the glad macro definition.
+#ifdef APIENTRY
+#undef APIENTRY
+#define APIENTRY __stdcall
+#endif
+#endif
 
 OpenGLWindow::OpenGLVersion OpenGLWindow::opengl_version_{};
+
+#ifdef _WIN32
+// Ensure that NV independent graphics cards are prioritized in the notebook.
+extern "C" {
+__declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
+}
+
+// Ensure that AMD independent graphics cards are prioritized in the notebook.
+extern "C" {
+__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+#endif
 
 OpenGLWindow::OpenGLWindow(int width, int height, const char* title,
                            GLFWmonitor* monitor, GLFWwindow* share)
@@ -28,16 +57,25 @@ OpenGLWindow::OpenGLWindow(int width, int height, const char* title,
       render_timer_(),
       mouse_state_(true),
       window_(nullptr),
-      primary_monitor_(nullptr) {
+      primary_monitor_(nullptr),
+      VSYNC_value_(0) {
   try {
     InitGLFW();
     InitWindow(width, height, title, monitor, share);
     InitGLAD();
     frame_buffer_ = new FrameBuffer(width, height);
   } catch (OpenGLException& e) {
+    ErrorMessageBox(
+        std::string(
+            "A fatal error occurred while creating an OpenGL window.The "
+            "cause of the error is: ") +
+            e.what(),
+        "Generate an OpenGL error", MB_ICONERROR | MB_DEFBUTTON1);
+#ifdef _DEBUG
     std::cerr << "A fatal error occurred while creating an OpenGL window.The "
                  "cause of the error is: "
               << e.what() << std::endl;
+#endif
     exit(0);
   }
 }
@@ -141,10 +179,15 @@ void OpenGLWindow::InitGLAD() {
                           "Failed to initialize GLAD");
   }
 
+  // Disable Vsync. NVIDIA GeForce will enable vertical synchronization by
+  // default.
+  SetVSYNC(VSYNC_value_);
+
   LoggerSystem::GetInstance().Log(
       LoggerSystem::Level::kInfo,
       std::string("Success Build OpenGL,now OpenGL Version is: ") +
-          (const char*)glGetString(GL_VERSION));
+          std::to_string(opengl_version_.major) + "." +
+          std::to_string(opengl_version_.minor) + ".0");
 }
 
 void OpenGLWindow::MainLoop() {
@@ -178,12 +221,12 @@ void OpenGLWindow::FrameBufferSizeCallback(GLFWwindow* window, int width,
                                            int height) {
   int x_pos, y_pos;
   glfwGetWindowPos(window, &x_pos, &y_pos);
-  glViewport(0,0, width, height);
+  glViewport(0, 0, width, height);
   auto* self = static_cast<OpenGLWindow*>(glfwGetWindowUserPointer(window));
   if (self) {
     self->frame_buffer_->Resize(width, height);
     self->ResizeGL(width, height);
-    self->ResetWidget(x_pos, y_pos, width, height);
+    self->ReSetWidget(x_pos, y_pos, width, height);
   }
 }
 
@@ -236,11 +279,15 @@ void OpenGLWindow::EnableRawMouseMotion() {
   }
 }
 bool OpenGLWindow::SetCursor(const GLFWimage* image, int x_hot, int y_hot) {
-  this->cursor_ = glfwCreateCursor(image, x_hot, y_hot);
-  if (!this->cursor_) {
-    throw OpenGLException(LoggerSystem::Level::kWarning,
-                          "User initialized custom mouse error! The "
-                          "existence of image will be rechecked!");
+  try {
+    this->cursor_ = glfwCreateCursor(image, x_hot, y_hot);
+    if (!this->cursor_) {
+      throw OpenGLException(LoggerSystem::Level::kWarning,
+                            "User initialized custom mouse error! The "
+                            "existence of image will be rechecked!");
+    }
+  } catch (OpenGLException& e) {
+    OpenGLLogMessage::GetInstance().AddLog(e.what());
   }
   return true;
 }
@@ -284,38 +331,41 @@ OpenGLWindow::OpenGLVersion OpenGLWindow::QueryOpenGLVersion() {
                           "Failed to initialize GLAD");
   }
 
-  const char* versionStr = (const char*)glGetString(GL_VERSION);
-  const char* rendererStr = (const char*)glGetString(GL_RENDERER);
-  const char* vendorStr = (const char*)glGetString(GL_VENDOR);
+  const char* version_str = (const char*)glGetString(GL_VERSION);
+  const char* renderer_str = (const char*)glGetString(GL_RENDERER);
+  const char* vendor_str = (const char*)glGetString(GL_VENDOR);
 
-  if (!versionStr || !rendererStr || !vendorStr) {
+  if (!version_str || !renderer_str || !vendor_str) {
     glfwDestroyWindow(window);
     glfwTerminate();
     throw OpenGLException(LoggerSystem::Level::kError,
                           "Failed to retrieve OpenGL information");
   }
 
+  std::string version_copy = std::string(version_str);
+  std::string renderer_copy = std::string(renderer_str);
+  std::string vendor_copy = std::string(vendor_str);
+
   int major = 0, minor = 0;
   OpenGLType type = OpenGLType::kUnknown;
-  std::string versionString(versionStr);
 
   /**
    * Extract information from OpenGL.
    */
-  if (versionString.find("OpenGL ES") != std::string::npos) {
+  if (version_copy.find("OpenGL ES") != std::string::npos) {
     type = OpenGLType::kES;
-    std::size_t start = versionString.find("OpenGL ES") + 9;
+    std::size_t start = version_copy.find("OpenGL ES") + 9;
     char* endPtr;
-    major = strtol(versionString.c_str() + start, &endPtr, 10);
+    major = strtol(version_copy.c_str() + start, &endPtr, 10);
     if (*endPtr == '.') {
       minor = strtol(endPtr + 1, &endPtr, 10);
     }
   } else {
     char* endPtr;
-    major = strtol(versionStr, &endPtr, 10);
+    major = strtol(version_str, &endPtr, 10);
     if (*endPtr == '.') {
       minor = strtol(endPtr + 1, &endPtr, 10);
-      if (versionString.find("Compatibility Profile") != std::string::npos) {
+      if (version_copy.find("Compatibility Profile") != std::string::npos) {
         type = OpenGLType::kCompatibility;
       } else {
         type = OpenGLType::kCore;
@@ -333,7 +383,7 @@ OpenGLWindow::OpenGLVersion OpenGLWindow::QueryOpenGLVersion() {
   glfwDestroyWindow(window);
   glfwTerminate();
 
-  return {major, minor, type, rendererStr, vendorStr};
+  return {major, minor, type, renderer_copy, vendor_copy};
 }
 const OpenGLWindow::OpenGLVersion& OpenGLWindow::GetOpenglVersion() {
   return opengl_version_;
@@ -351,7 +401,7 @@ void OpenGLWindow::ResetOpenGLWindow(int major, int minor,
   frame_buffer_ = new FrameBuffer(width, height);
   int x_pos, y_pos;
   glfwGetWindowPos(window_, &x_pos, &y_pos);
-  ResetWidget(x_pos, y_pos, width, height);
+  ReSetWidget(x_pos, y_pos, width, height);
 }
 const OpenGLWindow::OpenGLWindowMode& OpenGLWindow::GetOpenglWindowMode()
     const {
@@ -366,9 +416,44 @@ std::string OpenGLWindow::OpenGLVersionToString(
       return "ES";
     case OpenGLType::kCompatibility:
       return "Compatibility";
-    case OpenGLType::kUnknown:
-      return "Unknown";
     default:
       return "Unknown";
   }
+}
+void OpenGLWindow::SetVSYNC(int value) {
+  try {
+    if (value < -1)
+      throw OpenGLException(
+          LoggerSystem::Level::kWarning,
+          "Error! Setting unreasonable vertical buffer value is not allowed!");
+    VSYNC_value_ = value;
+    glfwSwapInterval(VSYNC_value_);
+  } catch (OpenGLException& e) {
+    OpenGLLogMessage::GetInstance().AddLog(e.what());
+  }
+}
+
+int OpenGLWindow::ErrorMessageBox(const std::string& message,
+                                  const std::string& title,
+                                  unsigned int uType) {
+  int result;
+#ifdef _WIN32
+  result = MessageBox(nullptr, reinterpret_cast<LPCSTR>(message.c_str()),
+                      reinterpret_cast<LPCSTR>(title.c_str()), uType);
+#endif
+
+#ifdef __linux__
+  std::string command =
+      "zenity --info --title=\"" + title + "\" --text=\"" + message + "\"";
+  result = system(command.c_str());
+#endif
+
+#ifdef __APPLE__
+  std::string command =
+      "osascript -e 'tell app \"System Events\" to display dialog \"" +
+      message + "\" with title \"" + title + "\" buttons {\"OK\"}'";
+  result = system(command.c_str());
+#endif
+
+  return result;
 }

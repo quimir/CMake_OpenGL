@@ -18,10 +18,10 @@
 Widget::Widget(const Rect& rect) : rect_(rect) {}
 Widget::Widget(int x, int y, int width, int height)
     : rect_(x, y, width, height) {}
-void Widget::ResetWidget(const Rect& rect_angle) {
+void Widget::ReSetWidget(const Rect& rect_angle) {
   rect_ = rect_angle;
 }
-void Widget::ResetWidget(int x, int y, int width, int height) {
+void Widget::ReSetWidget(int x, int y, int width, int height) {
   rect_.Reset(x, y, width, height);
 }
 const Rect& Widget::GetRect() const {

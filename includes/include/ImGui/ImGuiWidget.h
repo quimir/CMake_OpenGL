@@ -93,8 +93,8 @@ class ImGuiWidget : public Widget {
   virtual void Render();
 
   ImGuiIO* GetIo() const;
-  
-  GLFWwindow * GetOpenGLWindow();
+
+  GLFWwindow* GetOpenGLWindow();
 
  private:
   /**
@@ -118,8 +118,10 @@ class ImGuiWidget : public Widget {
 
  private:
   GLFWwindow* window_;
-  
+
   ImGuiIO* io_;
+
+  static bool is_create_;
 };
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_IMGUIWIDGET_H_

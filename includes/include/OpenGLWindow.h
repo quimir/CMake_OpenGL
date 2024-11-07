@@ -29,6 +29,8 @@
 #include "include/Time/RenderTimer.h"
 #include "include/Core/Widget.h"
 
+#include "include/Core/MacroDefinition.h"
+
 /**
  * OpenGL window, which encapsulates some of the most basic methods of 
  * generating OpenGL. It is recommended that all Windows that use OpenGL 
@@ -88,10 +90,6 @@ class OpenGLWindow : public Widget {
    */
   OpenGLWindow(int width, int height, const char* title,
                GLFWmonitor* monitor = nullptr, GLFWwindow* share = nullptr);
-
-  OpenGLWindow(const OpenGLWindow& other) = delete;
-
-  OpenGLWindow& operator=(const OpenGLWindow& other) = delete;
 
   /**
    * Perform OpenGL rendering and painting. When you start this function, it 
@@ -185,7 +183,20 @@ class OpenGLWindow : public Widget {
 
   const OpenGLWindowMode& GetOpenglWindowMode() const;
 
-  static std::string OpenGLVersionToString(OpenGLType opengl_type) ;
+  /**
+   * Sets the interval of OpenGL context exchange, that is, the number of times 
+   * you wait for a screen update after calling glfwSwapBuffers, before 
+   * swapping the buffers and returning. Also known as vertical synchronization 
+   * function.
+   * @param value Vsync value. 0 indicates that Vsync is disabled, and -1 
+   * indicates adaptive Vsync (This value requires the support of the graphics 
+   * card vendor). Negative values other than -1 are undefined and are optimized 
+   * to 0 or 1 by default if the graphics card manufacturer does not support 
+   * them.
+   */
+  void SetVSYNC(int value);
+
+  static std::string OpenGLVersionToString(OpenGLType opengl_type);
 
  protected:
   /**
@@ -274,12 +285,19 @@ class OpenGLWindow : public Widget {
    */
   OpenGLVersion QueryOpenGLVersion();
 
+  int ErrorMessageBox(const std::string& message, const std::string& title,
+                       unsigned int uType = 0);
+
+  DISABLE_COPY(OpenGLWindow)
+
  protected:
   FrameBuffer* frame_buffer_;
   GLFWwindow* window_;
   GLFWcursor* cursor_;
   bool mouse_state_;
   GLFWmonitor* primary_monitor_;
+
+  int VSYNC_value_;
 
  private:
   // Render timer, which keeps track of the time until the render ends.

@@ -123,8 +123,8 @@ void OpenGLMainWindow::MouseCallback(GLFWwindow* window, double x_pos_in,
     first_mouse_ = false;
   }
 
-  auto x_offset = x_pos_in - last_x_;
-  auto y_offset =
+  float x_offset = x_pos_in - last_x_;
+  float y_offset =
       last_y_ - y_pos_in;  // Reversed since y-coordinates go from bottom to top
 
   last_x_ = x_pos_in;

@@ -244,7 +244,8 @@ void ImGuiMainWindow::ShowComputerSettingWindow(
     std::cerr << e.what() << std::endl;
   }
 }
-void ImGuiMainWindow::ShowCameraSettingWindow(Camera& camera) {
+void ImGuiMainWindow::ShowCameraSettingWindow(Camera& camera,
+                                              bool& open_mouse) {
   if (ImGui::CollapsingHeader("Camera")) {
     if (ImGui::Button("Reset")) {
       camera.ResetCamera();
@@ -255,6 +256,8 @@ void ImGuiMainWindow::ShowCameraSettingWindow(Camera& camera) {
       camera.Enable();
     else
       camera.DisEnable();
+
+    ImGui::Checkbox("Enable mouse control", &open_mouse);
     ImGui::Separator();
     ImGui::Text("Transform: ");
     ImGui::Separator();
@@ -281,6 +284,9 @@ void ImGuiMainWindow::ShowCameraSettingWindow(Camera& camera) {
     camera_view_setting = camera.GetMovementSpeed();
     ImGui::DragFloat("Movement Speed: ", &camera_view_setting, 0.1f);
     camera.SetMovementSpeed(camera_view_setting);
+    camera_view_setting = camera.GetRotateSpeed();
+    ImGui::DragFloat("Rotate Speed: ", &camera_view_setting, 0.1f);
+    camera.SetRotateSpeed(camera_view_setting);
     ImGui::Unindent();
   }
 }
@@ -291,8 +297,9 @@ void ImGuiMainWindow::ShowLightWindow(int& light_value, float& k_ambient) {
     ImGui::DragInt("Illumination intensity: ", &light_value);
   }
 }
-void ImGuiMainWindow::ShowShadow(float& bias_value, float& max_light_distance,
-                                 float& min_radius, float& max_radius) {
+void ImGuiMainWindow::ShowMappingShadow(float& bias_value,
+                                        float& max_light_distance,
+                                        float& min_radius, float& max_radius) {
   if (ImGui::CollapsingHeader("Shadow")) {
     ImGui::Separator();
     ImGui::DragFloat("Bias value: ", &bias_value, 0.01f);
@@ -301,5 +308,11 @@ void ImGuiMainWindow::ShowShadow(float& bias_value, float& max_light_distance,
         &max_light_distance, 10);
     ImGui::DragFloat("min_radius", &min_radius, 0.1f);
     ImGui::DragFloat("max_radius", &max_radius, 1);
+  }
+}
+void ImGuiMainWindow::ShowShadow(bool& open_shadow, bool& shadow_mode) {
+  if (ImGui::Begin("Open Shadow", &open_shadow)) {
+    if (open_shadow) {
+    }
   }
 }

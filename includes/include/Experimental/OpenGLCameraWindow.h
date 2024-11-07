@@ -35,6 +35,8 @@ class OpenGLCameraWindow : public OpenGLWindow {
 
  protected:
   static Camera camera_;
+  
+  static bool open_mouse_;
  private:
   static bool first_mouse;
   static float last_x_;

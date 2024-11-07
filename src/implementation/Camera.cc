@@ -18,7 +18,6 @@
 #include "include/Exception.h"
 #include "include/LoggerSystem.h"
 #include "glm/gtc/quaternion.hpp"
-#include "glm/gtx/quaternion.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
 const glm::vec3& Camera::GetWorldUp() const {
@@ -129,15 +128,15 @@ void Camera::UpdateCameraVectors() {
   glm::quat quaternion_yaw = glm::angleAxis(glm::radians(yaw_), world_up_);
   glm::quat quaternion_pitch =
       glm::angleAxis(glm::radians(pitch_), glm::vec3(1.0f, 0.0f, 0.0f));
-  glm::quat orientation=quaternion_yaw*quaternion_pitch;
-  front_=glm::normalize(orientation*glm::vec3(0.0f,0.0f,-1.0f));
-  
+  glm::quat orientation = quaternion_yaw * quaternion_pitch;
+  front_ = glm::normalize(orientation * glm::vec3(0.0f, 0.0f, -1.0f));
+
   // Update using Euler Angle
-//  glm::vec3 front;
-//  front.x = cos(glm::radians(yaw_)) * cos(glm::radians(pitch_));
-//  front.y = sin(glm::radians(pitch_));
-//  front.z = sin(glm::radians(yaw_)) * cos(glm::radians(pitch_));
-//  this->front_ = glm::normalize(front);
+  //  glm::vec3 front;
+  //  front.x = cos(glm::radians(yaw_)) * cos(glm::radians(pitch_));
+  //  front.y = sin(glm::radians(pitch_));
+  //  front.z = sin(glm::radians(yaw_)) * cos(glm::radians(pitch_));
+  //  this->front_ = glm::normalize(front);
 
   /* 
    * Also re-calculate the right and up vector
@@ -246,8 +245,8 @@ void Camera::ProcessMouseMovement(glm::float64 x_offset, glm::float64 y_offset,
   x_offset *= mouse_sensitivity_;
   y_offset *= mouse_sensitivity_;
 
-  yaw_ += static_cast<glm::float32>(x_offset);
-  pitch_ += static_cast<glm::float32>(y_offset);
+  yaw_ -= static_cast<glm::float32>(x_offset);
+  pitch_ -= static_cast<glm::float32>(y_offset);
 
   // Make sure that when pitch is out of bounds, screen doesn't get flipped
   if (constrain_pitch) {
@@ -266,6 +265,7 @@ void Camera::Initialized(glm::vec3 position, glm::vec3 world_up,
                          glm::float32 yaw, glm::float32 pitch,
                          glm::float32 near_plane, glm::float32 far_plane) {
   this->front_ = glm::vec3(0.0f, 0.0f, -1.0f);
+  rotate_speed_ = cameraconstsetting::kRotateSpeed;
   movement_speed_ = cameraconstsetting::kSpeed;
   mouse_sensitivity_ = cameraconstsetting::kSensitivity;
   zoom_ = cameraconstsetting::kZoom;
@@ -324,6 +324,12 @@ void Camera::RotateYaw(glm::float32 angle) {
   if (!enabled_)
     return;
 
-  this->yaw_ += angle;
+  this->yaw_ += angle * rotate_speed_;
   UpdateCameraVectors();
+}
+glm::float32 Camera::GetRotateSpeed() const {
+  return rotate_speed_;
+}
+void Camera::SetRotateSpeed(glm::float32 rotate_speed) {
+  rotate_speed_ = rotate_speed;
 }

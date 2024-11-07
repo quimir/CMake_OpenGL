@@ -18,6 +18,7 @@
 Exception::Exception(LoggerSystem::Level level, const std::string& message)
     : level_(level), message_(message) {
   LoggerSystem::GetInstance().Log(level, message);
+  message_ =LoggerSystem::GetInstance().LevelToString(level_)+" " + message_;
 }
 #ifdef __MINGW32__
 const char* Exception::what() const noexcept {

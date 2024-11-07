@@ -25,9 +25,9 @@ class Widget {
 
   explicit Widget(int x, int y, int width, int height);
 
-  void ResetWidget(int x, int y, int width, int height);
+  void ReSetWidget(int x, int y, int width, int height);
 
-  void ResetWidget(const Rect& rect_angle);
+  void ReSetWidget(const Rect& rect_angle);
 
   const Rect& GetRect() const;
 

@@ -19,6 +19,7 @@
 #include "include/Model/MeshData.h"
 #include "include/OpenGLException.h"
 #include "include/OpenGLStateManager.h"
+#include "include/ImGui/OpenGLLogMessage.h"
 
 using namespace model;
 
@@ -31,7 +32,7 @@ Buffers::Buffers(GLsizei n, GLenum type)
           "Serious error! Initialize OpenGL before building shaders!");
     }
   } catch (OpenGLException& e) {
-    std::cerr << e.what() << std::endl;
+    OpenGLLogMessage::GetInstance().AddLog(e.what());
     exit(0);
   }
   glGenBuffers(n_, &buffer_id_);
@@ -46,7 +47,11 @@ void Buffers::UnBind() const {
   glBindBuffer(type_, 0);
 }
 void Buffers::SetData(const void* data, GLsizeiptr size, GLenum usage) const {
-  glBufferData(type_, size, data, usage);
+  if (OpenGLStateManager::GetInstance().CheckOpenGLVersion(4, 5)) {
+    glNamedBufferData(buffer_id_, size, data, usage);
+  } else {
+    glBufferData(type_, size, data, usage);
+  }
 }
 GLenum Buffers::GetType() const {
   return type_;
@@ -69,29 +74,41 @@ void Buffers::ResetBuffers(GLsizei n, GLenum type) {
 GLsizei Buffers::GetN() const {
   return n_;
 }
-void Buffers::SetSubDate(GLintptr offset, GLsizeiptr size,
-                         const void* data) const {
-  glBufferSubData(type_, offset, size, data);
-}
 void Buffers::SetData(const void* data, GLsizeiptr size, GLenum usage) {
-  glBufferData(type_, size, data, usage);
-  has_data_ = true;
-}
-void Buffers::SetSubDate(GLintptr offset, GLsizeiptr size, const void* data) {
-  glBufferSubData(type_, offset, size, data);
+  if (OpenGLStateManager::GetInstance().CheckOpenGLVersion(4, 5)) {
+    glNamedBufferData(buffer_id_, size, data, usage);
+  } else {
+    glBufferData(type_, size, data, usage);
+  }
   has_data_ = true;
 }
 bool Buffers::IsEmpty() const {
   return !((buffer_id_ != 0) && (has_data_));
 }
+void Buffers::GetBufferParameteriv(GLenum value, GLint* data) {
+  if (OpenGLStateManager::GetInstance().CheckOpenGLVersion(4, 5)) {
+    glGetNamedBufferParameteriv(buffer_id_, value, data);
+  } else {
+    glGetBufferParameteriv(type_, value, data);
+  }
+}
+
 template <typename T>
 void Buffers::SetData(const std::vector<T>& data, GLenum usage) {
-  glBufferData(type_, data.size() * sizeof(T), data.data(), usage);
+  if (OpenGLStateManager::GetInstance().CheckOpenGLVersion(4, 5)) {
+    glNamedBufferData(buffer_id_, data.size() * sizeof(T), data.data(), usage);
+  } else {
+    glBufferData(type_, data.size() * sizeof(T), data.data(), usage);
+  }
   has_data_ = true;
 }
 template <typename T>
 void Buffers::SetData(const std::vector<T>& data, GLenum usage) const {
-  glBufferData(type_, data.size() * sizeof(T), data.data(), usage);
+  if (OpenGLStateManager::GetInstance().CheckOpenGLVersion(4, 5)) {
+    glNamedBufferData(buffer_id_, data.size() * sizeof(T), data.data(), usage);
+  } else {
+    glBufferData(type_, data.size() * sizeof(T), data.data(), usage);
+  }
 }
 
 template void Buffers::SetData<struct meshdata::Vertex>(

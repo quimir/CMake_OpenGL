@@ -19,6 +19,7 @@
 #include "include/LoggerSystem.h"
 #include "include/Model/Bone.h"
 #include "include/Model/ModelException.h"
+#include "include/ImGui/OpenGLLogMessage.h"
 
 using namespace model;
 
@@ -79,8 +80,9 @@ void Bone::Update(glm::float64 animation_time) {
     glm::mat4 scale = InterpolateScale(animation_time);
     this->local_transform_ = translation * rotation * scale;
   } catch (ModelException& e) {
-    std::cerr << "Bones load incorrectly because of the following: " << e.what()
-              << std::endl;
+    OpenGLLogMessage::GetInstance().AddLog(
+        std::string("Bones load incorrectly because of the following: ") +
+        e.what());
   }
 }
 glm::int32 Bone::GetPositionsIndex(glm::float64 animation_time) {
@@ -89,7 +91,7 @@ glm::int32 Bone::GetPositionsIndex(glm::float64 animation_time) {
       return index;
   }
 
-  throw ModelException(LoggerSystem::Level::kWarning,
+  throw ModelException(LoggerSystem::Level::kError,
                        "The position index of the animation point "
                        "is not stored, the file is from: " +
                            bone_name_);
@@ -100,7 +102,7 @@ glm::int32 Bone::GetRotationIndex(glm::float64 animation_time) {
       return index;
   }
 
-  throw ModelException(LoggerSystem::Level::kWarning,
+  throw ModelException(LoggerSystem::Level::kError,
                        "The rotation index of the animation point "
                        "is not stored, the file is from: " +
                            bone_name_);
@@ -111,7 +113,7 @@ glm::int32 Bone::GetScaleIndex(glm::float64 animation_time) {
       return index;
   }
 
-  throw ModelException(LoggerSystem::Level::kWarning,
+  throw ModelException(LoggerSystem::Level::kError,
                        "The scale index of the animation point is "
                        "not stored, the file is from: " +
                            bone_name_);

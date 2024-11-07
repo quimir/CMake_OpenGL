@@ -32,6 +32,7 @@ constexpr glm::float32 kSensitivity = 0.1f;
 constexpr glm::float32 kZoom = 45.0f;
 constexpr glm::float32 kNear = 0.1f;
 constexpr glm::float32 kFar = 100.0f;
+constexpr glm::float32 kRotateSpeed = 2.0f;
 }  // namespace cameraconstsetting
 
 /**
@@ -189,7 +190,7 @@ class Camera {
   void DisEnable();
 
   bool IsEnabled() const;
-  
+
   void RotateYaw(glm::float32 angle);
 
   /**
@@ -209,6 +210,10 @@ class Camera {
                    glm::float32 pitch = cameraconstsetting::kPitch,
                    glm::float32 near_plane = cameraconstsetting::kNear,
                    glm::float32 far_plane = cameraconstsetting::kFar);
+  
+  glm::float32 GetRotateSpeed() const;
+  
+  void SetRotateSpeed(glm::float32 rotate_speed);
 
  private:
   /**
@@ -238,6 +243,7 @@ class Camera {
   // Camera options
   glm::float32 movement_speed_;
   glm::float32 mouse_sensitivity_;
+  glm::float32 rotate_speed_;
   glm::float32 zoom_;
   glm::float32 near_plane_;  // Near clipping plane distance
   glm::float32 far_plane_;   // Far clipping plane distance

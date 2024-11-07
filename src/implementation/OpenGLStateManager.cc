@@ -76,3 +76,19 @@ void OpenGLStateManager::SetColorClear(float red, float green, float blue,
   glClearColor(red, green, blue, alpha);
   color_enabled_ = true;
 }
+bool OpenGLStateManager::CheckOpenGLVersion(int major_number,
+                                            int minor_number) {
+  if (!IsEnableOpenGL()) {
+    return false;
+  }
+  int major, minor;
+  // Get the registered version of OpenGL
+  glGetIntegerv(GL_MAJOR_VERSION, &major);
+  glGetIntegerv(GL_MINOR_VERSION, &minor);
+
+  if (major < major_number || (major == major_number && minor < minor_number)) {
+    return false;
+  }
+
+  return true;
+}

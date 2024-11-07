@@ -28,6 +28,8 @@
 #include "glad/glad.h"
 #include "glm/glm.hpp"
 
+#include "include/Core/MacroDefinition.h"
+
 /**
  * Create a simple shader class where all shader behavior can be performed. 
  * OpenGL types and GLM types are supported in this class. There is no risk 
@@ -66,7 +68,7 @@ class Shader {
   void Use() const;
 
   /**
-   * Remove shaders from use by using Use() first.
+   * Unbind a currently bound shader.
    */
   void UnUse();
 
@@ -533,10 +535,6 @@ class Shader {
 
   ~Shader();
 
-  Shader(const Shader& other) = delete;
-
-  Shader& operator=(const Shader& other) = delete;
-
   /**
    * Reset an OpenGL shader.
    * @param vertex_path Path to vertex shader path. Required because each shader 
@@ -584,7 +582,7 @@ class Shader {
    * @param shader Shader ID.
    * @param error_type See Shader::ShaderErrorType for details.
    */
-  void CheckCompileErrors(GLuint shader, ShaderErrorType error_type);
+  static void CheckCompileErrors(GLuint shader, ShaderErrorType error_type);
 
   /**
    * Convert the ShaderErrorType variable to a string for output, using an 
@@ -592,9 +590,9 @@ class Shader {
    * @param type Type of ShaderErrorType.
    * @return Converted string.
    */
-  std::string ShaderErrorTypeToString(ShaderErrorType type);
+  static std::string ShaderErrorTypeToString(ShaderErrorType type);
 
-  ShaderErrorType ShaderTypeToShaderErrorType(GLuint shader_type) const;
+  static ShaderErrorType ShaderTypeToShaderErrorType(GLuint shader_type) ;
 
   /**
    * Find the position of the uniform in the shader. If an error is found it is 
@@ -637,14 +635,6 @@ class Shader {
   GLuint CheckUniformBlockExists(const std::string& block_name) const;
 
   /**
-   * Query the native OpenGL version number. If the native OpenGL version 
-   * number is less than the entered version number, an exception is thrown.
-   * @param major_number The large version takes x of x.y as the input target.
-   * @param minor_number The minor version takes y of x.y as the input target.
-   */
-  void CheckOpenGLVersion(int major_number, int minor_number) const;
-
-  /**
    * Build an OpenGL shader. It must have a path for a vertex shader and a path 
    * for a fragment shader. After linking, the registered shader ID is stored in 
    * id_. If an error occurs, the error message is displayed on the console and 
@@ -668,19 +658,41 @@ class Shader {
   /**
    * Checks if OpenGL is already enabled and throws an exception if it is not.
    */
-  void CheckActivatedOpenGL();
+  static void CheckActivatedOpenGL();
 
   /**
-   * 
-   * @param uniform_name 
+   * Check whether the Uniform is active in OpenGL, if not active/optimized by 
+   * OpenGL will throw the appropriate exception.
+   * @param uniform_name Names with active Uniform need to be detected.
    */
   void CheckActiveUniform(const std::string& uniform_name) const;
 
+  /**
+   * Check whether the Uniform block is active in OpenGL, if not 
+   * active/optimized by OpenGL will throw the appropriate exception.
+   * @param uniform_block_name Names with active Uniform block need to be 
+   * detected.
+   */
   void CheckActiveUniformBlock(const std::string& uniform_block_name) const;
 
-  std::string ReadShaderFile(const std::string& path) const;
+  /**
+   * Reads the contents of the shader file.
+   * @param path Shader file path.
+   * @return The contents of the shader file are successfully returned. Return 
+   * "" if the path is empty. An exception is thrown when a file error occurs.
+   */
+  static std::string ReadShaderFile(const std::string& path) ;
 
-  GLuint CompileShader(const std::string& source_code, GLenum shader_type);
+  /**
+   * Build the shader.
+   * @param source_code Shader source code.
+   * @param shader_type Shader type
+   * @return Successful build returns the ID of the shader registered in OpenGL.
+   * Otherwise throw an exception.
+   */
+  static GLuint CompileShader(const std::string& source_code, GLenum shader_type);
+
+  DISABLE_COPY_MOVE(Shader)
 
  private:
   // Record the ID of the shader registered with OpenGL.

@@ -115,7 +115,7 @@ class FrameBuffer {
 
   void Cleanup();
 
- private:
+ protected:
   GLint window_width_, window_height_;
   GLuint frame_buffer_;          // Frame buffer object ID.
   GLenum frame_buffer_type_;     // Framebuffer target type.

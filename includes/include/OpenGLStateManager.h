@@ -47,6 +47,15 @@ class OpenGLStateManager {
   void SetColorClear(glm::vec4 color_value);
   
   void SetColorClear(float red,float green,float blue,float alpha);
+  
+  /**
+   * Query the native OpenGL version number. If the native OpenGL version 
+   * number is less than the entered version number, an exception is thrown.
+   * @param major_number The large version takes x of x.y as the input target.
+   * @param minor_number The minor version takes y of x.y as the input target.
+   * @return Return true if it matches the current version of OpenGL.
+   */
+  bool CheckOpenGLVersion(int major_number,int minor_number);
 
  private:
   OpenGLStateManager() = default;

@@ -30,7 +30,7 @@
  * @code
  * Buffer buffer;
  * buffer.Bind();
- * buffer.SetData(data,size,usage);s
+ * buffer.SetData(data,size,usage);
  * buffer.UnBind();
  * @endcode
  */
@@ -57,7 +57,7 @@ class Buffers {
   GLenum GetType() const;
 
   /**
-   * Re sets the type of the buffer.
+   * Resets the type of the buffer.
    * @param type The new GLenum type for the buffer.
    */
   void ReSetType(GLenum type);
@@ -75,19 +75,32 @@ class Buffers {
   void UnBind() const;
 
   /**
-   * Sets the buffer's data.
-   * @param data A pointer to data.
-   * @param size The size of the data in bytes.
-   * @param usage Specify the data usage mode, e.g., GL_STATIC_DRAW, 
-   * GL_DYNAMIC_DRAW, etc.
+   * Creates and initializes a buffer object's data store. In OpenGL4.5,
+   * glNamedBufferData is scheduled for binding first.
+   * @param data Specifies a pointer to data that will be copied into the data 
+   * store for initialization, or NULL if no data is to be copied.
+   * @param size Specifies the size in bytes of the buffer object's new data 
+   * store.
+   * @param usage Specifies the expected usage pattern of the data store. The 
+   * symbolic constant must be GL_STREAM_DRAW, GL_STREAM_READ, GL_STREAM_COPY, 
+   * GL_STATIC_DRAW, GL_STATIC_READ, GL_STATIC_COPY, GL_DYNAMIC_DRAW, 
+   * GL_DYNAMIC_READ, or GL_DYNAMIC_COPY.
    */
   void SetData(const void* data, GLsizeiptr size, GLenum usage) const;
 
+  /**
+   * Creates and initializes a buffer object's data store. In OpenGL4.5,
+   * glNamedBufferData is scheduled for binding first.
+   * @param data Specifies a pointer to data that will be copied into the data 
+   * store for initialization, or NULL if no data is to be copied.
+   * @param size Specifies the size in bytes of the buffer object's new data 
+   * store.
+   * @param usage Specifies the expected usage pattern of the data store. The 
+   * symbolic constant must be GL_STREAM_DRAW, GL_STREAM_READ, GL_STREAM_COPY, 
+   * GL_STATIC_DRAW, GL_STATIC_READ, GL_STATIC_COPY, GL_DYNAMIC_DRAW, 
+   * GL_DYNAMIC_READ, or GL_DYNAMIC_COPY.
+   */
   void SetData(const void* data, GLsizeiptr size, GLenum usage);
-
-  void SetSubDate(GLintptr offset, GLsizeiptr size, const void* data) const;
-
-  void SetSubDate(GLintptr offset, GLsizeiptr size, const void* data);
 
   /**
    * Set the buffer data, and use the template method to handle std::vector.
@@ -99,14 +112,28 @@ class Buffers {
   template <typename T>
   void SetData(const std::vector<T>& data, GLenum usage) const;
 
+  /**
+   * Set the buffer data, and use the template method to handle std::vector.
+   * @tparam T Data type.
+   * @param data A std::vector containing the data
+   * @param usage Specify the data usage mode, e.g., GL_STATIC_DRAW, 
+   * GL_DYNAMIC_DRAW, etc.
+   */
   template <typename T>
   void SetData(const std::vector<T>& data, GLenum usage);
 
+  /**
+   * Reset buffer data
+   * @param n Specifies the number of buffer object names to be generated.
+   * @param type Specifies the type of buffered data.
+   */
   void ResetBuffers(GLsizei n = 1, GLenum type = UINT_MAX);
 
   GLsizei GetN() const;
 
   bool IsEmpty() const;
+  
+  void GetBufferParameteriv(GLenum value,GLint* data);
 
  private:
   GLsizei n_;

@@ -21,6 +21,8 @@ uniform float max_radius;
 
 uniform float bias_value;
 
+uniform bool open_shadow;
+
 float ShadowCalculation(vec4 frag_pos_light_space) {
   // Perform perspective divide
   vec3 proj_coords = frag_pos_light_space.xyz / frag_pos_light_space.w;
@@ -88,7 +90,7 @@ void main() {
   vec3 specular = spec * light_color;
 
   // calculate shadow
-  float shadow = ShadowCalculation(fs_in.frag_pos_light_space);
+  float shadow = open_shadow ? ShadowCalculation(fs_in.frag_pos_light_space) : 0.0;
   vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;
 
   frag_color = vec4(lighting, 1.0);
