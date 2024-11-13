@@ -22,6 +22,7 @@
 #include "include/OpenGLWindow.h"
 #include "include/Camera.h"
 
+namespace AppUI {
 class ImGuiWindow : public ImGuiWidget {
  public:
   ImGuiWindow(GLFWwindow* window, int window_width, int window_height);
@@ -31,10 +32,11 @@ class ImGuiWindow : public ImGuiWidget {
   void ShowComputerSettingWindow(
       const OpenGLWindow::OpenGLVersion& opengl_version, int& VSYNC_value,
       GLFWmonitor* monitor);
-  
-  void ShowCameraSettingWindow(Camera& camera,bool& open_mouse);
-  
+
+  void ShowCameraSettingWindow(Camera& camera, bool& open_mouse);
+
   void ShowOpenGLErrorLog();
 };
+}  // namespace AppUI
 
 #endif  //CMAKE_OPEN_INCLUDES_INCLUDE_IMGUI_IMGUIWINDOW_H_

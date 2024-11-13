@@ -20,6 +20,8 @@
 
 constexpr float kDistance = 10.0f;
 
+using namespace AppUI;
+
 ImGuiWindow::ImGuiWindow(GLFWwindow* window, int window_width,
                          int window_height)
     : ImGuiWidget(window, window_width, window_height) {}

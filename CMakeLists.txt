@@ -15,7 +15,106 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
+# Use CMake to check the number of cores and try to use multi-core synchronous builds.
+cmake_host_system_information(RESULT CORE_COUNT QUERY NUMBER_OF_LOGICAL_CORES)
+if (MSVC)
+  add_compile_options(/MP${CORE_COUNT})
+  set(CMAKE_LINK_INCREMENTAL YES)
+  set(CMAKE_BUILD_PARALLEL_LEVEL ${CORE_COUNT})
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set(CMAKE_MAKE_PROGRAM ${CMAKE_MAKE_PROGRAM} -j${CORE_COUNT})
+  set(CMAKE_LINK_INCREMENTAL OFF)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections,-O0")
+  set(CMAKE_LINK_INCREMENTAL YES)
+  set(CMAKE_BUILD_PARALLEL_LEVEL ${CORE_COUNT})
+endif ()
+
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
+
+# Set GLFW build options to ensure static libraries are generated
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
+add_subdirectory(src/third_party/glfw-3.4)
+
+set_target_properties(glfw PROPERTIES
+	ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dll"
+)
+
+set(GLFW3_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/includes/glfw")
+
+# Automatically select the file name of the GLFW library based on the platform
+if (MSVC)
+  set(GLFW_LIB_NAME "glfw3.lib")  # Static library file suffix under Windows
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set(GLFW_LIB_NAME "libglfw3d.a")  # Static library file suffix under Linux/macOS
+  else ()
+	set(GLFW_LIB_NAME "libglfw3.a")
+  endif ()
+endif ()
+
+set(GLFW3_LIBRARY "${CMAKE_BINARY_DIR}/lib/${GLFW_LIB_NAME}")
+
+include_directories(${GLFW3_INCLUDE_DIR})
+set(LIBS glfw)
+
+# Set Assimp build options to ensure static libraries are generated
+set(ASSIMP_ENABLE_BOOST_WORKAROUND OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
+
+add_subdirectory(src/third_party/assimp-5.2.5)
+set_target_properties(assimp PROPERTIES
+	ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dll")
+
+set(ASSIMP_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/third_party/assimp-5.2.5/include/assimp")
+if (MSVC)
+  # Dynamic calculation tool chain identifiers, such as vc143, vc144, etc
+  math(EXPR TOOLSET "(${MSVC_VERSION}/10)-50")
+
+  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set(ASSIMP_MODE_SUFFIX "mtd")
+  else ()
+	set(ASSIMP_MODE_SUFFIX "mt")
+  endif ()
+
+  set(ASSIMP_LIB_NAME "Assimp-vc${TOOLSET}-${ASSIMP_MODE_SUFFIX}.lib")
+  set(ASSIMP_DLL_NAME "Assimp-vc${TOOLSET}-${ASSIMP_MODE_SUFFIX}.dll")
+
+  set(ASSIMP_LIBRARY "${CMAKE_BINARY_DIR}/lib/${ASSIMP_LIB_NAME}")
+
+  message(STATUS "MSVC Assimp library path: ${ASSIMP_LIBRARY}")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+
+  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set(ASSIMP_MODE_SUFFIX "d")
+  else ()
+	set(ASSIMP_MODE_SUFFIX "")
+  endif ()
+
+  if (BUILD_SHARED_LIBS)
+	set(ASSIMP_LIB_NAME "libassimp${ASSIMP_MODE_SUFFIX}.dll.a")
+  else ()
+	set(ASSIMP_LIB_NAME "libassimp${ASSIMP_MODE_SUFFIX}.a")
+  endif ()
+
+  set(ASSIMP_LIBRARY "${CMAKE_BINARY_DIR}/lib/${ASSIMP_LIB_NAME}")
+
+  message(STATUS "GNU Assimp library path:${ASSIMP_LIBRARY}")
+endif ()
+
+set(LIBS assimp ${LIBS})
+
+include_directories(${ASSIMP_INCLUDE_DIR})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
@@ -23,12 +122,16 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 # Essential modules cannot be omitted
 find_package(GLM REQUIRED)
-find_package(GLFW3 REQUIRED)
-find_package(ASSIMP REQUIRED)
+#find_package(GLFW3 REQUIRED)
+#find_package(ASSIMP REQUIRED)
 find_package(MODEL REQUIRED)
 find_package(IMGUI REQUIRED)
+# For dependent libraries, wait for the main library to be built before building.
+add_dependencies(IMGUI glfw)
+add_dependencies(MODEL assimp)
 
 option(ENABLE_SQLite "SQLite is used as the platform for storing data." ON)
 if (ENABLE_SQLite)
@@ -39,25 +142,18 @@ endif ()
 configure_file(configuration/root_directory.h.in ${CMAKE_BINARY_DIR}/configuration/root_directory.h)
 include_directories(${CMAKE_BINARY_DIR}/configuration)
 
-if (WIN32)
-  set(LIBS glfw3 opengl32 assimp MODEL IMGUI)
-
+if (MSVC)
+  set(LIBS ${LIBS} opengl32 MODEL IMGUI)
+  set_source_files_properties(includes/sqlite/shell.c PROPERTIES COMPILE_FLAGS "/utf-8")
+  set(LIBS ${LIBS} SQLite)
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set(LIBS ${LIBS} opengl32 MODEL IMGUI)
   if (ENABLE_SQLite)
-	set_source_files_properties(includes/sqlite/shell.c PROPERTIES COMPILE_FLAGS "/utf-8")
+	set_source_files_properties(includes/sqlite/shell.c PROPERTIES COMPILE_FLAGS "-finput-charset=UTF-8")
 	set(LIBS ${LIBS} SQLite)
   endif ()
-  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-elseif (APPLE)
-  INCLUDE_DIRECTORIES(/System/Library/Frameworks)
-  FIND_LIBRARY(COCOA_LIBRARY Cocoa)
-  FIND_LIBRARY(OpenGL_LIBRARY OpenGL)
-  FIND_LIBRARY(IOKit_LIBRARY IOKit)
-  FIND_LIBRARY(CoreVideo_LIBRARY CoreVideo)
-  MARK_AS_ADVANCED(COCOA_LIBRARY OpenGL_LIBRARY)
-  SET(APPLE_LIBS ${COCOA_LIBRARY} ${IOKit_LIBRARY} ${OpenGL_LIBRARY} ${CoreVideo_LIBRARY})
-  SET(APPLE_LIBS ${APPLE_LIBS} ${GLFW3_LIBRARY} ${ASSIMP_LIBRARY} ${FREETYPE_LIBRARIES})
-  set(LIBS ${LIBS} ${APPLE_LIBS})
-endif (WIN32)
+endif ()
 
 set(HEADER_FILES_DIR "${CMAKE_SOURCE_DIR}/includes/include")
 set(SOURCE_FILES_DIR "${CMAKE_SOURCE_DIR}/src/implementation")
@@ -65,18 +161,18 @@ set(CORE_HEADER_FILES_DIR "${HEADER_FILES_DIR}/Core")
 set(CORE_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/Core")
 set(TIME_HEADER_FILES_DIR "${HEADER_FILES_DIR}/Time")
 set(TIME_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/Time")
-# Initialize ALL_HEADER_FILES_DIR and ALL_SOURCE_FILES_DIR
-set(ALL_HEADER_FILES_DIR "${HEADER_FILES_DIR};${TIME_HEADER_FILES_DIR};${CORE_HEADER_FILES_DIR}")
-set(ALL_SOURCE_FILES_DIR "${SOURCE_FILES_DIR};${TIME_SOURCE_FILES_DIR};${CORE_SOURCE_FILES_DIR}")
+# Create a master file set
+set(MAIN_HEADER_FILES_DIR "${HEADER_FILES_DIR};${TIME_HEADER_FILES_DIR};${CORE_HEADER_FILES_DIR}")
+set(MAIN_SOURCE_FILES_DIR "${SOURCE_FILES_DIR};${TIME_SOURCE_FILES_DIR};${CORE_SOURCE_FILES_DIR}")
 
 set(IMGUI_HEADER_FILES_DIR "${HEADER_FILES_DIR}/ImGui")
 set(IMGUI_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/ImGui")
 set(IMGUI_FRONTS_HEADER_FILES_DIR "${IMGUI_HEADER_FILES_DIR}/Fonts")
 set(IMGUI_FRONTS_SOURCES_FILES_DIR "${SOURCE_FILES_DIR}/ImGui/Fonts")
-list(APPEND ALL_HEADER_FILES_DIR "${IMGUI_HEADER_FILES_DIR}")
-list(APPEND ALL_SOURCE_FILES_DIR "${IMGUI_SOURCE_FILES_DIR}")
-list(APPEND ALL_HEADER_FILES_DIR "${IMGUI_FRONTS_HEADER_FILES_DIR}")
-list(APPEND ALL_SOURCE_FILES_DIR "${IMGUI_FRONTS_SOURCES_FILES_DIR}")
+list(APPEND MAIN_HEADER_FILES_DIR "${IMGUI_HEADER_FILES_DIR}")
+list(APPEND MAIN_SOURCE_FILES_DIR "${IMGUI_SOURCE_FILES_DIR}")
+list(APPEND MAIN_HEADER_FILES_DIR "${IMGUI_FRONTS_HEADER_FILES_DIR}")
+list(APPEND MAIN_SOURCE_FILES_DIR "${IMGUI_FRONTS_SOURCES_FILES_DIR}")
 
 option(ENABLE_EXPERIMENTAL "A quick extension. It could be experimental (unsafe), or it could be a defragment of 
 OpenGL code that doesn't fit in the main code area and is therefore placed here. s details will be noted at 
@@ -84,12 +180,31 @@ the beginning of each.h with ///." ON)
 if (ENABLE_EXPERIMENTAL)
   set(EXPERIMENTAL_HEADER_FILES_DIR "${HEADER_FILES_DIR}/EXPERIMENTAL")
   set(EXPERIMENTAL_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/EXPERIMENTAL")
-  list(APPEND ALL_HEADER_FILES_DIR "${EXPERIMENTAL_HEADER_FILES_DIR}")
-  list(APPEND ALL_SOURCE_FILES_DIR "${EXPERIMENTAL_SOURCE_FILES_DIR}")
+  list(APPEND MAIN_HEADER_FILES_DIR "${EXPERIMENTAL_HEADER_FILES_DIR}")
+  list(APPEND MAIN_SOURCE_FILES_DIR "${EXPERIMENTAL_SOURCE_FILES_DIR}")
 endif ()
 
-message(STATUS "Header directories: ${ALL_HEADER_FILES_DIR}")
-message(STATUS "Source directories: ${ALL_SOURCE_FILES_DIR}")
+# Traverse the master file set.
+message(STATUS "Checking directories in MAIN_HEADER_FILES_DIR: ${MAIN_HEADER_FILES_DIR}")
+set(MAIN_HEADER_FILES "")
+
+foreach (HEADER_DIR IN LISTS MAIN_HEADER_FILES_DIR)
+  file(GLOB_RECURSE HEADER_FILES_TMP
+	  "${HEADER_DIR}/*.h"
+	  "${HEADER_DIR}/*.hpp"
+	  "${HEADER_DIR}/*inl")
+  list(APPEND MAIN_HEADER_FILES ${HEADER_FILES_TMP})
+endforeach ()
+
+message(STATUS "Checking directories in MAIN_SOURCE_FILES_DIR: ${MAIN_SOURCE_FILES_DIR}")
+set(MAIN_SOURCE_FILES "")
+
+foreach (SOURCE_DIR IN LISTS MAIN_SOURCE_FILES_DIR)
+  file(GLOB_RECURSE SOURCE_FILES_TMP
+	  "${SOURCE_DIR}/*.cpp"
+	  "${SOURCE_DIR}/*.cc")
+  list(APPEND MAIN_SOURCE_FILES ${SOURCE_FILES_TMP})
+endforeach ()
 
 # First create relevant static libraries required for other projects
 add_library(STB_IMAGE "src/stb_image.cpp")
@@ -99,86 +214,71 @@ add_library(GLAD "${CMAKE_SOURCE_DIR}/src/glad.c")
 target_include_directories(GLAD PUBLIC "${CMAKE_SOURCE_DIR}/includes")
 set(LIBS ${LIBS} GLAD)
 
-set(CHAPTERS
-	started_opengl
-	model_loading
-	started_opengl_texture
-	skeletal_animation
-	frame_buffers
-	advanced_OpenGL
-	advanced_Lighting)
+# Search all directories under OpenGL without having to manually enter folders.
+file(GLOB DIRECTORIES LIST_DIRECTORIES true ${CMAKE_SOURCE_DIR}/src/OpenGL/*)
 
-function(create_project_from_sources chapter)
-  # Please do not delete this paragraph, because this is adding the files in the project folder to the project.
-  list(APPEND ALL_HEADER_FILES_DIR "src/${chapter}")
-  # Glob all header files from the directories
-  foreach (HEADER_DIR IN LISTS ALL_HEADER_FILES_DIR)
-	file(GLOB HEADER_FILES_TMP
-		"${HEADER_DIR}/*.h"
-		"${HEADER_DIR}/*.hpp"
-		"${HEADER_DIR}/*.inl")
-	list(APPEND HEADER_FILES ${HEADER_FILES_TMP})
-  endforeach ()
+foreach (chapter ${DIRECTORIES})
+  if (IS_DIRECTORY ${chapter})
+	get_filename_component(NAME ${chapter} NAME)
 
-  # Please do not delete this paragraph, because this is adding the files in the project folder to the project.
-  list(APPEND ALL_SOURCE_FILES_DIR "src/${chapter}")
-  # Glob all source files from the directories
-  foreach (SOURCE_DIR IN LISTS ALL_SOURCE_FILES_DIR)
-	file(GLOB SOURCE_FILES_TMP
-		"${SOURCE_DIR}/*.cpp"
-		"${SOURCE_DIR}/*.cc")
-	list(APPEND SOURCE_FILES ${SOURCE_FILES_TMP})
-  endforeach ()
+	file(GLOB HEADER_FILES "${chapter}/*.h" "${chapter}/*.hpp" "${chapter}/*.inl")
+	file(GLOB SOURCE_FILES "${chapter}/*.cpp" "${chapter}/*.cc")
+	file(GLOB SHADER_FILES
+		"${chapter}/*.glsl"
+		"${chapter}/*.vert"
+		"${chapter}/*.frag"
+		"${chapter}/*.geom"
+		"${chapter}/*.tesc"
+		"${chapter}/*.tese"
+		"${chapter}/*.gsh"
+		"${chapter}/*.fsh"
+		"${chapter}/*.comp"
+		"${chapter}/*.vsh")
 
-  file(GLOB SHADER_FILES
-	  "src/${chapter}/*.glsl"
-	  "src/${chapter}/*.vert"
-	  "src/${chapter}/*.frag"
-	  "src/${chapter}/*.geom"
-	  "src/${chapter}/*.tesc"
-	  "src/${chapter}/*.tese"
-	  "src/${chapter}/*.gsh"
-	  "src/${chapter}/*.fsh"
-	  "src/${chapter}/*.comp"
-	  "src/${chapter}/*.vsh")
+	list(APPEND SOURCE_FILES ${HEADER_FILES} ${SHADER_FILES} ${MAIN_HEADER_FILES} ${MAIN_SOURCE_FILES})
 
-  list(APPEND SOURCE_FILES
-	  ${HEADER_FILES}
-	  ${SHADER_FILES})
+	add_executable(${NAME} ${SOURCE_FILES})
+	target_link_libraries(${NAME} ${LIBS})
 
-  set(NAME "${chapter}")
+	set_target_properties(${NAME} PROPERTIES FOLDER "Executables")
 
-  add_executable(${NAME} ${SOURCE_FILES})
-  target_link_libraries(${NAME} ${LIBS})
+	set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${NAME}")
 
-  if (MSVC)
-	target_compile_options(${NAME} PRIVATE /std:c++17 /MP)
-	target_link_options(${NAME} PUBLIC /ignore:4099)
-  endif (MSVC)
+	if (MSVC)
+	  target_compile_options(${NAME} PRIVATE /std:c++17)
+	  target_link_options(${NAME} PUBLIC /ignore:4099)
+	endif (MSVC)
 
-  if (WIN32)
-	set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${chapter}")
-	set_target_properties(${NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${chapter}/Debug")
-  elseif (APPLE)
-	set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${chapter}")
-	set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/${chapter}")
-	set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/${chapter}")
-  endif (WIN32)
-
-  foreach (SHADER ${SHADER_FILES})
-	if (WIN32)
-	  add_custom_command(TARGET ${NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SHADER} $<TARGET_FILE_DIR:${NAME}>)
-	endif (WIN32)
-  endforeach ()
-
-  # copy dlls
-  if (WIN32)
-	file(GLOB DLLS "${CMAKE_SOURCE_DIR}/dlls/*.dll")
-	foreach (DLL ${DLLS})
-	  add_custom_command(TARGET ${NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${DLL} $<TARGET_FILE_DIR:${NAME}>)
+	set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${NAME}")
+	
+	foreach (SHADER ${SHADER_FILES})
+	  get_filename_component(SHADER_NAME ${SHADER} NAME)
+	  set(TARGET_SHADER_PATH "$<TARGET_FILE_DIR:${NAME}>/${SHADER_NAME}")
+	  add_custom_command(TARGET ${NAME} POST_BUILD
+		  COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${NAME}>
+		  COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SHADER} ${TARGET_SHADER_PATH}
+		  COMMENT "Copying Shader: ${SHADER_NAME} to target folder if not already present.")
 	endforeach ()
-  endif (WIN32)
-endfunction()
+
+	# Gather all DLLs for this project
+	file(GLOB DLLS "${CMAKE_BINARY_DIR}/dll/*.dll")
+
+	# Use POST_BUILD to check if DLLs exist and copy them if missing
+	if (DLLS)
+	  foreach (DLL ${DLLS})
+		# Check if the DLL already exists in the target directory
+		get_filename_component(DLL_NAME ${DLL} NAME)
+		set(TARGET_DLL_PATH "$<TARGET_FILE_DIR:${NAME}>/${DLL_NAME}")
+
+		add_custom_command(TARGET ${NAME} POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${NAME}>
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DLL} ${TARGET_DLL_PATH}
+			COMMENT "Copying DLL: ${DLL_NAME} to target folder if not already present.")
+	  endforeach ()
+	endif ()
+
+  endif ()
+endforeach ()
 
 # Define the makeLink macro
 macro(makeLink src dest target)
@@ -193,8 +293,8 @@ endforeach (CHAPTER)
 include_directories(${CMAKE_SOURCE_DIR}/includes)
 
 # Load the necessary parameters for the test.
-set(ALL_HEADER_FILES_DIR "${ALL_HEADER_FILES_DIR}" CACHE STRING "All header files directory")
-set(ALL_SOURCE_FILES_DIR "${ALL_SOURCE_FILES_DIR}" CACHE STRING "All source files directory")
+set(MAIN_HEADER_FILES "${MAIN_HEADER_FILES}" CACHE STRING "Main header files")
+set(MAIN_SOURCE_FILES "${MAIN_SOURCE_FILES}" CACHE STRING "Main source files")
 set(LIBS "${LIBS}" CACHE STRING "All the link libraries")
 # Test module.
 add_subdirectory(src/ctests)

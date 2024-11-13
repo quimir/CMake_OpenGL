@@ -96,7 +96,7 @@ void Animation::ReadHierarchyData(Animation::AssimpNodeData& dest,
 }
 Animation::Animation(const std::string& animation_path, Model* model) {
   try {
-    Assimp::Importer importer;
+    Assimp::Importer importer=Assimp::Importer();
     auto scene = importer.ReadFile(animation_path, aiProcess_Triangulate);
     if (!scene || !scene->mRootNode) {
       throw ModelException(

@@ -58,7 +58,7 @@ class VertexArray {
    * bind a vertex array object.when this function is called, a unique 
    * representation of the class is bound to OpenGL.
    */
-  void Bind();
+  void Bind() const;
 
   /**
    * Unbind the vertex array object.It binds 0 to OpenGL, and in OpenGL 4.6 

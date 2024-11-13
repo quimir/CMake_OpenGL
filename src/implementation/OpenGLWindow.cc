@@ -65,12 +65,21 @@ OpenGLWindow::OpenGLWindow(int width, int height, const char* title,
     InitGLAD();
     frame_buffer_ = new FrameBuffer(width, height);
   } catch (OpenGLException& e) {
+#ifdef _WIN32
     ErrorMessageBox(
         std::string(
             "A fatal error occurred while creating an OpenGL window.The "
             "cause of the error is: ") +
             e.what(),
         "Generate an OpenGL error", MB_ICONERROR | MB_DEFBUTTON1);
+#else
+    ErrorMessageBox(
+        std::string(
+            "A fatal error occurred while creating an OpenGL window.The "
+            "cause of the error is: ") +
+            e.what(),
+        "Generate an OpenGL error");
+#endif
 #ifdef _DEBUG
     std::cerr << "A fatal error occurred while creating an OpenGL window.The "
                  "cause of the error is: "
@@ -305,9 +314,7 @@ const RenderTimer& OpenGLWindow::GetRenderTimer() const {
 
 void OpenGLWindow::ResizeGL(int width, int height) {}
 void OpenGLWindow::InitializeGL() {}
-void OpenGLWindow::PaintGL() {
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-}
+void OpenGLWindow::PaintGL() {}
 
 OpenGLWindow::OpenGLVersion OpenGLWindow::QueryOpenGLVersion() {
   if (!glfwInit()) {
@@ -440,15 +447,11 @@ int OpenGLWindow::ErrorMessageBox(const std::string& message,
 #ifdef _WIN32
   result = MessageBox(nullptr, reinterpret_cast<LPCSTR>(message.c_str()),
                       reinterpret_cast<LPCSTR>(title.c_str()), uType);
-#endif
-
-#ifdef __linux__
+#elif __linux__
   std::string command =
       "zenity --info --title=\"" + title + "\" --text=\"" + message + "\"";
   result = system(command.c_str());
-#endif
-
-#ifdef __APPLE__
+#elif __APPLE__
   std::string command =
       "osascript -e 'tell app \"System Events\" to display dialog \"" +
       message + "\" with title \"" + title + "\" buttons {\"OK\"}'";

@@ -24,16 +24,11 @@ foreach (TEST_SOURCE ${TEST_SOURCES})
   # Get the name of the test without the directory and extension
   get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)
 
-  foreach (SOURCE_DIR IN LISTS ALL_SOURCE_FILES_DIR)
-	file(GLOB SOURCE_FILES_TMP
-		"${SOURCE_DIR}/*.cpp"
-		"${SOURCE_DIR}/*.cc")
-	list(APPEND SOURCE_FILES ${SOURCE_FILES_TMP})
-  endforeach ()
-
   # Add the test executable
-  add_executable(${TEST_NAME} ${TEST_SOURCE} ${SOURCE_FILES})
+  add_executable(${TEST_NAME} ${TEST_SOURCE} ${MAIN_SOURCE_FILES})
   target_link_libraries(${TEST_NAME} gtest gtest_main gmock gmock_main ${LIBS})
+
+  set_target_properties(${TEST_NAME} PROPERTIES FOLDER "Test")
 
   # Add the test
   add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})

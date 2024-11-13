@@ -284,8 +284,8 @@ class OpenGLWindow : public Widget {
    * @return Native OpenGL information.
    */
   OpenGLVersion QueryOpenGLVersion();
-
-  int ErrorMessageBox(const std::string& message, const std::string& title,
+  
+  static int ErrorMessageBox(const std::string& message, const std::string& title,
                        unsigned int uType = 0);
 
   DISABLE_COPY(OpenGLWindow)

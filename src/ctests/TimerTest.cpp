@@ -14,6 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
+#include <thread>
 #include "chrono"
 #include "gtest/gtest.h"
 #include "include/LoggerSystem.h"

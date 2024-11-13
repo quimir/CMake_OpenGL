@@ -40,7 +40,7 @@ VertexArray::VertexArray(GLsizei n) : vao_id_(0), n_(n), has_data_(false) {
 VertexArray::~VertexArray() {
   glDeleteVertexArrays(n_, &vao_id_);
 }
-void VertexArray::Bind() {
+void VertexArray::Bind() const {
   glBindVertexArray(vao_id_);
 }
 void VertexArray::UnBind() {
