@@ -104,19 +104,38 @@ Shader::Shader(const std::string& vertex_path, const std::string& fragment_path,
 }
 
 void Shader::Use() const {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to use Shader without initialization.");
+    return;
+  }
   std::lock_guard<std::mutex> lock(gl_mutex_);
   glUseProgram(this->id_);
 }
 
 void Shader::SetBool(const string& name, bool value) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform1i(CheckUniformExists(name), (int)value);
 }
 
 void Shader::SetInt(const string& name, int value) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform1i(CheckUniformExists(name), value);
 }
 
 void Shader::SetFloat(const string& name, float value) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+  }
   glUniform1f(CheckUniformExists(name), value);
 }
 
@@ -184,30 +203,75 @@ GLuint Shader::CheckUniformBlockExists(const string& block_name) {
   return block_index;
 }
 void Shader::SetVec2(const string& name, float x, float y) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform2f(CheckUniformExists(name), x, y);
 }
 void Shader::SetVec2(const string& name, const glm::vec2& value) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform2fv(CheckUniformExists(name), 1, &value[0]);
 }
 void Shader::SetVec3(const string& name, float x, float y, float z) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform3f(CheckUniformExists(name), x, y, z);
 }
 void Shader::SetVec3(const string& name, const glm::vec3& value) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform3fv(CheckUniformExists(name), 1, &value[0]);
 }
 void Shader::SetVec4(const string& name, float x, float y, float z, float w) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform4f(CheckUniformExists(name), x, y, z, w);
 }
 void Shader::SetVec4(const string& name, const glm::vec4& value) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform4fv(CheckUniformExists(name), 1, &value[0]);
 }
 void Shader::SetMat2(const string& name, const glm::mat2& mat2) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniformMatrix2fv(CheckUniformExists(name), 1, GL_FALSE, &mat2[0][0]);
 }
 void Shader::SetMat3(const string& name, const glm::mat3& mat3) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniformMatrix3fv(CheckUniformExists(name), 1, GL_FALSE, &mat3[0][0]);
 }
 void Shader::SetMat4(const string& name, const glm::mat4& mat4) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniformMatrix4fv(CheckUniformExists(name), 1, GL_FALSE, &mat4[0][0]);
 }
 void Shader::UnUse() {
@@ -226,33 +290,73 @@ void Shader::SetMemoryBarrier(GLbitfield barriers) const {
 }
 void Shader::SetMat2(const string& name, GLsizei count, GLboolean transpose,
                      const GLfloat* value) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniformMatrix2fv(CheckUniformExists(name), count, transpose, value);
 }
 void Shader::SetMat2(const string& name, GLsizei count, GLboolean transpose,
                      const glm::mat2& mat2) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniformMatrix2fv(CheckUniformExists(name), count, transpose, &mat2[0][0]);
 }
 void Shader::SetVec2(const string& name, GLsizei count, const GLfloat* value) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform2fv(CheckUniformExists(name), count, value);
 }
 void Shader::SetVec2(const string& name, GLsizei count,
                      const glm::vec2& value) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform2fv(CheckUniformExists(name), count, &value[0]);
 }
 void Shader::SetMat3(const string& name, GLsizei count, GLboolean transpose,
                      const GLfloat* value) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniformMatrix3fv(CheckUniformExists(name), count, transpose, value);
 }
 void Shader::SetMat3(const std::string& name, GLsizei count,
                      GLboolean transpose, const glm::mat3& mat3) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniformMatrix3fv(CheckUniformExists(name), count, transpose, &mat3[0][0]);
 }
 void Shader::SetMat4(const string& name, GLsizei count, GLboolean transpose,
                      const GLfloat* value) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniformMatrix4fv(CheckUniformExists(name), count, transpose, value);
 }
 void Shader::SetMat4(const string& name, GLsizei count, GLboolean transpose,
                      const glm::mat4& mat4) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniformMatrix4fv(CheckUniformExists(name), count, transpose, &mat4[0][0]);
 }
 void Shader::Initialized(const string& vertex_path, const string& fragment_path,
@@ -382,9 +486,19 @@ void Shader::CheckActivatedOpenGL() {
 }
 void Shader::SetVec3(const string& name, const GLsizei count,
                      const GLfloat* value) {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform3fv(CheckUniformExists(name), count, value);
 }
 void Shader::SetBool(const string& name, bool value) const {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform1i(CheckUniformExists(name), static_cast<int>(value));
 }
 GLint Shader::CheckUniformExists(const string& uniform_name) const {
@@ -424,40 +538,95 @@ GLuint Shader::CheckUniformBlockExists(const string& block_name) const {
   return block_index;
 }
 void Shader::SetInt(const string& name, int value) const {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform1d(CheckUniformExists(name), value);
 }
 void Shader::SetFloat(const string& name, float value) const {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform1f(CheckUniformExists(name), value);
 }
 void Shader::SetVec2(const string& name, float x, float y) const {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform2f(CheckUniformExists(name), x, y);
 }
 void Shader::SetVec2(const string& name, GLsizei count,
                      const GLfloat* value) const {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform2fv(CheckUniformExists(name), count, value);
 }
 void Shader::SetVec2(const string& name, GLsizei count,
                      const glm::vec2& value) const {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform2fv(CheckUniformExists(name), count, &value[0]);
 }
 void Shader::SetVec2(const string& name, const glm::vec2& value) const {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform2fv(CheckUniformExists(name), 1, &value[0]);
 }
 void Shader::SetVec3(const string& name, float x, float y, float z) const {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform3f(CheckUniformExists(name), x, y, z);
 }
 void Shader::SetVec3(const string& name, const glm::vec3& value) const {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform3fv(CheckUniformExists(name), 1, &value[0]);
 }
 void Shader::SetVec3(const string& name, GLsizei count,
                      const GLfloat* value) const {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniform3fv(CheckUniformExists(name), count, value);
 }
 void Shader::SetMat4(const string& name, const glm::mat4& mat4) const {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniformMatrix4fv(CheckUniformExists(name), 1, GL_FALSE, &mat4[0][0]);
 }
 void Shader::SetMat4(const string& name, GLsizei count, GLboolean transpose,
                      const GLfloat* value) const {
+  if (this->IsEmpty()) {
+    OpenGLLogMessage::GetInstance().AddLog(
+        "Mistake! It is illegal to call Uniform without initialization.");
+    return;
+  }
   glUniformMatrix4fv(CheckUniformExists(name), count, transpose, value);
 }
 bool Shader::IsEmpty() const {

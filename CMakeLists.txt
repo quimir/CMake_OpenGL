@@ -15,21 +15,13 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
-# Use CMake to check the number of cores and try to use multi-core synchronous builds.
-cmake_host_system_information(RESULT CORE_COUNT QUERY NUMBER_OF_LOGICAL_CORES)
-if (MSVC)
-  add_compile_options(/MP${CORE_COUNT})
-  set(CMAKE_LINK_INCREMENTAL YES)
-  set(CMAKE_BUILD_PARALLEL_LEVEL ${CORE_COUNT})
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  set(CMAKE_MAKE_PROGRAM ${CMAKE_MAKE_PROGRAM} -j${CORE_COUNT})
-  set(CMAKE_LINK_INCREMENTAL OFF)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections,-O0")
-  set(CMAKE_LINK_INCREMENTAL YES)
-  set(CMAKE_BUILD_PARALLEL_LEVEL ${CORE_COUNT})
-endif ()
-
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dll")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/lib")
+
+set(THIRD_PARTY_DIR "${CMAKE_SOURCE_DIR}/third_party")
 
 # Set GLFW build options to ensure static libraries are generated
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -37,15 +29,20 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
-add_subdirectory(src/third_party/glfw-3.4)
-
-set_target_properties(glfw PROPERTIES
-	ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dll"
-)
-
-set(GLFW3_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/includes/glfw")
+if (EXISTS "${THIRD_PARTY_DIR}/glfw-3.4")
+  set(GLFW_INCLUDE_DIR "${THIRD_PARTY_DIR}/glfw-3.4/include")
+else ()
+  message(STATUS "Downloading GLFW from the network")
+  include(FetchContent)
+  FetchContent_Declare(
+	  glfw
+	  GIT_REPOSITORY https://github.com/glfw/glfw.git
+	  GIT_TAG 3.4
+  )
+  FetchContent_MakeAvailable(glfw)
+  
+  set(GLFW_INCLUDE_DIR "${glfw_SOURCE_DIR}/include")
+endif ()
 
 # Automatically select the file name of the GLFW library based on the platform
 if (MSVC)
@@ -57,11 +54,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	set(GLFW_LIB_NAME "libglfw3.a")
   endif ()
 endif ()
-
-set(GLFW3_LIBRARY "${CMAKE_BINARY_DIR}/lib/${GLFW_LIB_NAME}")
-
-include_directories(${GLFW3_INCLUDE_DIR})
-set(LIBS glfw)
+set(GLFW_LIBRARY "${CMAKE_BINARY_DIR}/lib/${GLFW_LIB_NAME}")
 
 # Set Assimp build options to ensure static libraries are generated
 set(ASSIMP_ENABLE_BOOST_WORKAROUND OFF CACHE BOOL "" FORCE)
@@ -70,13 +63,20 @@ set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
 
-add_subdirectory(src/third_party/assimp-5.2.5)
-set_target_properties(assimp PROPERTIES
-	ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dll")
+if(EXISTS "${THIRD_PARTY_DIR}/assimp-5.2.5")
+  set(ASSIMP_INCLUDE_DIR "${THIRD_PARTY_DIR}/assimp-5.2.5/include/assimp")
+else()
+  include(FetchContent)
+  FetchContent_Declare(
+	  assimp
+	  GIT_REPOSITORY https://github.com/assimp/assimp.git
+	  GIT_TAG v5.2.5
+  )
+  FetchContent_MakeAvailable(assimp)
+  
+  set(ASSIMP_INCLUDE_DIR "${assimp_SOURCE_DIR}/include/assimp")
+endif()
 
-set(ASSIMP_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/third_party/assimp-5.2.5/include/assimp")
 if (MSVC)
   # Dynamic calculation tool chain identifiers, such as vc143, vc144, etc
   math(EXPR TOOLSET "(${MSVC_VERSION}/10)-50")
@@ -112,11 +112,8 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   message(STATUS "GNU Assimp library path:${ASSIMP_LIBRARY}")
 endif ()
 
-set(LIBS assimp ${LIBS})
-
-include_directories(${ASSIMP_INCLUDE_DIR})
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+include_directories(${GLFW_INCLUDE_DIR} ${ASSIMP_INCLUDE_DIR})
+set(LIBS glfw assimp)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
@@ -214,9 +211,22 @@ add_library(GLAD "${CMAKE_SOURCE_DIR}/src/glad.c")
 target_include_directories(GLAD PUBLIC "${CMAKE_SOURCE_DIR}/includes")
 set(LIBS ${LIBS} GLAD)
 
+# Use CMake to check the number of cores and try to use multi-core synchronous builds.
+cmake_host_system_information(RESULT CORE_COUNT QUERY NUMBER_OF_LOGICAL_CORES)
+if (MSVC)
+  add_compile_options(/MP${CORE_COUNT})
+  set(CMAKE_LINK_INCREMENTAL YES)
+  set(CMAKE_BUILD_PARALLEL_LEVEL ${CORE_COUNT})
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set(CMAKE_MAKE_PROGRAM ${CMAKE_MAKE_PROGRAM} -j${CORE_COUNT})
+  set(CMAKE_LINK_INCREMENTAL OFF)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections,-O0")
+  set(CMAKE_LINK_INCREMENTAL YES)
+  set(CMAKE_BUILD_PARALLEL_LEVEL ${CORE_COUNT})
+endif ()
+
 # Search all directories under OpenGL without having to manually enter folders.
 file(GLOB DIRECTORIES LIST_DIRECTORIES true ${CMAKE_SOURCE_DIR}/src/OpenGL/*)
-
 foreach (chapter ${DIRECTORIES})
   if (IS_DIRECTORY ${chapter})
 	get_filename_component(NAME ${chapter} NAME)
@@ -249,8 +259,7 @@ foreach (chapter ${DIRECTORIES})
 	  target_link_options(${NAME} PUBLIC /ignore:4099)
 	endif (MSVC)
 
-	set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${NAME}")
-	
+	# Copy shaders to the target folder if they do not exist
 	foreach (SHADER ${SHADER_FILES})
 	  get_filename_component(SHADER_NAME ${SHADER} NAME)
 	  set(TARGET_SHADER_PATH "$<TARGET_FILE_DIR:${NAME}>/${SHADER_NAME}")
@@ -260,16 +269,20 @@ foreach (chapter ${DIRECTORIES})
 		  COMMENT "Copying Shader: ${SHADER_NAME} to target folder if not already present.")
 	endforeach ()
 
+	add_custom_command(TARGET ${NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${NAME}>
+    COMMENT "Creating target directory if not present.")
+
 	# Gather all DLLs for this project
 	file(GLOB DLLS "${CMAKE_BINARY_DIR}/dll/*.dll")
 
-	# Use POST_BUILD to check if DLLs exist and copy them if missing
+	# Ensure DLL files are copied after the executable is built
 	if (DLLS)
 	  foreach (DLL ${DLLS})
-		# Check if the DLL already exists in the target directory
 		get_filename_component(DLL_NAME ${DLL} NAME)
 		set(TARGET_DLL_PATH "$<TARGET_FILE_DIR:${NAME}>/${DLL_NAME}")
 
+		# Ensure DLL is copied only after the executable is built
 		add_custom_command(TARGET ${NAME} POST_BUILD
 			COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${NAME}>
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DLL} ${TARGET_DLL_PATH}
@@ -277,6 +290,8 @@ foreach (chapter ${DIRECTORIES})
 	  endforeach ()
 	endif ()
 
+	# Add the dependency on assimp here after the target is created
+	add_dependencies(${NAME} assimp)  # Move this after target creation
   endif ()
 endforeach ()
 

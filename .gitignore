@@ -519,3 +519,5 @@ _deps
 CMakeUserPresets.json!/build/
 build/*
 /src/third_party/glfw-3.4/deps/
+!/.idea/!/cmake-build-debug/
+!/cmake-build-debug-mingw/
