@@ -14,25 +14,21 @@
  * limitations under the License.
  ******************************************************************************/
 
-#ifndef CMAKE_OPEN_INCLUDES_INCLUDE_EXCEPTION_H_
-#define CMAKE_OPEN_INCLUDES_INCLUDE_EXCEPTION_H_
+#ifndef CMAKE_OPEN_INCLUDES_INCLUDE_SHAREDFRAMEWORKEXPORT_H_
+#define CMAKE_OPEN_INCLUDES_INCLUDE_SHAREDFRAMEWORKEXPORT_H_
 
-#include <exception>
-#include "LoggerSystem.h"
-
-class Exception : public std::exception {
- public:
-  Exception(LoggerSystem::Level level, const std::string& message);
-
-#ifdef _MSC_VER
-  const char* what() const override;
-#elif defined(__MINGW32__)
-  const char* what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW override;
+#if defined(_WIN32) || defined(_WIN64)
+#ifdef SHARED_FRAMEWORK_EXPORTS
+#define SHARED_FRAMEWORK_API __declspec(dllexport)
+#else
+#define SHARED_FRAMEWORK_API __declspec(dllimport)
+#endif
+#else
+#ifdef SHARED_FRAMEWORK_EXPORTS
+#define SHARED_FRAMEWORK_API __attribute__((visibility("default")))
+#else
+#define SHARED_FRAMEWORK_API
+#endif
 #endif
 
- private:
-  LoggerSystem::Level level_;
-  std::string message_;
-};
-
-#endif  //CMAKE_OPEN_INCLUDES_INCLUDE_EXCEPTION_H_
+#endif  //CMAKE_OPEN_INCLUDES_INCLUDE_SHAREDFRAMEWORKEXPORT_H_

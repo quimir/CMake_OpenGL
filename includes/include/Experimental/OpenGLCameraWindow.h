@@ -17,8 +17,8 @@
 #ifndef CMAKE_OPEN_INCLUDES_INCLUDE_EXPERIMENTAL_OPENGLCAMERAWINDOW_H_
 #define CMAKE_OPEN_INCLUDES_INCLUDE_EXPERIMENTAL_OPENGLCAMERAWINDOW_H_
 
-#include "include/Camera.h"
-#include "include/OpenGLWindow.h"
+#include "../Camera.h"
+#include "../OpenGLWindow.h"
 
 class OpenGLCameraWindow : public OpenGLWindow {
  public:

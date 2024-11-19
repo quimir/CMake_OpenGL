@@ -17,8 +17,8 @@
 #ifndef CMAKE_OPEN_INCLUDES_INCLUDE_CAMERA_H_
 #define CMAKE_OPEN_INCLUDES_INCLUDE_CAMERA_H_
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 #include <string>
 
 /**

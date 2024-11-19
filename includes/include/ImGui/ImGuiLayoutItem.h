@@ -18,7 +18,7 @@
 #define CMAKE_OPEN_INCLUDES_INCLUDE_IMGUI_IMGUILAYOUTITEM_H_
 
 #include "imgui/imgui.h"
-#include "include/Core/Rect.h"
+#include "../Core/Rect.h"
 
 class ImGuiLayoutItem {
  public:

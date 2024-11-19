@@ -20,8 +20,8 @@
 #include "ImGuiLayoutItem.h"
 #include <vector>
 #include <memory>
-#include "include/ImGui/ImGuiWidget.h"
-#include "include/Core/MacroDefinition.h"
+#include "ImGuiWidget.h"
+#include "../Core/MacroDefinition.h"
 
 class ImGuiLayout : public ImGuiLayoutItem {
  public:

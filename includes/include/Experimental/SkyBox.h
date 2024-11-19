@@ -19,10 +19,10 @@
 
 #include <vector>
 #include <string>
-#include "include/Shader.h"
-#include "include/VertexArray.h"
-#include "include/Buffers.h"
-#include "include/TextureLoader.h"
+#include "../Shader.h"
+#include "../VertexArray.h"
+#include "../Buffers.h"
+#include "../TextureLoader.h"
 
 class SkyBox {
  public:

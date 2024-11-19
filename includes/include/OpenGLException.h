@@ -17,11 +17,11 @@
 #ifndef CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLEXCEPTION_H_
 #define CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLEXCEPTION_H_
 
-#include <glad/glad.h>
+#include "glad/glad.h"
 #include <exception>
 #include <string>
 
-#include "include/Exception.h"
+#include "Exception.h"
 
 class OpenGLException : public Exception {
  public:

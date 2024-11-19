@@ -28,7 +28,7 @@
 #include "glad/glad.h"
 #include "glm/glm.hpp"
 
-#include "include/Core/MacroDefinition.h"
+#include "Core/MacroDefinition.h"
 
 /**
  * Create a simple shader class where all shader behavior can be performed. 

@@ -17,8 +17,8 @@
 #ifndef CMAKE_OPEN_INCLUDES_INCLUDE_EXPERIMENTAL_STENCILTEST_H_
 #define CMAKE_OPEN_INCLUDES_INCLUDE_EXPERIMENTAL_STENCILTEST_H_
 
-#include "include/OpenGLStateManager.h"
-#include "include/Shader.h"
+#include "../OpenGLStateManager.h"
+#include "../Shader.h"
 
 class StencilTest {
  public:

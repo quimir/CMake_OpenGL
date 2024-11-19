@@ -25,9 +25,9 @@
 #include "glad/glad.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-#include "include/Buffers.h"
-#include "include/Shader.h"
-#include "include/VertexArray.h"
+#include "../Buffers.h"
+#include "../Shader.h"
+#include "../VertexArray.h"
 
 namespace model {
 /**

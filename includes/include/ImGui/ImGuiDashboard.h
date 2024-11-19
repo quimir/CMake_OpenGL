@@ -18,9 +18,9 @@
 #define CMAKE_OPEN_INCLUDES_INCLUDE_IMGUI_IMGUIDASHBOARD_H_
 
 #include "ImGuiWidget.h"
-#include "include/Camera.h"
-#include "include/OpenGLWindow.h"
-#include "include/Time/RenderTimer.h"
+#include "../Camera.h"
+#include "../OpenGLWindow.h"
+#include "../Time/RenderTimer.h"
 
 class ImGuiDashboard : public ImGuiWidget {
  public:

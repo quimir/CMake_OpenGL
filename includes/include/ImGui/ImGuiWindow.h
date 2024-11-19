@@ -18,9 +18,9 @@
 #define CMAKE_OPEN_INCLUDES_INCLUDE_IMGUI_IMGUIWINDOW_H_
 
 #include "ImGuiWidget.h"
-#include "include/Time/RenderTimer.h"
-#include "include/OpenGLWindow.h"
-#include "include/Camera.h"
+#include "../Time/RenderTimer.h"
+#include "../OpenGLWindow.h"
+#include "../Camera.h"
 
 namespace AppUI {
 class ImGuiWindow : public ImGuiWidget {

@@ -17,7 +17,7 @@
 #ifndef CMAKE_OPEN_INCLUDES_INCLUDE_VERTEXBUFFER_H_
 #define CMAKE_OPEN_INCLUDES_INCLUDE_VERTEXBUFFER_H_
 
-#include <glad/glad.h>
+#include "glad/glad.h"
 #include <vector>
 #include <climits>
 

@@ -25,7 +25,7 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
-#include "include/Core/Widget.h"
+#include "../Core/Widget.h"
 
 /**
  * Create a simple ImGui window, implemented with OpenGL3 and GLFW. You can use 

@@ -26,10 +26,10 @@
 #include "FrameBuffer.h"
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
-#include "include/Time/RenderTimer.h"
-#include "include/Core/Widget.h"
+#include "Time/RenderTimer.h"
+#include "Core/Widget.h"
 
-#include "include/Core/MacroDefinition.h"
+#include "Core/MacroDefinition.h"
 
 /**
  * OpenGL window, which encapsulates some of the most basic methods of 

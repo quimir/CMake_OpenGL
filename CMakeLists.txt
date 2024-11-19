@@ -19,116 +19,19 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dll")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/lib")
-
-set(THIRD_PARTY_DIR "${CMAKE_SOURCE_DIR}/third_party")
-
-# Set GLFW build options to ensure static libraries are generated
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-
-if (EXISTS "${THIRD_PARTY_DIR}/glfw-3.4")
-  set(GLFW_INCLUDE_DIR "${THIRD_PARTY_DIR}/glfw-3.4/include")
-else ()
-  message(STATUS "Downloading GLFW from the network")
-  include(FetchContent)
-  FetchContent_Declare(
-	  glfw
-	  GIT_REPOSITORY https://github.com/glfw/glfw.git
-	  GIT_TAG 3.4
-  )
-  FetchContent_MakeAvailable(glfw)
-  
-  set(GLFW_INCLUDE_DIR "${glfw_SOURCE_DIR}/include")
-endif ()
-
-# Automatically select the file name of the GLFW library based on the platform
-if (MSVC)
-  set(GLFW_LIB_NAME "glfw3.lib")  # Static library file suffix under Windows
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-	set(GLFW_LIB_NAME "libglfw3d.a")  # Static library file suffix under Linux/macOS
-  else ()
-	set(GLFW_LIB_NAME "libglfw3.a")
-  endif ()
-endif ()
-set(GLFW_LIBRARY "${CMAKE_BINARY_DIR}/lib/${GLFW_LIB_NAME}")
-
-# Set Assimp build options to ensure static libraries are generated
-set(ASSIMP_ENABLE_BOOST_WORKAROUND OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
-
-if(EXISTS "${THIRD_PARTY_DIR}/assimp-5.2.5")
-  set(ASSIMP_INCLUDE_DIR "${THIRD_PARTY_DIR}/assimp-5.2.5/include/assimp")
-else()
-  include(FetchContent)
-  FetchContent_Declare(
-	  assimp
-	  GIT_REPOSITORY https://github.com/assimp/assimp.git
-	  GIT_TAG v5.2.5
-  )
-  FetchContent_MakeAvailable(assimp)
-  
-  set(ASSIMP_INCLUDE_DIR "${assimp_SOURCE_DIR}/include/assimp")
-endif()
-
-if (MSVC)
-  # Dynamic calculation tool chain identifiers, such as vc143, vc144, etc
-  math(EXPR TOOLSET "(${MSVC_VERSION}/10)-50")
-
-  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-	set(ASSIMP_MODE_SUFFIX "mtd")
-  else ()
-	set(ASSIMP_MODE_SUFFIX "mt")
-  endif ()
-
-  set(ASSIMP_LIB_NAME "Assimp-vc${TOOLSET}-${ASSIMP_MODE_SUFFIX}.lib")
-  set(ASSIMP_DLL_NAME "Assimp-vc${TOOLSET}-${ASSIMP_MODE_SUFFIX}.dll")
-
-  set(ASSIMP_LIBRARY "${CMAKE_BINARY_DIR}/lib/${ASSIMP_LIB_NAME}")
-
-  message(STATUS "MSVC Assimp library path: ${ASSIMP_LIBRARY}")
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-
-  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-	set(ASSIMP_MODE_SUFFIX "d")
-  else ()
-	set(ASSIMP_MODE_SUFFIX "")
-  endif ()
-
-  if (BUILD_SHARED_LIBS)
-	set(ASSIMP_LIB_NAME "libassimp${ASSIMP_MODE_SUFFIX}.dll.a")
-  else ()
-	set(ASSIMP_LIB_NAME "libassimp${ASSIMP_MODE_SUFFIX}.a")
-  endif ()
-
-  set(ASSIMP_LIBRARY "${CMAKE_BINARY_DIR}/lib/${ASSIMP_LIB_NAME}")
-
-  message(STATUS "GNU Assimp library path:${ASSIMP_LIBRARY}")
-endif ()
-
-include_directories(${GLFW_INCLUDE_DIR} ${ASSIMP_INCLUDE_DIR})
-set(LIBS glfw assimp)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+include(cmake/modules/find_paths.cmake)
+
 # Essential modules cannot be omitted
+find_package(GLFW REQUIRED)
+find_package(ASSIMP REQUIRED)
 find_package(GLM REQUIRED)
-#find_package(GLFW3 REQUIRED)
-#find_package(ASSIMP REQUIRED)
-find_package(MODEL REQUIRED)
 find_package(IMGUI REQUIRED)
-# For dependent libraries, wait for the main library to be built before building.
-add_dependencies(IMGUI glfw)
-add_dependencies(MODEL assimp)
 
 option(ENABLE_SQLite "SQLite is used as the platform for storing data." ON)
 if (ENABLE_SQLite)
@@ -140,68 +43,19 @@ configure_file(configuration/root_directory.h.in ${CMAKE_BINARY_DIR}/configurati
 include_directories(${CMAKE_BINARY_DIR}/configuration)
 
 if (MSVC)
-  set(LIBS ${LIBS} opengl32 MODEL IMGUI)
-  set_source_files_properties(includes/sqlite/shell.c PROPERTIES COMPILE_FLAGS "/utf-8")
-  set(LIBS ${LIBS} SQLite)
+  set(LIBS ${GLFW_TARGET} ${ASSIMP_TARGET} opengl32 IMGUI)
+  if (ENABLE_SQLite)
+	set_source_files_properties(includes/sqlite/shell.c PROPERTIES COMPILE_FLAGS "/utf-8")
+	set(LIBS ${LIBS} SQLite)
+  endif ()
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  set(LIBS ${LIBS} opengl32 MODEL IMGUI)
+  set(LIBS ${GLFW_TARGET} ${ASSIMP_TARGET} opengl32 IMGUI)
   if (ENABLE_SQLite)
 	set_source_files_properties(includes/sqlite/shell.c PROPERTIES COMPILE_FLAGS "-finput-charset=UTF-8")
 	set(LIBS ${LIBS} SQLite)
   endif ()
 endif ()
-
-set(HEADER_FILES_DIR "${CMAKE_SOURCE_DIR}/includes/include")
-set(SOURCE_FILES_DIR "${CMAKE_SOURCE_DIR}/src/implementation")
-set(CORE_HEADER_FILES_DIR "${HEADER_FILES_DIR}/Core")
-set(CORE_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/Core")
-set(TIME_HEADER_FILES_DIR "${HEADER_FILES_DIR}/Time")
-set(TIME_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/Time")
-# Create a master file set
-set(MAIN_HEADER_FILES_DIR "${HEADER_FILES_DIR};${TIME_HEADER_FILES_DIR};${CORE_HEADER_FILES_DIR}")
-set(MAIN_SOURCE_FILES_DIR "${SOURCE_FILES_DIR};${TIME_SOURCE_FILES_DIR};${CORE_SOURCE_FILES_DIR}")
-
-set(IMGUI_HEADER_FILES_DIR "${HEADER_FILES_DIR}/ImGui")
-set(IMGUI_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/ImGui")
-set(IMGUI_FRONTS_HEADER_FILES_DIR "${IMGUI_HEADER_FILES_DIR}/Fonts")
-set(IMGUI_FRONTS_SOURCES_FILES_DIR "${SOURCE_FILES_DIR}/ImGui/Fonts")
-list(APPEND MAIN_HEADER_FILES_DIR "${IMGUI_HEADER_FILES_DIR}")
-list(APPEND MAIN_SOURCE_FILES_DIR "${IMGUI_SOURCE_FILES_DIR}")
-list(APPEND MAIN_HEADER_FILES_DIR "${IMGUI_FRONTS_HEADER_FILES_DIR}")
-list(APPEND MAIN_SOURCE_FILES_DIR "${IMGUI_FRONTS_SOURCES_FILES_DIR}")
-
-option(ENABLE_EXPERIMENTAL "A quick extension. It could be experimental (unsafe), or it could be a defragment of 
-OpenGL code that doesn't fit in the main code area and is therefore placed here. s details will be noted at 
-the beginning of each.h with ///." ON)
-if (ENABLE_EXPERIMENTAL)
-  set(EXPERIMENTAL_HEADER_FILES_DIR "${HEADER_FILES_DIR}/EXPERIMENTAL")
-  set(EXPERIMENTAL_SOURCE_FILES_DIR "${SOURCE_FILES_DIR}/EXPERIMENTAL")
-  list(APPEND MAIN_HEADER_FILES_DIR "${EXPERIMENTAL_HEADER_FILES_DIR}")
-  list(APPEND MAIN_SOURCE_FILES_DIR "${EXPERIMENTAL_SOURCE_FILES_DIR}")
-endif ()
-
-# Traverse the master file set.
-message(STATUS "Checking directories in MAIN_HEADER_FILES_DIR: ${MAIN_HEADER_FILES_DIR}")
-set(MAIN_HEADER_FILES "")
-
-foreach (HEADER_DIR IN LISTS MAIN_HEADER_FILES_DIR)
-  file(GLOB_RECURSE HEADER_FILES_TMP
-	  "${HEADER_DIR}/*.h"
-	  "${HEADER_DIR}/*.hpp"
-	  "${HEADER_DIR}/*inl")
-  list(APPEND MAIN_HEADER_FILES ${HEADER_FILES_TMP})
-endforeach ()
-
-message(STATUS "Checking directories in MAIN_SOURCE_FILES_DIR: ${MAIN_SOURCE_FILES_DIR}")
-set(MAIN_SOURCE_FILES "")
-
-foreach (SOURCE_DIR IN LISTS MAIN_SOURCE_FILES_DIR)
-  file(GLOB_RECURSE SOURCE_FILES_TMP
-	  "${SOURCE_DIR}/*.cpp"
-	  "${SOURCE_DIR}/*.cc")
-  list(APPEND MAIN_SOURCE_FILES ${SOURCE_FILES_TMP})
-endforeach ()
 
 # First create relevant static libraries required for other projects
 add_library(STB_IMAGE "src/stb_image.cpp")
@@ -225,6 +79,11 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set(CMAKE_BUILD_PARALLEL_LEVEL ${CORE_COUNT})
 endif ()
 
+# Define the makeLink macro
+macro(makeLink src dest target)
+  add_custom_command(TARGET ${target} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dest} DEPENDS ${dest} COMMENT "mklink ${src} -> ${dest}")
+endmacro()
+
 # Search all directories under OpenGL without having to manually enter folders.
 file(GLOB DIRECTORIES LIST_DIRECTORIES true ${CMAKE_SOURCE_DIR}/src/OpenGL/*)
 foreach (chapter ${DIRECTORIES})
@@ -233,6 +92,7 @@ foreach (chapter ${DIRECTORIES})
 
 	file(GLOB HEADER_FILES "${chapter}/*.h" "${chapter}/*.hpp" "${chapter}/*.inl")
 	file(GLOB SOURCE_FILES "${chapter}/*.cpp" "${chapter}/*.cc")
+	
 	file(GLOB SHADER_FILES
 		"${chapter}/*.glsl"
 		"${chapter}/*.vert"
@@ -245,9 +105,11 @@ foreach (chapter ${DIRECTORIES})
 		"${chapter}/*.comp"
 		"${chapter}/*.vsh")
 
-	list(APPEND SOURCE_FILES ${HEADER_FILES} ${SHADER_FILES} ${MAIN_HEADER_FILES} ${MAIN_SOURCE_FILES})
+	list(APPEND SOURCE_FILES ${HEADER_FILES} ${SHADER_FILES} ${MAIN_SOURCE_FILES})
 
-	add_executable(${NAME} ${SOURCE_FILES})
+	add_executable(${NAME} ${SOURCE_FILES} ${MAIN_SOURCE_FILES})
+	target_include_directories(${NAME} PRIVATE ${MAIN_HEADER_FILES_DIR})
+
 	target_link_libraries(${NAME} ${LIBS})
 
 	set_target_properties(${NAME} PROPERTIES FOLDER "Executables")
@@ -261,17 +123,8 @@ foreach (chapter ${DIRECTORIES})
 
 	# Copy shaders to the target folder if they do not exist
 	foreach (SHADER ${SHADER_FILES})
-	  get_filename_component(SHADER_NAME ${SHADER} NAME)
-	  set(TARGET_SHADER_PATH "$<TARGET_FILE_DIR:${NAME}>/${SHADER_NAME}")
-	  add_custom_command(TARGET ${NAME} POST_BUILD
-		  COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${NAME}>
-		  COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SHADER} ${TARGET_SHADER_PATH}
-		  COMMENT "Copying Shader: ${SHADER_NAME} to target folder if not already present.")
+	  add_custom_command(TARGET ${NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SHADER} $<TARGET_FILE_DIR:${NAME}>)
 	endforeach ()
-
-	add_custom_command(TARGET ${NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${NAME}>
-    COMMENT "Creating target directory if not present.")
 
 	# Gather all DLLs for this project
 	file(GLOB DLLS "${CMAKE_BINARY_DIR}/dll/*.dll")
@@ -291,14 +144,9 @@ foreach (chapter ${DIRECTORIES})
 	endif ()
 
 	# Add the dependency on assimp here after the target is created
-	add_dependencies(${NAME} assimp)  # Move this after target creation
+	add_dependencies(${NAME} ${ASSIMP_TARGET})  # Move this after target creation
   endif ()
 endforeach ()
-
-# Define the makeLink macro
-macro(makeLink src dest target)
-  add_custom_command(TARGET ${target} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dest} DEPENDS ${dest} COMMENT "mklink ${src} -> ${dest}")
-endmacro()
 
 # then create a project file per tutorial
 foreach (CHAPTER ${CHAPTERS})

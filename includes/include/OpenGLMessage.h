@@ -18,8 +18,8 @@
 #define CMAKE_OPEN_INCLUDES_INCLUDE_OPENGLMESSAGE_H_
 
 #include <iostream>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
 
 /**
  * Classes specialized in handling OpenGL messages. Using this class, you can output the 

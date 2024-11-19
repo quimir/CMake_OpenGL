@@ -17,7 +17,7 @@
 #ifndef CMAKE_OPEN_INCLUDES_INCLUDE_MODEL_MODELEXCEPTION_H_
 #define CMAKE_OPEN_INCLUDES_INCLUDE_MODEL_MODELEXCEPTION_H_
 
-#include "include/Exception.h"
+#include "../Exception.h"
 
 namespace model {
 class ModelException : public Exception {

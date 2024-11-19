@@ -21,7 +21,7 @@
 #include <string>
 #include <mutex>
 
-#include "include/Core/MacroDefinition.h"
+#include "../Core/MacroDefinition.h"
 
 /**
  * Specifically, OpenGL errors are removed, and OpenGL errors are stored.

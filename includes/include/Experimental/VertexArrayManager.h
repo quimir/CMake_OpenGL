@@ -24,7 +24,7 @@
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
-#include "include/VertexArray.h"
+#include "../VertexArray.h"
 
 class VertexArrayManager {
  public:
