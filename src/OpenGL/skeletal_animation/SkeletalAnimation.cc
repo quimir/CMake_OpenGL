@@ -15,8 +15,8 @@
  ******************************************************************************/
 
 #include "SkeletalAnimation.h"
-#include "include/FilePathSystem.h"
-#include "include/LoadImage.h"
+#include "FilePathSystem.h"
+#include "LoadImage.h"
 
 using namespace std;
 using namespace model;

@@ -14,18 +14,14 @@
  * limitations under the License.
  ******************************************************************************/
 
-//
-// Created by Acer on 2024/7/3.
-//
-
 #ifndef CMAKE_OPEN_SRC_STARTED_OPENGL_TEXTURE_OPENGLMAINWINDOW_H_
 #define CMAKE_OPEN_SRC_STARTED_OPENGL_TEXTURE_OPENGLMAINWINDOW_H_
 
-#include "include/Buffers.h"
-#include "include/FilePathSystem.h"
-#include "include/OpenGLWindow.h"
-#include "include/Shader.h"
-#include "include/VertexArray.h"
+#include "Buffers.h"
+#include "FilePathSystem.h"
+#include "OpenGLWindow.h"
+#include "Shader.h"
+#include "VertexArray.h"
 
 class OpenGLMainWindow : public OpenGLWindow {
  public:

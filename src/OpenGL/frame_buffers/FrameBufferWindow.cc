@@ -15,8 +15,8 @@
  ******************************************************************************/
 
 #include "FrameBufferWindow.h"
-#include "include/FilePathSystem.h"
-#include "include/OpenGLMessage.h"
+#include "FilePathSystem.h"
+#include "OpenGLMessage.h"
 
 FrameBufferWindow::FrameBufferWindow(int width, int height, const char* title,
                                      GLFWmonitor* monitor, GLFWwindow* share)

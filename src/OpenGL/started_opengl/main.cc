@@ -18,10 +18,10 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 #include "OpenGLMainWindow.h"
-#include "include/FilePathSystem.h"
-#include "include/LoggerSystem.h"
-#include "include/OpenGLMessage.h"
-#include "include/Shader.h"
+#include "FilePathSystem.h"
+#include "LoggerSystem.h"
+#include "OpenGLMessage.h"
+#include "Shader.h"
 
 using namespace std;
 

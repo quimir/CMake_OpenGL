@@ -1,0 +1,5 @@
+# Shared_FrameworkConfig.cmake.in
+@PACKAGE_INIT@
+
+set(SHARED_FRAMEWORK_CMAKE_DIR @CMAKE_CURRENT_LIST_DIR@)
+include(${SHARED_FRAMEWORK_CMAKE_DIR}/shared_framework.cmake)

@@ -17,10 +17,10 @@
 #ifndef CMAKE_OPEN_SRC_MODEL_LOADING_OPENGLMAINWINDOW_H_
 #define CMAKE_OPEN_SRC_MODEL_LOADING_OPENGLMAINWINDOW_H_
 
-#include "include/Camera.h"
-#include "include/OpenGLWindow.h"
-#include "include/Shader.h"
-#include "include/Model/Model.h"
+#include "Camera.h"
+#include "OpenGLWindow.h"
+#include "Shader.h"
+#include "Model/Model.h"
 
 class OpenGLMainWindow : public OpenGLWindow {
  public:

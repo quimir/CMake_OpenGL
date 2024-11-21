@@ -15,9 +15,9 @@
  ******************************************************************************/
 
 #include "OpenGLMainWindow.h"
-#include "include/FilePathSystem.h"
-#include "include/LoadImage.h"
-#include "include/OpenGLStateManager.h"
+#include "FilePathSystem.h"
+#include "LoadImage.h"
+#include "OpenGLStateManager.h"
 
 glm::vec4 clear_col(0.1f, 0.1f, 0.1f, 0.1f);
 glm::vec4 stencil_test_frag_color_value(0.04, 0.28, 0.26, 1.0);

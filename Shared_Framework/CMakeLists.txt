@@ -1,0 +1,60 @@
+cmake_minimum_required(VERSION 3.24)
+project(Shared_Framework VERSION 0.1 LANGUAGES CXX)
+
+if (NOT BUILD_SHARED_LIBS)
+  add_compile_definitions(STATIC_BUILD)
+endif ()
+
+option(BUILD_SHARED_FRAMEWORK "Build Shared Framework as a shared library" ON)
+
+set(SHARED_FRAMEWORK_TARGET Shared_Framework)
+if (BUILD_SHARED_FRAMEWORK)
+  add_compile_definitions(SHARED_FRAMEWORK_EXPORTS)
+endif ()
+
+file(GLOB_RECURSE SHARED_FRAMEWORK_HEADERS
+	${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
+	${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/*.inl
+)
+file(GLOB_RECURSE SHARED_FRAMEWORK_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc
+)
+
+add_library(${SHARED_FRAMEWORK_TARGET}
+${SHARED_FRAMEWORK_HEADERS}
+${SHARED_FRAMEWORK_SOURCES})
+
+if (BUILD_SHARED_FRAMEWORK)
+  set_target_properties(${SHARED_FRAMEWORK_TARGET} PROPERTIES
+	  POSITION_INDEPENDENT_CODE ON
+	  CXX_VISIBILITY_PRESET hidden
+	  VISIBILITY_INLINES_HIDDEN ON
+	  OUTPUT_NAME "Shared_Framework"
+	  VERSION ${PROJECT_VERSION}
+	  SOVERSION 1
+  )
+  target_compile_definitions(${SHARED_FRAMEWORK_TARGET} PRIVATE SHARED_FRAMEWORK_EXPORTS)
+  target_compile_definitions(${SHARED_FRAMEWORK_TARGET} INTERFACE SHARED_FRAMEWORK_DLL)
+else()
+  set_target_properties(${SHARED_FRAMEWORK_TARGET} PROPERTIES OUTPUT_NAME "Shared_Framework_static")
+endif()
+
+# Use the configuration directory from the main project
+if (DEFINED GLOBAL_CONFIG_DIR)
+  target_include_directories(Shared_Framework PUBLIC ${GLOBAL_CONFIG_DIR})
+endif ()
+
+target_include_directories(${SHARED_FRAMEWORK_TARGET}
+	PUBLIC ${MAIN_HEADER_FILES_DIR}
+	PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+install(TARGETS ${SHARED_FRAMEWORK_TARGET} EXPORT Shared_FrameworkConfig
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+	RUNTIME DESTINATION bin
+)
+
+install(FILES ${SHARED_FRAMEWORK_HEADERS} DESTINATION include/Shared_Framework)

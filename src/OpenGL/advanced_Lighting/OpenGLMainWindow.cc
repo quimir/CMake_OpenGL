@@ -15,7 +15,7 @@
  ******************************************************************************/
 
 #include "OpenGLMainWindow.h"
-#include "include/FilePathSystem.h"
+#include "FilePathSystem.h"
 #include "thread"
 OpenGLMainWindow::OpenGLMainWindow(int width, int height, const char* title,
                                    GLFWmonitor* monitor, GLFWwindow* share)

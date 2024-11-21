@@ -17,13 +17,13 @@
 #ifndef CMAKE_OPEN_SRC_STARTED_OPENGL_OPENGLMAINWINDOW_H_
 #define CMAKE_OPEN_SRC_STARTED_OPENGL_OPENGLMAINWINDOW_H_
 
-#include "include/Buffers.h"
-#include "include/Camera.h"
-#include "include/Imgui/ImGuiDashboard.h"
-#include "include/Imgui/ImGuiWidget.h"
-#include "include/OpenGLWindow.h"
-#include "include/Shader.h"
-#include "include/VertexArray.h"
+#include "Buffers.h"
+#include "Camera.h"
+#include "Imgui/ImGuiDashboard.h"
+#include "Imgui/ImGuiWidget.h"
+#include "OpenGLWindow.h"
+#include "Shader.h"
+#include "VertexArray.h"
 
 class OpenGLMainWindow:public OpenGLWindow{
  protected:

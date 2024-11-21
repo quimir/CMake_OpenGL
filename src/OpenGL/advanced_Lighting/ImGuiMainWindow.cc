@@ -15,8 +15,8 @@
  ******************************************************************************/
 
 #include "ImGuiMainWindow.h"
-#include "include/OpenGLException.h"
-#include "include/ImGui/Fonts/Language.h"
+#include "OpenGLException.h"
+#include "ImGui/Fonts/Language.h"
 
 constexpr float kDistance = 10.0f;
 

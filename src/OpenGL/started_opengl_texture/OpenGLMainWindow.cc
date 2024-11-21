@@ -15,8 +15,8 @@
  ******************************************************************************/
 
 #include "OpenGLMainWindow.h"
-#include "include/LoadImage.h"
-#include "include/OpenGLMessage.h"
+#include "LoadImage.h"
+#include "OpenGLMessage.h"
 OpenGLMainWindow::OpenGLMainWindow(int width, int height, const char* title)
     : OpenGLWindow(width, height, title, nullptr, nullptr),
       delta_time_(0),

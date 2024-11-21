@@ -15,10 +15,10 @@
  ******************************************************************************/
 
 #include "OpenGLMainWindow.h"
-#include "include/FilePathSystem.h"
-#include "include/Imgui/ImGuiDashboard.h"
-#include "include/Imgui/ImGuiWidget.h"
-#include "include/LoadImage.h"
+#include "FilePathSystem.h"
+#include "Imgui/ImGuiDashboard.h"
+#include "Imgui/ImGuiWidget.h"
+#include "LoadImage.h"
 
 bool first_mouse = true;
 

@@ -15,7 +15,7 @@
  ******************************************************************************/
 
 #include "ShadowMappingDepthWindow.h"
-#include "include/FilePathSystem.h"
+#include "FilePathSystem.h"
 
 constexpr GLuint kShadowWidth = 1024;
 constexpr GLuint kShadowHeight = 1024;

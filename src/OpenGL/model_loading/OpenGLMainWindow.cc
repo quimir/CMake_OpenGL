@@ -16,9 +16,9 @@
 
 #include "OpenGLMainWindow.h"
 #include <thread>
-#include "include/FilePathSystem.h"
-#include "include/LoadImage.h"
-#include "include/OpenGLMessage.h"
+#include "FilePathSystem.h"
+#include "LoadImage.h"
+#include "OpenGLMessage.h"
 
 bool OpenGLMainWindow::first_mouse_ = true;
 GLdouble OpenGLMainWindow::last_x_;

@@ -25,11 +25,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
-include(cmake/modules/find_paths.cmake)
-
 # Essential modules cannot be omitted
 find_package(GLFW REQUIRED)
+include_directories(${GLFW_INCLUDE_DIR})
 find_package(ASSIMP REQUIRED)
+include_directories(${ASSIMP_INCLUDE_DIR})
 find_package(GLM REQUIRED)
 find_package(IMGUI REQUIRED)
 
@@ -38,9 +38,13 @@ if (ENABLE_SQLite)
   find_package(SQLite REQUIRED)
 endif ()
 
-# Obtain the installation directory of the application
-configure_file(configuration/root_directory.h.in ${CMAKE_BINARY_DIR}/configuration/root_directory.h)
-include_directories(${CMAKE_BINARY_DIR}/configuration)
+# Configure the root_directory header file
+set(CONFIG_DIR "${CMAKE_BINARY_DIR}/configuration")
+configure_file(configuration/root_directory.h.in ${CONFIG_DIR}/root_directory.h)
+include_directories(${CONFIG_DIR})
+
+# Pass the configuration directory to subprojects
+set(GLOBAL_CONFIG_DIR ${CONFIG_DIR} CACHE STRING "Global configuration directory")
 
 if (MSVC)
   set(LIBS ${GLFW_TARGET} ${ASSIMP_TARGET} opengl32 IMGUI)
@@ -64,6 +68,20 @@ set(LIBS ${LIBS} STB_IMAGE)
 add_library(GLAD "${CMAKE_SOURCE_DIR}/src/glad.c")
 target_include_directories(GLAD PUBLIC "${CMAKE_SOURCE_DIR}/includes")
 set(LIBS ${LIBS} GLAD)
+
+# Add global include directory
+set(GLOBAL_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/includes")
+include_directories(${GLOBAL_INCLUDE_DIR})
+
+# Pass include directories to all targets
+set(MAIN_HEADER_FILES_DIR ${GLOBAL_INCLUDE_DIR} CACHE STRING "Main header files directory")
+
+add_subdirectory(Shared_Framework Shared_Framework_build)
+set(LIBS ${LIBS} Shared_Framework)
+
+enable_testing()
+## Test module.
+add_subdirectory(Shared_Framework/ctest)
 
 # Use CMake to check the number of cores and try to use multi-core synchronous builds.
 cmake_host_system_information(RESULT CORE_COUNT QUERY NUMBER_OF_LOGICAL_CORES)
@@ -105,10 +123,9 @@ foreach (chapter ${DIRECTORIES})
 		"${chapter}/*.comp"
 		"${chapter}/*.vsh")
 
-	list(APPEND SOURCE_FILES ${HEADER_FILES} ${SHADER_FILES} ${MAIN_SOURCE_FILES})
+	list(APPEND SOURCE_FILES ${HEADER_FILES} ${SHADER_FILES})
 
-	add_executable(${NAME} ${SOURCE_FILES} ${MAIN_SOURCE_FILES})
-	target_include_directories(${NAME} PRIVATE ${MAIN_HEADER_FILES_DIR})
+	add_executable(${NAME} ${SOURCE_FILES})
 
 	target_link_libraries(${NAME} ${LIBS})
 
@@ -154,10 +171,3 @@ foreach (CHAPTER ${CHAPTERS})
 endforeach (CHAPTER)
 
 include_directories(${CMAKE_SOURCE_DIR}/includes)
-
-# Load the necessary parameters for the test.
-set(MAIN_HEADER_FILES "${MAIN_HEADER_FILES}" CACHE STRING "Main header files")
-set(MAIN_SOURCE_FILES "${MAIN_SOURCE_FILES}" CACHE STRING "Main source files")
-set(LIBS "${LIBS}" CACHE STRING "All the link libraries")
-# Test module.
-add_subdirectory(src/ctests)

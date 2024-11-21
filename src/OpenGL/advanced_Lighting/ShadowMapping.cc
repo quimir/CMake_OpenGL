@@ -15,7 +15,7 @@
  ******************************************************************************/
 
 #include "ShadowMapping.h"
-#include "include/FilePathSystem.h"
+#include "FilePathSystem.h"
 ShadowMapping::ShadowMapping(GLint window_width, GLint window_height,
                              GLint shadow_width, GLint shadow_height)
     : window_width_(window_width),

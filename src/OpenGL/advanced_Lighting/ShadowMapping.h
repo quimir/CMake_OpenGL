@@ -17,12 +17,12 @@
 #ifndef CMAKE_OPEN_SRC_ADVANCED_LIGHTING_SHADOWMAPPING_H_
 #define CMAKE_OPEN_SRC_ADVANCED_LIGHTING_SHADOWMAPPING_H_
 
-#include "include/Shader.h"
-#include "include/VertexArray.h"
-#include "include/Buffers.h"
-#include "include/TextureLoader.h"
-#include "include/Camera.h"
-#include "include/Core/Rect.h"
+#include "Shader.h"
+#include "VertexArray.h"
+#include "Buffers.h"
+#include "TextureLoader.h"
+#include "Camera.h"
+#include "Core/Rect.h"
 
 class ShadowMapping {
  public:
