@@ -17,16 +17,16 @@
 #ifndef CMAKE_OPEN_SRC_ADVANCED_LIGHTING_SHADOWMAPPINGDEPTHWINDOW_H_
 #define CMAKE_OPEN_SRC_ADVANCED_LIGHTING_SHADOWMAPPINGDEPTHWINDOW_H_
 
-#include "include/Experimental/OpenGLCameraWindow.h"
-#include "include/OpenGLException.h"
-#include "include/TextureLoader.h"
-#include "include/VertexArray.h"
-#include "include/Buffers.h"
-#include "include/Shader.h"
+#include "Experimental/OpenGLCameraWindow.h"
+#include "OpenGLException.h"
+#include "TextureLoader.h"
+#include "VertexArray.h"
+#include "Buffers.h"
+#include "Shader.h"
 #include "ImGuiMainWindow.h"
 #include "PointShadow.h"
 #include "ShadowMapping.h"
-#include "include/ImGui/ImGuiWindow.h"
+#include "ImGui/ImGuiWindow.h"
 
 class ShadowMappingDepthWindow : public OpenGLCameraWindow {
  protected:

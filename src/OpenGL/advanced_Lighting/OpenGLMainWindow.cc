@@ -15,7 +15,7 @@
  ******************************************************************************/
 
 #include "OpenGLMainWindow.h"
-#include "include/FilePathSystem.h"
+#include "FilePathSystem.h"
 #include "thread"
 OpenGLMainWindow::OpenGLMainWindow(int width, int height, const char* title,
                                    GLFWmonitor* monitor, GLFWwindow* share)
@@ -41,7 +41,10 @@ void OpenGLMainWindow::InitializeGL() {
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  shader_ = new Shader("advanced_lighting.vert", "advanced_lighting.frag");
+  shader_ = new Shader(
+      FilePathSystem::GetInstance().GetExecutablePath("advanced_lighting.vert"),
+      FilePathSystem::GetInstance().GetExecutablePath(
+          "advanced_lighting.frag"));
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
   float planeVertices[] = {

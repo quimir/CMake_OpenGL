@@ -15,8 +15,8 @@
  ******************************************************************************/
 
 #include "FrameBufferWindow.h"
-#include "include/FilePathSystem.h"
-#include "include/OpenGLMessage.h"
+#include "FilePathSystem.h"
+#include "OpenGLMessage.h"
 
 FrameBufferWindow::FrameBufferWindow(int width, int height, const char* title,
                                      GLFWmonitor* monitor, GLFWwindow* share)
@@ -28,10 +28,14 @@ void FrameBufferWindow::InitializeGL() {
   glEnable(GL_DEPTH_TEST);
   //HideMouse();
 
-  cube_shader_ =
-      new Shader("frame_buffer_window.vert", "frame_buffer_window.frag");
-  screen_shader_ = new Shader("frame_buffer_window_screen.vert",
-                              "frame_buffer_window_screen.frag");
+  cube_shader_ = new Shader(FilePathSystem::GetInstance().GetExecutablePath(
+                                "frame_buffer_window.vert"),
+                            FilePathSystem::GetInstance().GetExecutablePath(
+                                "frame_buffer_window.frag"));
+  screen_shader_ = new Shader(FilePathSystem::GetInstance().GetExecutablePath(
+                                  "frame_buffer_window_screen.vert"),
+                              FilePathSystem::GetInstance().GetExecutablePath(
+                                  "frame_buffer_window_screen.frag"));
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------

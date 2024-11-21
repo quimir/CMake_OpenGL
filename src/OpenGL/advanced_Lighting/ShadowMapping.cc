@@ -15,7 +15,7 @@
  ******************************************************************************/
 
 #include "ShadowMapping.h"
-#include "include/FilePathSystem.h"
+#include "FilePathSystem.h"
 ShadowMapping::ShadowMapping(GLint window_width, GLint window_height,
                              GLint shadow_width, GLint shadow_height)
     : window_width_(window_width),
@@ -31,11 +31,17 @@ ShadowMapping::ShadowMapping(GLint window_width, GLint window_height,
       max_radius_(5.0f) {
   glDisable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
-  shadow_mapping_shader_ =
-      new Shader("shadow_mapping.vert", "shadow_mapping.frag");
+  shadow_mapping_shader_ = new Shader(
+      FilePathSystem::GetInstance().GetExecutablePath("shadow_mapping.vert"),
+      FilePathSystem::GetInstance().GetExecutablePath("shadow_mapping.frag"));
   simple_depth_shader_ =
-      new Shader("shadow_mapping_depth.vert", "shadow_mapping_depth.frag");
-  debug_depth_quad_shader_ = new Shader("debug_quad.vert", "debug_quad.frag");
+      new Shader(FilePathSystem::GetInstance().GetExecutablePath(
+                     "shadow_mapping_depth.vert"),
+                 FilePathSystem::GetInstance().GetExecutablePath(
+                     "shadow_mapping_depth.frag"));
+  debug_depth_quad_shader_ = new Shader(
+      FilePathSystem::GetInstance().GetExecutablePath("debug_quad.vert"),
+      FilePathSystem::GetInstance().GetExecutablePath("debug_quad.frag"));
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------

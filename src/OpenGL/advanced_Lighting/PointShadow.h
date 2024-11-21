@@ -19,14 +19,14 @@
 
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
-#include "include/Shader.h"
-#include "include/VertexArray.h"
-#include "include/Buffers.h"
-#include "include/FrameBuffer.h"
-#include "include/TextureLoader.h"
-#include "include/Camera.h"
-#include "include/Core/Rect.h"
-#include "include/ShadowFrameBuffer.h"
+#include "Shader.h"
+#include "VertexArray.h"
+#include "Buffers.h"
+#include "FrameBuffer.h"
+#include "TextureLoader.h"
+#include "Camera.h"
+#include "Core/Rect.h"
+#include "ShadowFrameBuffer.h"
 
 class PointShadow {
  public:

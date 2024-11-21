@@ -15,13 +15,14 @@
  ******************************************************************************/
 
 #include "OpenGLMainWindow.h"
-#include "include/LoadImage.h"
-#include "include/OpenGLMessage.h"
+#include "LoadImage.h"
+#include "OpenGLMessage.h"
 OpenGLMainWindow::OpenGLMainWindow(int width, int height, const char* title)
     : OpenGLWindow(width, height, title, nullptr, nullptr),
       delta_time_(0),
       last_frame_(0),
-      shader_("texture.vert", "texture.frag", nullptr, nullptr, nullptr) {
+      shader_(FilePathSystem::GetInstance().GetExecutablePath("texture.vert"),
+              FilePathSystem::GetInstance().GetExecutablePath("texture.frag")) {
   glfwSetWindowUserPointer(this->window_, this);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 }

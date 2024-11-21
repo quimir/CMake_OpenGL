@@ -16,9 +16,9 @@
 
 #include "OpenGLMainWindow.h"
 #include <thread>
-#include "include/FilePathSystem.h"
-#include "include/LoadImage.h"
-#include "include/OpenGLMessage.h"
+#include "FilePathSystem.h"
+#include "LoadImage.h"
+#include "OpenGLMessage.h"
 
 bool OpenGLMainWindow::first_mouse_ = true;
 GLdouble OpenGLMainWindow::last_x_;
@@ -33,7 +33,9 @@ void OpenGLMainWindow::InitializeGL() {
 
   // Tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
   //LoadImage::GetInstance().EnableStbImageFlipYAxis();
-  this->shader_ = new Shader("model.vert", "model.frag");
+  this->shader_ =
+      new Shader(FilePathSystem::GetInstance().GetExecutablePath("model.vert"),
+                 FilePathSystem::GetInstance().GetExecutablePath("model.frag"));
   this->model_ = new model::Model(FilePathSystem::GetInstance().GetPath(
       "resources/objects/cyborg/cyborg.obj"));
 }

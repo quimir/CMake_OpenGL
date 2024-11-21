@@ -99,7 +99,7 @@ else ()
   FetchContent_MakeAvailable(assimp)
 
   file(COPY "${assimp_BINARY_DIR}/include/assimp/"
-	  DESTINATION "${assimp_SOURCE_DIR}/include"
+	  DESTINATION "${assimp_SOURCE_DIR}/include/assimp"
 	  FILES_MATCHING PATTERN "*")
 
   set(ASSIMP_TARGET assimp)

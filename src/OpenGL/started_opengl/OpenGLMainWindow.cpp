@@ -15,10 +15,10 @@
  ******************************************************************************/
 
 #include "OpenGLMainWindow.h"
-#include "include/FilePathSystem.h"
-#include "include/Imgui/ImGuiDashboard.h"
-#include "include/Imgui/ImGuiWidget.h"
-#include "include/LoadImage.h"
+#include "FilePathSystem.h"
+#include "Imgui/ImGuiDashboard.h"
+#include "Imgui/ImGuiWidget.h"
+#include "LoadImage.h"
 
 bool first_mouse = true;
 
@@ -96,7 +96,7 @@ void OpenGLMainWindow::ResizeGL(int width, int height) {
                        (float)width / (float)height, 0.1f, 100.0f);
   shader_.Use();
   shader_.SetMat4("projection", projection);
-  this->imgui_dashboard_->ReSizeWidget(width,height);
+  this->imgui_dashboard_->ReSizeWidget(width, height);
   glViewport(0, 0, width, height);
 }
 void OpenGLMainWindow::PaintGL() {
@@ -145,7 +145,8 @@ void OpenGLMainWindow::PaintGL() {
 OpenGLMainWindow::OpenGLMainWindow(int width, int height, const char* title,
                                    GLFWmonitor* monitor, GLFWwindow* share)
     : OpenGLWindow(width, height, title, monitor, share),
-      shader_("camera.vert", "camera.frag", nullptr, nullptr, nullptr) {
+      shader_(FilePathSystem::GetInstance().GetExecutablePath("camera.vert"),
+              FilePathSystem::GetInstance().GetExecutablePath("camera.frag")) {
   glEnable(GL_DEPTH_TEST);
   glfwSetWindowUserPointer(window_, this);
   glfwSetCursorPosCallback(window_, MouseCallback);

@@ -17,11 +17,11 @@
 #ifndef CMAKE_OPEN_SRC_FRAME_BUFFERS_FRAMEBUFFERWINDOW_H_
 #define CMAKE_OPEN_SRC_FRAME_BUFFERS_FRAMEBUFFERWINDOW_H_
 
-#include "include/Buffers.h"
-#include "include/Experimental/OpenGLCameraWindow.h"
-#include "include/Shader.h"
-#include "include/VertexArray.h"
-#include "include/TextureLoader.h"
+#include "Buffers.h"
+#include "Experimental/OpenGLCameraWindow.h"
+#include "Shader.h"
+#include "VertexArray.h"
+#include "TextureLoader.h"
 
 class FrameBufferWindow : public OpenGLCameraWindow {
  public:

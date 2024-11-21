@@ -17,12 +17,12 @@
 #ifndef CMAKE_OPEN_SRC_ADVANCED_OPENGL_OPENGLMAINWINDOW_H_
 #define CMAKE_OPEN_SRC_ADVANCED_OPENGL_OPENGLMAINWINDOW_H_
 
-#include "include/Experimental/OpenGLCameraWindow.h"
-#include "include/Shader.h"
-#include "include/VertexArray.h"
-#include "include/Buffers.h"
-#include "include/ImGui/ImGuiDashboard.h"
-#include "include/TextureLoader.h"
+#include "Experimental/OpenGLCameraWindow.h"
+#include "Shader.h"
+#include "VertexArray.h"
+#include "Buffers.h"
+#include "ImGui/ImGuiDashboard.h"
+#include "TextureLoader.h"
 
 class OpenGLMainWindow : public OpenGLCameraWindow {
  protected:

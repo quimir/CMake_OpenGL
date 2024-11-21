@@ -14,10 +14,6 @@
  * limitations under the License.
  ******************************************************************************/
 
-//
-// Created by Acer on 2024/8/6.
-//
-
 #include "OpenGLMainWindow.h"
 
 int main() {

@@ -15,7 +15,7 @@
  ******************************************************************************/
 
 #include "SkeletalAnimation.h"
-#include "include/LoggerSystem.h"
+#include "LoggerSystem.h"
 
 int main() {
   LoggerSystem::GetInstance().EnableLogWrapping(80);

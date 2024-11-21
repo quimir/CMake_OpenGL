@@ -15,9 +15,9 @@
  ******************************************************************************/
 
 #include "OpenGLMainWindow.h"
-#include "include/FilePathSystem.h"
-#include "include/LoadImage.h"
-#include "include/OpenGLStateManager.h"
+#include "FilePathSystem.h"
+#include "LoadImage.h"
+#include "OpenGLStateManager.h"
 
 glm::vec4 clear_col(0.1f, 0.1f, 0.1f, 0.1f);
 glm::vec4 stencil_test_frag_color_value(0.04, 0.28, 0.26, 1.0);
@@ -38,12 +38,16 @@ void OpenGLMainWindow::InitializeGL() {
   OpenGLStateManager::GetInstance().SetStencilFunc(stencil_mode, 1, 0xFF);
   OpenGLStateManager::GetInstance().SetStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
-  shader_ = new Shader("depth_setting.vert", "depth_setting.frag");
+  shader_ = new Shader(
+      FilePathSystem::GetInstance().GetExecutablePath("depth_setting.vert"),
+      FilePathSystem::GetInstance().GetExecutablePath("depth_setting.frag"));
   stencil_testing_shader_ = new Shader(
       FilePathSystem::GetInstance().GetPath("resources/glsl/stencil_test.vert"),
       FilePathSystem::GetInstance().GetPath(
           "resources/glsl/stencil_test.frag"));
-  blending_shader_ = new Shader("depth_setting.vert", "blending.frag");
+  blending_shader_ = new Shader(
+      FilePathSystem::GetInstance().GetExecutablePath("depth_setting.vert"),
+      FilePathSystem::GetInstance().GetExecutablePath("blending.frag"));
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------

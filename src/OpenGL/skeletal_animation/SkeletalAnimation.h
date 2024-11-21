@@ -17,14 +17,14 @@
 #ifndef CMAKE_OPEN_SRC_SKELETAL_ANIMATION_SKELETALANIMATION_H_
 #define CMAKE_OPEN_SRC_SKELETAL_ANIMATION_SKELETALANIMATION_H_
 
-#include "include/Buffers.h"
-#include "include/Camera.h"
-#include "include/Experimental/SkyBox.h"
-#include "include/Model/Animator.h"
-#include "include/Model/Model.h"
-#include "include/OpenGLWindow.h"
-#include "include/Shader.h"
-#include "include/VertexArray.h"
+#include "Buffers.h"
+#include "Camera.h"
+#include "Experimental/SkyBox.h"
+#include "Model/Animator.h"
+#include "Model/Model.h"
+#include "OpenGLWindow.h"
+#include "Shader.h"
+#include "VertexArray.h"
 
 class SkeletalAnimation : public OpenGLWindow {
  protected:

@@ -15,7 +15,7 @@
  ******************************************************************************/
 
 #include "PointShadow.h"
-#include "include/FilePathSystem.h"
+#include "FilePathSystem.h"
 PointShadow::PointShadow(GLint window_width, GLint window_height,
                          GLint shadow_width, GLint shadow_height)
     : window_width_(window_width),
@@ -30,10 +30,17 @@ void PointShadow::Initialize() {
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
 
-  point_shadow_shader_ = new Shader("point_shadow.vert", "point_shadow.frag");
+  point_shadow_shader_ =
+      new Shader(
+      FilePathSystem::GetInstance().GetExecutablePath("point_shadow.vert"),
+      FilePathSystem::GetInstance().GetExecutablePath("point_shadow.frag"));
   simple_depth_shader_ =
-      new Shader("point_shadow_depth.vert", "point_shadow_depth.frag",
-                 "point_shadow_depth.geom");
+      new Shader(FilePathSystem::GetInstance().GetExecutablePath(
+                     "point_shadow_depth.vert"),
+                 FilePathSystem::GetInstance().GetExecutablePath(
+                     "point_shadow_depth.frag"),
+                 FilePathSystem::GetInstance().GetExecutablePath(
+                     "point_shadow_depth.geom"));
 
   texture_loader_ = new TextureLoader(
       TextureLoader::Type::kTexture2D,
@@ -43,25 +50,25 @@ void PointShadow::Initialize() {
   shadow_frame_buffer_ = new ShadowFrameBuffer(
       ShadowFrameBuffer::ShadowType::kPoint, shadow_width_, shadow_height_);
 
-//  glGenFramebuffers(1, &depth_map_fbo_);
-//  glGenTextures(1, &depth_cube_map_);
-//  glBindTexture(GL_TEXTURE_CUBE_MAP, depth_cube_map_);
-//  for (unsigned int i = 0; i < 6; ++i) {
-//    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT,
-//                 shadow_width_, shadow_height_, 0, GL_DEPTH_COMPONENT, GL_FLOAT,
-//                 nullptr);
-//  }
-//  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-//  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-//  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-//  // attach depth texture as FBO's depth buffer
-//  glBindFramebuffer(GL_FRAMEBUFFER, depth_map_fbo_);
-//  glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth_cube_map_, 0);
-//  glDrawBuffer(GL_NONE);
-//  glReadBuffer(GL_NONE);
-//  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  //  glGenFramebuffers(1, &depth_map_fbo_);
+  //  glGenTextures(1, &depth_cube_map_);
+  //  glBindTexture(GL_TEXTURE_CUBE_MAP, depth_cube_map_);
+  //  for (unsigned int i = 0; i < 6; ++i) {
+  //    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT,
+  //                 shadow_width_, shadow_height_, 0, GL_DEPTH_COMPONENT, GL_FLOAT,
+  //                 nullptr);
+  //  }
+  //  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  //  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  //  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  //  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  //  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  //  // attach depth texture as FBO's depth buffer
+  //  glBindFramebuffer(GL_FRAMEBUFFER, depth_map_fbo_);
+  //  glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth_cube_map_, 0);
+  //  glDrawBuffer(GL_NONE);
+  //  glReadBuffer(GL_NONE);
+  //  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   point_shadow_shader_->Use();
   point_shadow_shader_->SetInt("diffuse_texture", 0);
@@ -158,7 +165,7 @@ void PointShadow::Bind(float near_plane, float far_plane, glm::vec3& light_pos,
   texture_loader_->Bind(GL_TEXTURE0);
   glActiveTexture(GL_TEXTURE1);
   shadow_frame_buffer_->BindTextureColor();
-//  glBindTexture(GL_TEXTURE_CUBE_MAP, depth_cube_map_);
+  //  glBindTexture(GL_TEXTURE_CUBE_MAP, depth_cube_map_);
   RenderScene(*point_shadow_shader_);
 }
 bool PointShadow::GetOpenShadow() const {

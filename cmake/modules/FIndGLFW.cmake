@@ -2,9 +2,9 @@
 #
 # This module defines the following variables:
 #
-# GLFW3_LIBRARY the name of the library;
-# GLFW3_INCLUDE_DIR where to find glfw include files.
-# GLFW3_FOUND true if both the GLFW3_LIBRARY and GLFW3_INCLUDE_DIR have been found.
+# GLFW_LIBRARY the name of the library;
+# GLFW_INCLUDE_DIR where to find glfw include files.
+# GLFW_FOUND true if both the GLFW_LIBRARY and GLFW_INCLUDE_DIR have been found.
 #
 # To help locate the library and include file, you can define a
 # variable called GLFW3_ROOT which points to the root of the glfw library
@@ -14,15 +14,15 @@
 # 
 # Cmake file from: https://github.com/daw42/glslcookbook
 # 
-# This file has now been improved by QuiMir. Now the file can be constructed in two ways, either from locally as 
-# it was originally constructed, or from the network.
+# This file has now been improved by QuiMir. Now the file can be constructed in two ways,
+# either from locally as it was originally constructed, or from the network.
 
 set(_glfw_HEADER_SEARCH_DIRS
 	"/usr/include"
 	"/usr/local/include"
 	"${CMAKE_SOURCE_DIR}/includes"
-	"C:/Program Files (x86)/glfw/include"
-	"${CMAKE_BINARY_DIR}/_deps/glfw-src/include")
+	"${CMAKE_BINARY_DIR}/_deps/glfw-src/include"
+	"C:/Program Files (x86)/glfw/include")
 
 set(_glfw_LIB_SEARCH_DIRS
 	"/usr/lib"

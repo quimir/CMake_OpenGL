@@ -17,10 +17,10 @@
 #ifndef CMAKE_OPEN_SRC_ADVANCED_LIGHTING_IMGUIMAINWINDOW_H_
 #define CMAKE_OPEN_SRC_ADVANCED_LIGHTING_IMGUIMAINWINDOW_H_
 
-#include "include/ImGui/ImGuiWidget.h"
-#include "include/OpenGLWindow.h"
-#include "include/Time/RenderTimer.h"
-#include "include/Camera.h"
+#include "ImGui/ImGuiWidget.h"
+#include "OpenGLWindow.h"
+#include "Time/RenderTimer.h"
+#include "Camera.h"
 
 class ImGuiMainWindow : public ImGuiWidget {
  public:

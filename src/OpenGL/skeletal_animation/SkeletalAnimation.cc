@@ -15,8 +15,8 @@
  ******************************************************************************/
 
 #include "SkeletalAnimation.h"
-#include "include/FilePathSystem.h"
-#include "include/LoadImage.h"
+#include "FilePathSystem.h"
+#include "LoadImage.h"
 
 using namespace std;
 using namespace model;
@@ -61,7 +61,9 @@ void SkeletalAnimation::InitializeGL() {
   last_x = GetWidth() / 2.0f;
   last_y = GetHeight() / 2.0f;
 
-  shader_ = new Shader("animation_model.vert", "animation_model.frag");
+  shader_ = new Shader(
+      FilePathSystem::GetInstance().GetExecutablePath("animation_model.vert"),
+      FilePathSystem::GetInstance().GetExecutablePath("animation_model.frag"));
   model_ = new Model(FilePathSystem::GetInstance().GetPath(
       "resources/objects/vampire/dancing_vampire.dae"));
   animation_ =

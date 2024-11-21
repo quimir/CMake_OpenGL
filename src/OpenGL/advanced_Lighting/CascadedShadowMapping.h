@@ -18,7 +18,7 @@
 #define CMAKE_OPEN_SRC_ADVANCED_LIGHTING_CASCADEDSHADOWMAPPING_H_
 
 #include <vector>
-#include "include/Shader.h"
+#include "Shader.h"
 
 class CascadedShadowMapping {
  public:
